@@ -1,4 +1,4 @@
-package-as: GarrisonCommander
+package-as: OrderHallCommander
 enable-nolib-creation: no
 
 externals:
@@ -19,7 +19,7 @@ externals:
 		tag: latest
 
 move-folders:
-	GarrisonCommander/GarrisonCommander-Broker: GarrisonCommander-Broker
+#	GarrisonCommander/GarrisonCommander-Broker: GarrisonCommander-Broker
 #	GarrisonCommander/GarrisonCommander-Auction: GarrisonCommander-Auction
 
 #manual-changelog:
