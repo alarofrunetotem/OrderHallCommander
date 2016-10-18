@@ -18,7 +18,7 @@ externals:
 		url: git://git.wowace.com/wow/libitemupgradeinfo-1-0/mainline.git
 		tag: latest
 
-move-folders:
+#move-folders:
 #	GarrisonCommander/GarrisonCommander-Broker: GarrisonCommander-Broker
 #	GarrisonCommander/GarrisonCommander-Auction: GarrisonCommander-Auction
 
