@@ -1,34 +1,44 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,ns=...
-local pp=print
---@debug@
-LoadAddOn("Blizzard_DebugTools")
-LoadAddOn("LibDebug")
-if LibDebug then LibDebug() end
-local dprint=print
---@end-debug@
---[===[@non-debug@
-local dprint=function() end
-local DevTools_Dump=function() end
---@end-non-debug@]===]
-local addon --#addon
+local me,ns=... 
+local addon=ns --#addon
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
-addon=LibStub("LibInit"):NewAddon(ns,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0") --#ns
-print(addon)
+addon=LibStub("LibInit"):NewAddon(addon,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --#ns
+--8<--------------------------------------------------------
+local G=C_Garrison
+local _
+local _G=_G
+local AceGUI=LibStub("AceGUI-3.0")
+local C=addon:GetColorTable()
+local L=addon:GetLocale()
+local new=function() return addon:NewTable() end
+local del=function(tb) return addon:DelTable(tb) end
 local OHF=OrderHallMissionFrame
-local missionPanel=OHF.MissionTab
-local followerPanel=OHF.FollowerTab
-local missionPanelMissions=OrderHallMissionFrameMissions
---[[
-OHC- OrderHallMissionFrame.FollowerTab.DurabilityFrame : OnShow :  table: 0000000033557BD0
-OHC- OrderHallMissionFrame.FollowerTab.QualityFrame : OnShow :  table: 0000000033557C20
-OHC- OrderHallMissionFrame.FollowerTab.PortraitFrame : OnShow :  table: 0000000033557D60
-OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 0000000033557F40
-OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
---]]
+local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
+local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local dprint
+local ddump
+--@debug@
+LoadAddOn("Blizzard_DebugTools")
+ddump=DevTools_Dump
+LoadAddOn("LibDebug")
+local function encapsulate() 
+	if LibDebug then LibDebug() end
+	dprint=print
+end
+encapsulate()
+--@end-debug@
+--[===[@non-debug@
+dprint=function() end
+ddump=function() end
+local print=function() end
+--@end-non-debug@]===]
+--8<-------------------------------------------------------
 local ctr=0
-local function resolve(frame)
+function addon.resolve(frame) 
 	local name
 	if type(frame)=="table" and frame.GetName then
 		name=frame:GetName()
@@ -49,23 +59,57 @@ local function resolve(frame)
 	end
 	return "unk"
 end
-function addon:Trace(frame, method)
-	method=method or "OnShow"
-	if not self:IsHooked(frame,method) and frame:GetObjectType()~="GameTooltip" then
-		self:HookScript(frame,method,function(...)
-			local name=resolve(frame)
-			tinsert(dbOHCperChar,resolve(frame:GetParent())..'/'..name)
-			pp(("OHC [%s] %s:%s %s %d"):format(frame:GetObjectType(),name,method,frame:GetFrameStrata(),frame:GetFrameLevel()))
-			end
-		)
+function addon.colors(c1,c2)
+	return C[c1].r,C[c1].g,C[c1].b,C[c2].r,C[c2].g,C[c2].b
+end
+local colors=addon.colors
+_G.OrderHallCommanderMixin={}
+do 
+local O=OrderHallCommanderMixin --#Mixin_panel
+function O:ShowTT()
+	local tip=GameTooltip
+	tip:SetOwner(self, "ANCHOR_TOPRIGHT")
+	tip:SetText(self.tooltip)
+	tip:Show()
+end
+function O:HideTT()
+	GameTooltip:Hide()
+end
+function O:MembersOnLoad()
+	for i=1,2 do
+		if self.Champions[i] then
+			self.Champions[1]:SetPoint("RIGHT")
+		else
+			self.Champions[i]=CreateFrame("Frame",nil,self,"OHCFollowerIcon")
+			self.Champions[i]:SetPoint("RIGHT",self.Champions[i-1],"LEFT",-5,0)
+		end
+		self.Champions[i]:Show()
 	end
 end
-function addon:OnInitialized()
-	_G.dbOHCperChar=_G.dbOHCperChar or {}
-	self:Trace(OHF)
-	local frame=EnumerateFrames()
-	while frame do
-		self:Trace(frame)
-		frame=EnumerateFrames(frame)
+function O:Dump(tip)
+	if not tip then
+		tip=GameTooltip
+		GameTooltip_SetDefaultAnchor(tip,UIParent)
 	end
+	tip:AddLine(self:GetName(),C:Green())
+	for k,v in kpairs(self) do
+		local color="Silver"
+		if type(v)=="number" then color="Blue" 
+		elseif type(v)=="string" then color="Yellow" 
+		elseif type(v)=="boolean" then v=v and'True' or 'False' color="Purple" 
+		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+		end
+		if k=="description" then v =v:sub(1,10) end
+		tip:AddDoubleLine(k,v,colors("Orange",color))
+	end
+	tip:Show()
+end
+end
+_G.OrderHallCommanderMixinFollowerIcon={}
+do
+local O= _G.OrderHallCommanderMixinFollowerIcon
+function O:SetFollower(followerID)
+end
+function O:SetEmpty(followerID)
+end
 end

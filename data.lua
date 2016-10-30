@@ -1,7 +1,23 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,ns=...
-ns.EquipmentUpgrade={
+local me,addon=...
+local fake={}
+local data={
+	Upgrades={
+		136412,
+		137207
+	},
+	Xp={
+		141028
+	},
+	Equipment={
+		139808,
+		139792
+	},
 }
+function addon:GetData(key)
+	key=key or "none"
+	return data[key] or fake
+end
 --[[
 
 dbOHCperChar = {
@@ -194,4 +210,70 @@ dbOHCperChar = {
 	"UIParent/OrderHallCommandBar", -- [89]
 	"UIParent/OrderHallMissionFrame", -- [295]
 }
+GarrisonFollowerOptions[followerid].strings=
+RETURN_TO_START = "Return to your Class Hall to start this mission"
+FOLLOWER_ADDED_TOAST = "Follower Gained"
+TROOP_ADDED_UPGRADED_TOAST = "Upgraded Troop Gained"
+TRAITS_LABEL = "Equipment Slots"
+FOLLOWER_COUNT_LABEL = "Champions"
+FOLLOWER_ADDED_UPGRADED_TOAST = "Upgraded Follower Gained"
+FOLLOWER_COUNT_STRING = "Champions: %s%d/%d%s"
+CONFIRM_EQUIPMENT = "Are you sure you want to equip your follower with %s?"
+TROOP_ADDED_TOAST = "Troop Gained"
+LANDING_COMPLETE = "Complete - Return to your Class Hall"
+
+followerListCounterInnerSpacing = 4
+minQualityLevelToShowLevel = 0
+showSpikyBordersOnSpecializationAbilities = true
+hideMissionTypeInLandingPage = true
+missionCompleteUseNeutralChest = true
+followerPageShowGear = false
+followerListCounterScale = 1.15
+isPrimaryFollowerType = true
+garrisonType = 3
+missionPageMaxCountersInFollowerFrame = 3
+missionPageMaxCountersInFollowerFrameBeforeScaling = 2
+hideCountersInAbilityFrame = true
+usesOvermaxMechanic = true
+showCategoriesInFollowerList = true
+missionFrame = "OrderHallMissionFrame"
+missionTooltipShowPartialCountersAsFull = true
+showCautionSignOnMissionFollowersSmallBias = false
+displayCounterAbilityInPlaceOfMechanic = true
+showSingleMissionCompleteAnimation = true
+followerPageShowSourceText = false
+missionPageAssignTroopSound = "UI_Mission_SlotTroop"
+minFollowersForThreatCountersFrame = 1.#INF
+partyNotFullText = "You do not have enough Champions to start this mission."
+followerListCounterOuterSpacingX = 8
+missionAbilityTooltipFrame = "GarrisonFollowerMissionAbilityWithoutCountersTooltip"
+abilityTooltipFrame = "GarrisonFollowerAbilityWithoutCountersTooltip"
+missionPageMechanicYOffset = -32
+followerListCounterNumPerRow = 2
+traitAbilitiesAreEquipment = true
+missionFollowerSortFunc = function: 000000003F78CD70
+followerListCounterOuterSpacingY = 4
+useAbilityTooltipStyleWithoutCounters = true
+missionFollowerInitSortFunc = function: 00007FF788B90998
+missionPageAssignFollowerSound = "UI_Mission_SlotChampion"
+showSingleMissionCompleteFollower = false
+showILevelOnFollower = false
+showILevelInFollowerList = true
+missionPageShowXPInMissionInfo = true
+}
+
+GARRISON_MISSION_NPC_OPEN,followerType
+GARRISON_MISSION_COMPLETE_RESPONSE,missionID,canComplete,success,bool(?),table(?)
+GARRISON_FOLLOWER_DURABILITY_CHANGED,followerType,followerID,number(Durability left?)
+GARRISON_FOLLOWER_XP_CHANGED,followerType,followerID,gainedxp,oldxp,oldlevel,oldquality (gained is 0 for maxed)
+GARRISON_MISSION_BONUS_ROLL_COMPLETE,missionID,bool(Success?)
+If succeeded then
+GARRISON_MISSION_BONUS_ROLL_LOOT,itemId
+GARRISON_MISSION_LIST_UPDATE,missionType
+GARRISON_FOLLOWER_XP_CHANGED,followerType,followerID,gainedxp,oldxp,oldlevel,oldquality (gained is 0 for maxed)
+If troops lost:
+GARRISON_FOLLOWER_REMOVED,followerType
+GARRISON_FOLLOWER_LIST_UPDATE,followerType
+
+
 --]]
