@@ -11,40 +11,46 @@
 		<Size x="110" y="75"/>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Expire" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlight">
+				<FontString parentKey="Expire" justifyV="TOP" justifyH="CENTER" inherits="Game11Font">
 					<Size x="95" y="30"/>
 					<Anchors>
-						<Anchor point="TOPLEFT"/>
-						<Anchor point="TOPRIGHT"/>
+						<Anchor point="TOPLEFT" x="5" y="-10"/>
+						<Anchor point="TOPRIGHT" x="5" y="-10"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Chance" justifyV="BOTTOM" justifyH="CENTER" inherits="GameFontHighlight">
+				<FontString parentKey="Chance1" justifyV="BOTTOM" justifyH="CENTER" inherits="NumberFontNormalHuge">
 					<Size x="95" y="30"/>
 					<Anchors>
-						<Anchor point="BOTTOMLEFT"/>
-						<Anchor point="BOTTOMRIGHT"/>
+						<Anchor point="BOTTOMLEFT" x="5" y="10"/>
+						<Anchor point="BOTTOMRIGHT" x="5" y="10"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Chance2" justifyV="BOTTOM" justifyH="CENTER" inherits="NumberFontNormalHuge">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="CENTER" x="5" y="0"/>
 					</Anchors>
 				</FontString>
 			</Layer>
 		</Layers>	
 	</Frame>
-	<Frame name="OHCMembers" virtual="true" enableMouse="false">
-		<Size x="400" y="70"/>
+	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMembers" virtual="true" enableMouse="false">
+		<Size x="1" y="70"/>
 		<Frames>
 			<Frame parentArray="Champions" inherits="OHCFollowerIcon" />
 		</Frames>
 		<Scripts>
-			<OnLoad method="MembersOnLoad"/>
+			<OnLoad method="OnLoad"/>
 		</Scripts>
 	</Frame>
-	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
+	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
 		<Size x="52" y="60"/>
 		<Scripts>
 			<OnEnter method="Dump"/>
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
-	<Frame name="OHCFollowerPortrait" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" frameLevel="1" virtual="true" >
+	<Frame name="OHCFollowerPortrait" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
 		<Size x="161" y="58"/>
 	</Frame>
 	<Button name="OHCFollowerButton" inherits="GarrisonFollowerButtonTemplate" virtual="true">
@@ -53,6 +59,17 @@
 	<Button name="OHCUpgradeButton" enableMouse="true" virtual="true" inherits="GarrisonMissionListButtonRewardTemplate">
 		<Size x="32" y="32"/>
 	</Button>	
+	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin" virtual="true">
+		<Size x="890" y="115"/>
+		<Anchors>
+			<Anchor point="TOP" relativeKey="$parent" relativePoint="BOTTOM" x="0" y="-10"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" atlas="ClassHall-CombatAlly" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>	
 	<!--
 	GarrisonFollowerXPGainTemplate
 	GarrisonFollowerXPBarTemplate

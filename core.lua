@@ -1,6 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,addon=... 
+local me,ns=... 
 --8<--------------------------------------------------------
+local addon=ns --#Addon
 local G=C_Garrison
 local _
 local _G=_G
@@ -51,51 +52,34 @@ OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 --]]
 local resolve=addon.resolve
 local colors=addon.colors
---@debug@
-local events={}
-function addon:Trace(frame, method)
-	method=method or "OnShow"
-	if type(frame)=="string" then frame=_G[frame] end
-	if not frame then return end
-	if not self:IsHooked(frame,method) and frame:GetObjectType()~="GameTooltip" then
-		self:HookScript(frame,method,function(...)
-			local name=resolve(frame)
-			tinsert(dbOHCperChar,resolve(frame:GetParent())..'/'..name)
-			print(("OHC [%s] %s:%s %s %d"):format(frame:GetObjectType(),name,method,frame:GetFrameStrata(),frame:GetFrameLevel()))
-			end
-		)
-	end
-end
-function addon:ShowGarrisonEvents(this,event,...)
-	if event:find("GARRISON") then
-		dprint(event,...)
-		tinsert(events,{event,...})
-	end
-end
-function addon:DumpEvents()
-	return events
-end
---@end-debug@
+local menu
 function addon:OnInitialized()
+	OHF:SetHeight(720)
+	local menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
+	menu:SetPoint("TOPLEFT",OHFMissions.CombatAllyUI,"BOTTOMLEFT",0,5)
+	menu:SetPoint("TOPRIGHT",OHFMissions.CombatAllyUI,"BOTTOMRIGHT",0,5)
+	menu:SetPoint("BOTTOM",10,10)
+	menu:SetFrameLevel(OHF:GetFrameLevel()+10)
 --@debug@
-	local f=CreateFrame("Frame")
+	local f=menu
 	f:RegisterAllEvents()
 	self:RawHookScript(f,"OnEvent","ShowGarrisonEvents")
 --@end-debug@
 	self:AddBoolean("MOVEPANEL",true,"test","long test")
+	
 	OHF:EnableMouse(true)
 	OHF:SetMovable(true)
 	OHF:RegisterForDrag("LeftButton")
 	OHF:SetScript("OnDragStart",function(frame)if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
-	for i=1,16 do
-		local name="OrderHallMissionFrameMissionsListScrollFrameButton"..i
-		if _G[name] then
-			self:SecureHookScript(_G[name],"OnEnter","AdjustMissionTooltip")
-			self:SecureHookScript(_G[name],"OnClick","PostMissionClick")
-		end		
-	end
-	self:SecureHook("GarrisonMissionButton_SetRewards","AdjustMissionButton")
+	self:SecureHookScript(OHFFollowerTab,"OnShow","ShowFollowerMenu")
+	self:SecureHookScript(OHFMissionTab,"OnShow","ShowMissionMenu")
+end
+function addon:ShowFollowerMenu()
+	print("Follower Menu")
+end
+function addon:ShowMissionMenu()
+	print("Mission Menu")
 end
 -- my implementation of tonumber which accounts for nan and inf
 function addon:tonumber(value,default)
@@ -138,6 +122,10 @@ function addon:SetBackdrop(frame,r,g,b)
    )	
    frame:SetBackdropColor(r,g,b,1)
 end
+function addon:GetDifficultyColors(...)
+	local q=self:GetDifficultyColor(...)
+	return q.r,q.g,q.b
+end
 function addon:GetDifficultyColor(perc,usePurple)
 	if(perc >90) then
 		return QuestDifficultyColors['standard']
@@ -152,5 +140,28 @@ function addon:GetDifficultyColor(perc,usePurple)
 	end
 end
 --@debug@
+local events={}
+function addon:Trace(frame, method)
+	method=method or "OnShow"
+	if type(frame)=="string" then frame=_G[frame] end
+	if not frame then return end
+	if not self:IsHooked(frame,method) and frame:GetObjectType()~="GameTooltip" then
+		self:HookScript(frame,method,function(...)
+			local name=resolve(frame)
+			tinsert(dbOHCperChar,resolve(frame:GetParent())..'/'..name)
+			print(("OHC [%s] %s:%s %s %d"):format(frame:GetObjectType(),name,method,frame:GetFrameStrata(),frame:GetFrameLevel()))
+			end
+		)
+	end
+end
+function addon:ShowGarrisonEvents(this,event,...)
+	if event:find("GARRISON") then
+		dprint(event,...)
+		tinsert(events,{event,...})
+	end
+end
+function addon:DumpEvents()
+	return events
+end
 _G.OHC=addon
 --@end-debug@

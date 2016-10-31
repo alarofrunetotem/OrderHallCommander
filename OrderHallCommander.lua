@@ -64,52 +64,58 @@ function addon.colors(c1,c2)
 end
 local colors=addon.colors
 _G.OrderHallCommanderMixin={}
-do 
-local O=OrderHallCommanderMixin --#Mixin_panel
-function O:ShowTT()
+local O1=OrderHallCommanderMixin --#Mixin_panel
+function O1:ShowTT()
 	local tip=GameTooltip
 	tip:SetOwner(self, "ANCHOR_TOPRIGHT")
 	tip:SetText(self.tooltip)
 	tip:Show()
 end
-function O:HideTT()
+function O1:HideTT()
 	GameTooltip:Hide()
 end
-function O:MembersOnLoad()
-	for i=1,2 do
+function O1:Dump()
+	local	tip=GameTooltip
+	GameTooltip_SetDefaultAnchor(tip,self)
+	tip:AddLine(self:GetName(),C:Green())
+	self.DumpData(tip,self)
+	tip:Show()
+end
+function O1.DumpData(tip,data)
+	for k,v in kpairs(data) do
+		local color="Silver"
+		if type(v)=="number" then color="Blue" 
+		elseif type(v)=="string" then color="Yellow" 
+		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White" 
+		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+		end
+		if k=="description" then v =v:sub(1,10) end
+		tip:AddDoubleLine(k,v,colors("Orange",color))
+	end
+end
+_G.OrderHallCommanderMixinFollowerIcon={} 
+local O2= _G.OrderHallCommanderMixinFollowerIcon --#Mixin_FollowerIcon
+function O2:SetFollower(followerID)
+	local info=addon:GetChampionData(followerID)
+	self:SetupPortrait(info)
+end
+function O2:SetEmpty()
+	self:SetNoLevel()
+	self:SetPortraitIcon()
+end
+_G.OrderHallCommanderMixinMembers={}
+local O3= _G.OrderHallCommanderMixinMembers --#Mixin_Members
+function O3:OnLoad()
+	dprint("Loading members")
+	for i=1,3 do
 		if self.Champions[i] then
 			self.Champions[1]:SetPoint("RIGHT")
 		else
 			self.Champions[i]=CreateFrame("Frame",nil,self,"OHCFollowerIcon")
 			self.Champions[i]:SetPoint("RIGHT",self.Champions[i-1],"LEFT",-5,0)
 		end
+		self.Champions[i]:SetFrameLevel(self:GetFrameLevel()+10)
 		self.Champions[i]:Show()
+		self.Champions[i]:SetEmpty()
 	end
-end
-function O:Dump(tip)
-	if not tip then
-		tip=GameTooltip
-		GameTooltip_SetDefaultAnchor(tip,UIParent)
-	end
-	tip:AddLine(self:GetName(),C:Green())
-	for k,v in kpairs(self) do
-		local color="Silver"
-		if type(v)=="number" then color="Blue" 
-		elseif type(v)=="string" then color="Yellow" 
-		elseif type(v)=="boolean" then v=v and'True' or 'False' color="Purple" 
-		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
-		end
-		if k=="description" then v =v:sub(1,10) end
-		tip:AddDoubleLine(k,v,colors("Orange",color))
-	end
-	tip:Show()
-end
-end
-_G.OrderHallCommanderMixinFollowerIcon={}
-do
-local O= _G.OrderHallCommanderMixinFollowerIcon
-function O:SetFollower(followerID)
-end
-function O:SetEmpty(followerID)
-end
 end

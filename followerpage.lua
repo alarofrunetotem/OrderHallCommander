@@ -40,11 +40,11 @@ local debugInfo
 --@end-debug@
 
 function module:OnInitialized()
-	self:Print("OnInitialized",FollowerTab)
-	UpgradeFrame=CreateFrame("Frame",nil,FollowerTab)
+	self:Print("OnInitialized",OHFFollowerTab)
+	UpgradeFrame=CreateFrame("Frame",nil,OHFFollowerTab)
 	local u=UpgradeFrame
-	u:SetPoint("TOPLEFT",FollowerTab,"TOPLEFT",5,-72)
-	u:SetPoint("BOTTOMLEFT",FollowerTab,"BOTTOMLEFT",5,7)
+	u:SetPoint("TOPLEFT",OHFFollowerTab,"TOPLEFT",5,-72)
+	u:SetPoint("BOTTOMLEFT",OHFFollowerTab,"BOTTOMLEFT",5,7)
 	u:SetWidth(70)
 	u:Show()
 	--addon:SetBackdrop(u,C:Green())
@@ -52,33 +52,18 @@ function module:OnInitialized()
 	self:SecureHook("GarrisonMission_SetFollowerModel","RefreshUpgrades")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
 --@debug@
+	UpgradeFrame:EnableMouse(true)
+	self:RawHookScript(UpgradeFrame,"OnEnter","ShowFollowerData")
 	debugInfo=u:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	debugInfo:SetPoint("TOPLEFT",70,00)
 --@end-debug@	
-	
-	
 end
-local ctr=0
-local function resolve(frame)
-	local name
-	if type(frame)=="table" and frame.GetName then
-		name=frame:GetName()
-		if not name then
-			local parent=frame:GetParent()
-			if not parent then return "UIParent" end
-			for k,v in pairs(parent) do
-				if v==frame then
-					name=resolve(parent) .. '.'..k
-					return name
-				end
-			end
-		else
-			return name
-		end
-		_G['UNK_'..ctr]=frame
-		return 'UNK_'..ctr
-	end
-	return "unk"
+function module:ShowFollowerData(this)
+	local tip=GameTooltip
+	GameTooltip_SetDefaultAnchor(tip,this)
+	tip:AddLine(me)
+	OrderHallCommanderMixin.DumpData(tip,addon:GetChampionData(OHFFollowerTab.followerID))
+	tip:Show()
 end
 function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
 	if not followerId or followerType==LE_FOLLOWER_TYPE_GARRISON_7_0 then
@@ -108,31 +93,35 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 --@debug@
 	debugInfo:SetText(followerID)
 --@end-debug@
-	UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
-	UpgradeFrame:SetFrameLevel(model:GetFrameLevel()+5)
+	if model then
+		UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
+		UpgradeFrame:SetFrameLevel(model:GetFrameLevel()+5)
+	end
+	if not followerID then followerID=OHFFollowerTab.followerID end
 	local follower=self:GetChampionData(followerID)
-	print(G.GetFollowerName(followerID),follower)
 	for i=1,#UpgradeButtons do
 		self:ReleaseButton(UpgradeButtons[i])
 	end
 	wipe(UpgradeButtons)
+	if follower.isTroop then return end
+	if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	local u=UpgradeFrame
 	local previous
---	if follower.iLevel <850 then
+	if follower.iLevel <850 then
 		for _,id in pairs(self:GetData("Upgrades")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
---	end
---	if follower.isMaxLevel and  follower.quality ~=LE_ITEM_QUALITY_EPIC then
+	end
+	if follower.isMaxLevel and  follower.quality ~=LE_ITEM_QUALITY_EPIC then
 		for _,id in pairs(self:GetData("Xp")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
---	end
---	if follower.quality >=LE_ITEM_QUALITY_RARE then
+	end
+	if follower.quality >=LE_ITEM_QUALITY_RARE then
 		for _,id in pairs(self:GetData("Equipment")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
---	end
+	end
 end
 function module:AcquireButton()
 	local b=tremove(pool)
