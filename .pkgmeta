@@ -33,3 +33,5 @@ ignore:
 - Debug.lua
 - info.txt
 - wowhead.sh
+- *.template.lua
+- *.save.lua

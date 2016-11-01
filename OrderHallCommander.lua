@@ -1,21 +1,24 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,ns=... 
-local addon=ns --#addon
+--*TYPE addon
+--*CONFIG noswitch=false,profile=true,enhancedProfile=true
+--*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
+--*MINOR 35
+local me,ns=...
+ns=addon --#Addon (keeps eclipse happy)
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
-addon=LibStub("LibInit"):NewAddon(addon,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --#ns
-function addon:NewSubClass(module)
-	return self:NewSubModule(module,"AceConsole-3.0","AceHook-3.0","AceEvent-3.0","AceTimer-3.0")
-end
---8<--------------------------------------------------------
+assert(minor>=35,me ..': Need at least Libinit version 35')
+addon=LibInit:NewAddon(addon,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")--[[OrderHallCommander--]]
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local me=...
+local addon=select(2,...) --#addon
 local G=C_Garrison
 local _
-local _G=_G
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=function() return addon:NewTable() end
-local del=function(tb) return addon:DelTable(tb) end
+local new=addon.NewTable
+local del=addon.Deltable
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
@@ -29,10 +32,8 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 local function encapsulate() 
-	if LibDebug then LibDebug() end
-	dprint=print
+	if LibDebug then LibDebug() dprint=print end
 end
-encapsulate()
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
@@ -40,6 +41,7 @@ ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
 --8<-------------------------------------------------------
+--*BEGIN
 local ctr=0
 function addon.resolve(frame) 
 	local name
