@@ -6,8 +6,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=function() return addon:NewTable() end
-local del=function(tb) return addon:DelTable(tb) end
+local new=addon.NewTable
+local del=addon.Deltable
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
@@ -30,7 +30,7 @@ ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
 --8<-------------------------------------------------------
-local module=addon:NewSubClass('hallautocomplete') --# module
+local module=addon:NewSubModule(module,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --# module
 local CompleteButton=OHFMissions.CompleteDialog.BorderFrame.ViewButton
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local pairs=pairs
@@ -80,9 +80,10 @@ local missions={}
 local states={}
 local rewards={
 	items={},
-	followerBase={},
+	followerQLevel=setmetatable({},{__index=function() return 0 end}),
 	followerXP=setmetatable({},{__index=function() return 0 end}),
 	currencies=setmetatable({},{__index=function(t,k) rawset(t,k,{icon="",qt=0}) return t[k] end}),
+	bonuses={}
 }
 local scroller
 local report
@@ -146,7 +147,7 @@ function module:MissionComplete(this,button,skiprescheck)
 	if (missions and #missions > 0) then
 		this:SetEnabled(false)
 		OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(false) -- Disabling standard Blizzard Completion
-		wipe(rewards.followerBase)
+		wipe(rewards.followerQLevel)
 		wipe(rewards.followerXP)
 		wipe(rewards.currencies)
 		wipe(rewards.items)
@@ -154,7 +155,7 @@ function module:MissionComplete(this,button,skiprescheck)
 		local wasted={}
 		for i=1,#missions do
 			for k,v in pairs(missions[i].followers) do
-				rewards.followerBase[v]=addon:GetChampionData(followerType,v)
+				rewards.followerBase[v]=addon:GetChampionData(followerType,v,qLevel)
 			end
 			for k,v in pairs(missions[i].rewards) do
 				if v.itemID then GetItemInfo(v.itemID) end -- tickling server
@@ -396,8 +397,8 @@ function module:MissionsPrintResults(success)
 		followers=true
 		local a=addon:GetChampionData(k)
 		local b=addon:GetChampionData(k,'qLevel',0)
-		local c=rewards.followerBase[k].qLevel
-		report:AddFollower(a,v, b> tonumber(c,0))
+		local c=rewards.followerQLevel[k]
+		report:AddFollower(a,v, b> addon:tonumber(c,0))
 	end
 	if not reported then
 		report:AddRow(L["Nothing to report"])
