@@ -60,7 +60,7 @@ function module:OnInitialized()
 end
 function module:ShowFollowerData(this)
 	local tip=GameTooltip
-	GameTooltip_SetDefaultAnchor(tip,this)
+	tip:SetOwner(this,"CURSOR_ANCHOR")
 	tip:AddLine(me)
 	OrderHallCommanderMixin.DumpData(tip,addon:GetChampionData(OHFFollowerTab.followerID))
 	tip:Show()
@@ -98,7 +98,7 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 		UpgradeFrame:SetFrameLevel(model:GetFrameLevel()+5)
 	end
 	if not followerID then followerID=OHFFollowerTab.followerID end
-	local follower=self:GetChampionData(followerID)
+	local follower=addon:GetChampionData(followerID)
 	for i=1,#UpgradeButtons do
 		self:ReleaseButton(UpgradeButtons[i])
 	end
@@ -108,17 +108,17 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	local u=UpgradeFrame
 	local previous
 	if follower.iLevel <850 then
-		for _,id in pairs(self:GetData("Upgrades")) do
+		for _,id in pairs(addon:GetData("Upgrades")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
 	end
 	if follower.isMaxLevel and  follower.quality ~=LE_ITEM_QUALITY_EPIC then
-		for _,id in pairs(self:GetData("Xp")) do
+		for _,id in pairs(addon:GetData("Xp")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
 	end
 	if follower.quality >=LE_ITEM_QUALITY_RARE then
-		for _,id in pairs(self:GetData("Equipment")) do
+		for _,id in pairs(addon:GetData("Equipment")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
 	end

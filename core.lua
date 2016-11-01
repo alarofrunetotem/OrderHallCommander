@@ -50,21 +50,32 @@ OHC- OrderHallMissionFrame.FollowerTab.PortraitFrame : OnShow :  table: 00000000
 OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 0000000033557F40
 OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 --]]
+-- Upvalued functions
+local select,CreateFrame,pairs,type,tonumber,math=select,CreateFrame,pairs,type,tonumber,math
+local QuestDifficultyColors,GameTooltip=QuestDifficultyColors,GameTooltip
+local tinsert,tremove,tContains=tinsert,tremove,tContains
 local resolve=addon.resolve
 local colors=addon.colors
 local menu
+local menuType="OHCMenu"
+local menuOptions={mission={},follower={}}
 function addon:OnInitialized()
+	menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
+	self:RawHookScript(menu,"OnHide","ClearMenu")
+	--[[
 	OHF:SetHeight(720)
-	local menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
+	OHFMissions.CompleteDialog:SetHeight(OHF:GetHeight())
 	menu:SetPoint("TOPLEFT",OHFMissions.CombatAllyUI,"BOTTOMLEFT",0,5)
 	menu:SetPoint("TOPRIGHT",OHFMissions.CombatAllyUI,"BOTTOMRIGHT",0,5)
 	menu:SetPoint("BOTTOM",10,10)
 	menu:SetFrameLevel(OHF:GetFrameLevel()+10)
+	--]]
 --@debug@
 	local f=menu
 	f:RegisterAllEvents()
 	self:RawHookScript(f,"OnEvent","ShowGarrisonEvents")
 --@end-debug@
+	self:AddLabel(L["General"])
 	self:AddBoolean("MOVEPANEL",true,"test","long test")
 	
 	OHF:EnableMouse(true)
@@ -75,11 +86,27 @@ function addon:OnInitialized()
 	self:SecureHookScript(OHFFollowerTab,"OnShow","ShowFollowerMenu")
 	self:SecureHookScript(OHFMissionTab,"OnShow","ShowMissionMenu")
 end
+function addon:ClearMenu()
+	if menu.widget then 
+		pcall(AceGUI.Release,AceGUI,menu.widget) 
+		menu.widget=nil 
+	end
+end
+function addon:RegisterForMenu(menu,...)
+	for i=1,select('#',...) do
+		local value=(select(i,...))
+		if not tContains(menuOptions[menu],value) then
+			tinsert(menuOptions[menu],value)
+		end
+	end
+end
 function addon:ShowFollowerMenu()
 	print("Follower Menu")
+	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.follower))
 end
 function addon:ShowMissionMenu()
 	print("Mission Menu")
+	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.mission))
 end
 -- my implementation of tonumber which accounts for nan and inf
 function addon:tonumber(value,default)
@@ -127,7 +154,9 @@ function addon:GetDifficultyColors(...)
 	return q.r,q.g,q.b
 end
 function addon:GetDifficultyColor(perc,usePurple)
-	if(perc >90) then
+	if perc>=100 then
+		return C.Green
+	elseif(perc >90) then
 		return QuestDifficultyColors['standard']
 	elseif (perc >74) then
 		return QuestDifficultyColors['difficult']
@@ -139,6 +168,100 @@ function addon:GetDifficultyColor(perc,usePurple)
 		return not usePurple and C.Silver or C.Fuchsia
 	end
 end
+function addon:GetAgeColor(age)
+		age=tonumber(age) or 0
+		if age>GetTime() then age=age-GetTime() end
+		if age < 0 then age=0 end
+		local hours=floor(age/3600)
+		local q=self:GetDifficultyColor(hours+20,true)
+		return q.r,q.g,q.b
+end
+local widgetsForKey={}
+function addon:CreateOptionsLayer(frame,...)
+	if frame.widget then
+		frame.widget.frame:SetParent(nil)
+		AceGUI:Release(frame.widget)
+	end
+	local o=AceGUI:Create(menuType) -- a transparent frame
+	o:SetLayout("Flow")
+	o:SetCallback("OnClose",function(widget) print("Close called") widget:Release() end)
+	local totsize=0
+	wipe(widgetsForKey)
+	for i=1,select('#',...) do
+		totsize=totsize+self:AddOptionToOptionsLayer(o,select(i,...))
+	end
+	--o.frame:SetParent(frame)
+	o:ClearAllPoints()
+	o:SetPoint("TOPLEFT",frame,5,-5)
+	o:SetPoint("BOTTOMRIGHT",frame,-5,5)
+	o.frame:Show()
+	frame.widget=o
+	return o,totsize
+end
+function addon:AddOptionToOptionsLayer(o,flag,maxsize)
+	maxsize=tonumber(maxsize) or 160
+	if (not flag) then return 0 end
+	local info=addon:GetVarInfo(flag)
+	if (info) then
+		local data={option=info}
+		local widget
+		if (info.type=="toggle") then
+			widget=AceGUI:Create("CheckBox")
+			local value=addon:GetBoolean(flag)
+			widget:SetValue(value)
+			local color=value and "Green" or "Silver"
+			widget:SetLabel(C(info.name,color))
+			widget:SetWidth(min(widget.text:GetStringWidth()+40,maxsize))
+		elseif(info.type=="select") then
+			widget=AceGUI:Create("Dropdown")
+			widget:SetValue(addon:GetVar(flag))
+			widget:SetLabel(info.name)
+			widget:SetText(info.values[self:GetVar(flag)])
+			widget:SetList(info.values)
+			widget:SetWidth(maxsize)
+		elseif (info.type=="execute") then
+			widget=AceGUI:Create("Button")
+			widget:SetText(info.name)
+			widget:SetWidth(maxsize)
+			widget:SetCallback("OnClick",function(widget,event,value)
+				self[info.func](self,data,value)
+			end)
+		elseif (info.type=="range") then
+			local value=addon:GetNumber(flag)
+			widget=AceGUI:Create("Slider")
+			widget:SetLabel(info.name)
+			widget:SetValue(value)
+			widget:SetSliderValues(info.min,info.max,info.step)
+			widget:SetWidth(maxsize)
+			widget:SetCallback("OnClick",function(widget,event,value)
+				self[info.func](self,data,value)
+			end)
+		else
+			widget=AceGUI:Create("Label")
+			widget:SetText(info.name)
+			widget:SetWidth(maxsize)
+		end
+		widget:SetCallback("OnValueChanged",function(widget,event,value)
+			if (type(value=='boolean')) then
+				local color=value and "Green" or "Silver"
+				widget:SetLabel(C(info.name,color))
+			end
+			self[info.set](self,data,value)
+		end)
+		widget:SetCallback("OnEnter",function(widget)
+			GameTooltip:SetOwner(widget.frame,"ANCHOR_CURSOR")
+			GameTooltip:AddLine(info.desc)
+			GameTooltip:Show()
+		end)
+		widget:SetCallback("OnLeave",function(widget)
+			GameTooltip:FadeOut()
+		end)
+		o:AddChildren(widget)
+		widgetsForKey[flag]=widget
+	end
+	return maxsize
+end
+
 --@debug@
 local events={}
 function addon:Trace(frame, method)

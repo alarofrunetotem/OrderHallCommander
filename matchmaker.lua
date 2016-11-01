@@ -35,43 +35,55 @@ local module=addon:NewSubClass('matchmaker') --# module
 local assert,pairs,wipe,GetFramesRegisteredForEvent=assert,pairs,wipe,GetFramesRegisteredForEvent
 local parties={}
 local party={} --#Party Metatable for party managementy
-local stacklevel=0
-local frames
+local emptyTable={}
+local holdEvents,releaseEvents
+function party:GetFollowers()
+	return emptyTable
+end
+function party:new(missionID)
+	local t=setmetatable(new(),{__index=party})
+	return t:Match(missionID)
+	
+end
+function party:release()
+	setmetatable(self,nil)
+	del(self)
+end
+function party:Match(missionID)
+	holdEvents()
+	local champions=new()
+	local troops=new()
+	for i,follower in pairs(addon:GetChampionData()) do
+		if follower.isCollected then
+			if follower.isTroop then
+				if not troops[follower.name] then
+					troops[follower.name]=follower.followerID
+				end					
+			else
+				tinsert(champions,follower)
+			end
+		end  
+	end
+	releaseEvents()	
+	return self
+end
 function addon:GetMatchMaker()
 	return module
 end
-local function holdEvents()
-	if stacklevel==0 then
-		frames={GetFramesRegisteredForEvent('GARRISON_FOLLOWER_LIST_UPDATE')}
-		for i=1,#frames do
-			frames[i]:UnregisterEvent("GARRISON_FOLLOWER_LIST_UPDATE")
-		end
-	end
-	stacklevel=stacklevel+1
-end
-local function releaseEvents()
-	stacklevel=stacklevel-1
-	assert(stacklevel>=0)
-	if (stacklevel==0) then
-		for i=1,#frames do
-			frames[i]:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE")
-		end
-		frames=nil
-	end
-end
+
 function module:Clear(event,...)
-	print("Clear",event,...)
-	for k,v in pairs(parties) do
-		del(parties[k])
+	if next(parties) then
+		for k,v in pairs(parties) do
+			parties[k]:release()
+		end
+		wipe(parties)
 	end
-	wipe(parties)
 end
 function module:GetParty(missionID)
-	if (parties[missionID]) then
-		return parties[missionID]
-	else
-		parties[missionID]=setmetatable(new(),party)
+	if not parties[missionID] then
+		parties[missionID]=party:new(missionID)
 	end
+	return parties[missionID]
 end
 function module:OnInitialized()
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Clear")
@@ -80,4 +92,39 @@ function module:OnInitialized()
 	self:RegisterEvent("GARRISON_MISSION_BONUS_ROLL_COMPLETE","Clear")
 	self:RegisterEvent("GARRISON_MISSION_BONUS_ROLL_LOOT","Clear")
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Clear")
+	addon:AddLabel(L["Matchmaking"])
+	addon:AddBoolean("OPT1",true,"test1","long test1")
+	addon:AddBoolean("OPT2",true,"test2","long test2")
+	addon:AddBoolean("OPT3",true,"test3","long test3")
+	addon:AddBoolean("OPT4",true,"test4","long test4")
+	addon:RegisterForMenu("mission","OPT1","OPT2","OPT3","OPT4")
+	
 end
+local events={stacklevel=0,frames={}} --#events
+function events.hold() --#eventsholdEvents
+	if events.stacklevel==0 then
+		events.frames={GetFramesRegisteredForEvent('GARRISON_FOLLOWER_LIST_UPDATE')}
+		for i=1,#events.frames do
+			events.frames[i]:UnregisterEvent("GARRISON_FOLLOWER_LIST_UPDATE")
+		end
+	end
+	events.stacklevel=events.stacklevel+1
+end
+function events.release()
+	events.stacklevel=events.stacklevel-1
+	assert(events.stacklevel>=0)
+	if (events.stacklevel==0) then
+		for i=1,#events.frames do
+			events.frames[i]:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE")
+		end
+		events.frames=nil
+	end
+end
+holdEvents=events.hold
+releaseEvents=events.release
+-- Public Interface
+function addon:GetParty(...)
+	return module:GetParty(...)
+end
+
+

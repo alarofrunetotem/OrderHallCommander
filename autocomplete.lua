@@ -46,7 +46,7 @@ function module:OnInitialized()
 	bt:SetText(L["HallComander Quick Mission Completion"])
 	bt:SetWidth(bt:GetTextWidth()+10)
 	bt:SetPoint("CENTER",0,-50)
-	self:ActivateButton(bt,"MissionComplete",L["Complete all missions without confirmation"])
+	addon:ActivateButton(bt,"MissionComplete",L["Complete all missions without confirmation"])
 end
 
 function module:GenerateMissionCompleteList(title,anchor)
@@ -154,8 +154,7 @@ function module:MissionComplete(this,button,skiprescheck)
 		local wasted={}
 		for i=1,#missions do
 			for k,v in pairs(missions[i].followers) do
---				rewards.followerBase[v]=self:GetChampionData(followerType,v,'qLevel',0)
-				rewards.followerBase[v]=self:GetChampionData(followerType,v)
+				rewards.followerBase[v]=addon:GetChampionData(followerType,v)
 			end
 			for k,v in pairs(missions[i].rewards) do
 				if v.itemID then GetItemInfo(v.itemID) end -- tickling server
@@ -189,9 +188,9 @@ function module:MissionComplete(this,button,skiprescheck)
 				function()
 					StaticPopup_Hide("LIBINIT_POPUP")
 					this:SetEnabled(true)
-					OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(true)
+					CompleteButton:SetEnabled(true)
 					OHF:Hide()
-					ns.quick=false
+					addon.quick=false
 
 				end
 			)
@@ -246,8 +245,8 @@ function module:MissionAutoComplete(event,...)
 	-- GARRISON_FOLLOWER_XP_CHANGED: followerType,followerID, xpGained, oldXp, oldLevel, oldQuality
 	if (event=="GARRISON_FOLLOWER_XP_CHANGED") then
 		local followerType,followerID, xpGained, oldXp, oldLevel, oldQuality=...
-		if self:tonumber(xpGained,0) then
-			rewards.followerXP[followerID]=rewards.followerXP[followerID]+self:tonumber(xpGained,0)
+		if addon:tonumber(xpGained,0) then
+			rewards.followerXP[followerID]=rewards.followerXP[followerID]+addon:tonumber(xpGained,0)
 		end
 		return
 	-- GARRISON_MISSION_BONUS_ROLL_LOOT: itemID
@@ -268,6 +267,10 @@ function module:MissionAutoComplete(event,...)
 	-- GARRISON_MISSION_COMPLETE_RESPONSE,missionID,canComplete,success,unknown_bool,unknown_table
 	elseif (event=="GARRISON_MISSION_COMPLETE_RESPONSE") then
 		local missionID,canComplete,success,unknown_bool,unknown_table	
+		if currentMission.completed then
+			canComplete=true
+			success=true
+		end
 		if (not canComplete) then
 			-- We need to call server again
 			currentMission.state=0
@@ -303,13 +306,13 @@ function module:MissionAutoComplete(event,...)
 				--@debug@
 				print("Fired mission complete for",currentMission.missionID)
 				--@end-debug@
-				G.MarkMissionComplete(currentMission.missionID)
+				print(G.MarkMissionComplete(currentMission.missionID))
 				startTimer(2)
 			elseif (step==1) then
 				--@debug@
 				print("Fired bonus roll complete for",currentMission.missionID)
 				--@end-debug@
-				G.MissionBonusRoll(currentMission.missionID)
+				print(G.MissionBonusRoll(currentMission.missionID))
 				startTimer(2)
 			elseif (step>=2) then
 				self:GetMissionResults(step==3,currentMission)
@@ -361,6 +364,9 @@ function module:MissionsPrintResults(success)
 	stopTimer()
 	local reported
 	local followers
+	--@debug@
+	_G["testrewards"]=rewards
+	--@end-debug@
 	for k,v in pairs(rewards.currencies) do
 		reported=true
 		if k == 0 then
@@ -388,7 +394,10 @@ function module:MissionsPrintResults(success)
 	for k,v in pairs(rewards.followerXP) do
 		reported=true
 		followers=true
-		report:AddFollower(self:GetChampionData(followerType,k),v,self:GetChampionData(followerType,k,'qLevel',0) > tonumber(rewards.followerBase[k].qLevel,0))
+		local a=addon:GetChampionData(k)
+		local b=addon:GetChampionData(k,'qLevel',0)
+		local c=rewards.followerBase[k].qLevel
+		report:AddFollower(a,v, b> tonumber(c,0))
 	end
 	if not reported then
 		report:AddRow(L["Nothing to report"])

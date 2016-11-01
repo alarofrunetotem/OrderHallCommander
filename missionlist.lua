@@ -51,6 +51,7 @@ function module:AdjustMissionButton(frame,rewards)
 	local mission=frame.info
 	local missionID=mission and mission.missionID
 	if not missionID then return end
+	if not OHF:IsVisible() then return end
 	local inProgress=OHFMissions.showInProgress
 	if inProgress and missionids[frame] and missionids[frame]==missionID then return end
 	missionids[frame]=missionID
@@ -58,13 +59,13 @@ function module:AdjustMissionButton(frame,rewards)
 		-- Compacting mission time and level
 		frame.RareText:Hide()
 		frame.Level:ClearAllPoints()
-		local aLevel,aIlevel=self:GetAverageLevels()
+		local aLevel,aIlevel=addon:GetAverageLevels()
 		if mission.isMaxLevel then
 			frame.Level:SetText(mission.iLevel)
-			frame.Level:SetTextColor(self:GetDifficultyColors(math.floor(aIlevel/mission.iLevel*100)-20))
+			frame.Level:SetTextColor(addon:GetDifficultyColors(math.floor(aIlevel/mission.iLevel*100)))
 		else
 			frame.Level:SetText(mission.level)
-			frame.Level:SetTextColor(self:GetDifficultyColors(math.floor(aLevel/mission.level*100)-20))
+			frame.Level:SetTextColor(addon:GetDifficultyColors(math.floor(aLevel/mission.level*100)))
 		end
 		frame.ItemLevel:Hide()
 		frame.Level:SetPoint("LEFT",5,0)
@@ -81,18 +82,19 @@ function module:AdjustMissionButton(frame,rewards)
 	end
 	local stats=missionstats[frame]
 	stats:SetPoint("Center",frame.MissionType)
-	local perc=inProgress and select(4,G.GetPartyMissionInfo(missionID)) or 100
-	local followers=inProgress and mission.followers or nil
+	local perc=select(4,G.GetPartyMissionInfo(missionID)) 
+	local followers=(inProgress or mission.inProgress) and mission.followers or addon:GetParty(missionID):GetFollowers()
 	if inProgress then
 		stats.Expire:Hide()
 		stats.Chance1:Hide()
 		stats.Chance2:SetFormattedText(PERCENTAGE_STRING,perc)
-		stats.Chance2:SetTextColor(self:GetDifficultyColors(perc))		
+		stats.Chance2:SetTextColor(addon:GetDifficultyColors(perc,true))		
 		stats.Chance2:Show()
 	else
 		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining)
-		stats.Chance1:SetFormattedText(PERCENTAGE_STRING,100)
-		stats.Chance1:SetTextColor(self:GetDifficultyColors(perc))		
+		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))		
+		stats.Chance1:SetFormattedText(PERCENTAGE_STRING,perc)
+		stats.Chance1:SetTextColor(addon:GetDifficultyColors(perc))		
 		stats.Expire:Show()
 		stats.Chance1:Show()
 		stats.Chance2:Hide()

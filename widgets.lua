@@ -87,6 +87,7 @@ local function createOHCMissionListWidget()
 				extra.Failure:Hide()
 				for i=1,#frame.Rewards do
 					frame.Rewards[i].Icon:SetDesaturated(false)
+					frame.Rewards[i].Quantity:Show()
 				end
 			else
 				extra.Success:Hide()
@@ -135,18 +136,6 @@ local function createOHCMissionListWidget()
 	end
 	function m:AddFollowerIcon(followerType,icon,text)
 		local l=self:AddIconText(icon,text)
-		if followerType==LE_FOLLOWER_TYPE_SHIPYARD_6_2 then
-			if toc<70000 then
-				local left,right,top,bottom
-				left=0
-				right=0.6
-				top=0
-				bottom=0.5
-				l:SetImage(icon,left,right,top,bottom)
-			end
-			l:SetImageSize(36,36)
-			l:SetHeight(38)
-		end
 	end
 	function m:AddIconText(icon,text,qt)
 		local obj=self.scroll
@@ -190,6 +179,7 @@ local function createOHCMissionListWidget()
 		for k,v in pairs(m) do widget[k]=v end
 		widget:Show()
 		widget.scroll=scroll
+		widget.type=Type
 		return widget
 	end
 	AceGUI:RegisterWidgetType(Type,Constructor,Version)
@@ -212,7 +202,7 @@ local function createOHCGUIContainerWidget()
 	end
 	---@function [parent=#OHCGUIContainer]
 	local function Constructor()
-		local frame=CreateFrame("Frame",Type..(GetTime()*1000),nil,"GarrisonUITemplate")
+		local frame=CreateFrame("Frame",Type..AceGUI:GetNextWidgetNum(Type),nil,"GarrisonUITemplate")
 		for _,f in pairs({frame:GetRegions()}) do
 			if (f:GetObjectType()=="Texture" and f:GetAtlas()=="Garr_WoodFrameCorner") then f:Hide() end
 		end
@@ -464,10 +454,96 @@ local function createOHCMiniMissionButtonWidget()
 	AceGUI:RegisterWidgetType(Type,Constructor,Version)
 	
 end
+local function createOHCMenu()
+	local Type = "OHCMenu"
+	local Version = 1
+	local m={} --#OHCMenu 
+	
+	
+	function m:Hide()
+		self.frame:Hide()
+	end
+	
+	function m:Show()
+		self.frame:Show()
+	end
+	
+	function m:OnAcquire()
+		self.frame:SetParent(UIParent)
+		self.frame:SetFrameStrata("FULLSCREEN_DIALOG")
+		self:Show()
+	end
+	
+	function m:OnRelease()
+		print("OnRelease called")
+	end
+	
+	function m:OnWidthSet(width)
+		local content = self.content
+		local contentwidth = width - 34
+		if contentwidth < 0 then
+			contentwidth = 0
+		end
+		content:SetWidth(contentwidth)
+		content.width = contentwidth
+	end
+	
+	
+	function m:OnHeightSet(height)
+		local content = self.content
+		local contentheight = height - 57
+		if contentheight < 0 then
+			contentheight = 0
+		end
+		content:SetHeight(contentheight)
+		content.height = contentheight
+	end
+	
+	local function Constructor()
+		local frame = CreateFrame("Frame",nil,UIParent)
+		local self = {}
+		self.type = "Window"
+		
+		for k,v in pairs(m) do
+			self[k]=v
+		end
+		
+		self.frame = frame
+		frame.obj = self
+		frame:SetWidth(700)
+		frame:SetHeight(500)
+		frame:SetPoint("CENTER",UIParent,"CENTER",0,0)
+		frame:EnableMouse()
+		frame:SetMovable(true)
+		frame:SetResizable(true)
+		frame:SetFrameStrata("FULLSCREEN_DIALOG")
+		frame:SetScript("OnHide",function(self) self.obj:Fire('OnClose') end)		
+		frame:SetMinResize(240,240)
+		frame:SetToplevel(true)
+		
+		local background=frame:CreateTexture(nil,"BACKGROUND")
+		background:SetAtlas("ClassHall-CombatAlly")
+		background:SetAllPoints(frame)
+	
+		--Container Support
+		local content = CreateFrame("Frame",nil,frame)
+		self.content = content
+		content.obj = self
+		content:SetPoint("TOPLEFT",frame,"TOPLEFT",12,-32)
+		content:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-12,13)
+		
+		AceGUI:RegisterAsContainer(self)
+		return self	
+	end
+	
+	AceGUI:RegisterWidgetType(Type,Constructor,Version)
+end
+
 function module:OnInitialized()
 	--GMCLayer()
 	createOHCGUIContainerWidget()
 	createOHCMissionListWidget()
 	createOHCMiniMissionButtonWidget()
+	createOHCMenu()
 
 end

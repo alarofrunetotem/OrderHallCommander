@@ -30,6 +30,7 @@ ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
 --8<-------------------------------------------------------
+local followerType=4
 --- Caches
 local module=addon:NewSubClass('cache') --# module 
 local id2index={f={},m={}}
@@ -42,9 +43,10 @@ function module:GetAverageLevels(cached)
 			return 0,0
 		end
 		wipe(id2index.f)
+		local index=id2index.f
 		for i,d in pairs(f) do
 			if d.isCollected then
-				id2index.f[d.followerID]=i
+				index[d.followerID]=i
 				tot=tot+1
 				level=level+d.level
 				ilevel=ilevel+d.iLevel
@@ -55,7 +57,11 @@ function module:GetAverageLevels(cached)
 	return avgLevel,avgIlevel
 end
 function module:GetChampionData(id,key,defaultvalue)
-	local i=id2index.f[id]
+	if not id then
+		return OrderHallMissionFrameFollowers.followers or G.GetFollowers(followerType)
+	end
+	local index=id2index.f
+	local i=index[id]
 	local data 
 	local f=OrderHallMissionFrameFollowers.followers
 	if not f then
@@ -66,7 +72,7 @@ function module:GetChampionData(id,key,defaultvalue)
 		else
 			for i,d in pairs(f) do
 				if d.followerID==id then
-					id2index.f[id]=i
+					index[id]=i
 					data=d
 					break
 				end
@@ -87,7 +93,8 @@ function module:GetMissionData(id,key,defaultvalue)
 	local m1=OHFMissions.availableMissions
  	local m2=OHFMissions.inProgressMissions
  	local m
-	local i=id2index.m[id]
+ 	local index=id2index.m
+	local i=index[id]
 	if i and i >1000 then
 		i=i-1000
 		m=m2
@@ -100,7 +107,7 @@ function module:GetMissionData(id,key,defaultvalue)
 	else
 		for i,d in pairs(m1) do
 			if d.missionID==id then
-				id2index.m[id]=i
+				index[id]=i
 				data=d
 				break
 			end
@@ -108,7 +115,7 @@ function module:GetMissionData(id,key,defaultvalue)
 		if not data then
 			for i,d in pairs(m2) do
 				if d.missionID==id then
-					id2index[id].m=1000+i
+					index[id]=1000+i
 					data=d
 					break
 				end
@@ -132,18 +139,8 @@ function module:GetKey(data,key,defaultvalue)
 		return data.isMaxLevel and data.iLevel or data.level
 	end
 end
-function module:GetParty(missionID)
-	local mission=self:GetMission(missionID)
-	return {}
-end
 ---- Public Interface
 -- 
-function addon:GetParty(...)
-	return module:GetParty(...)
-end
-function addon:GetMission(...)
-	return module:GetMissionData(...)
-end
 function addon:GetMissionData(...)
 	return module:GetMissionData(...)
 end

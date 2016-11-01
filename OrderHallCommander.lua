@@ -4,6 +4,9 @@ local addon=ns --#addon
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
 addon=LibStub("LibInit"):NewAddon(addon,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --#ns
+function addon:NewSubClass(module)
+	return self:NewSubModule(module,"AceConsole-3.0","AceHook-3.0","AceEvent-3.0","AceTimer-3.0")
+end
 --8<--------------------------------------------------------
 local G=C_Garrison
 local _
@@ -76,7 +79,7 @@ function O1:HideTT()
 end
 function O1:Dump()
 	local	tip=GameTooltip
-	GameTooltip_SetDefaultAnchor(tip,self)
+	tip:SetOwner(self,"ANCHOR_CURSOR")
 	tip:AddLine(self:GetName(),C:Green())
 	self.DumpData(tip,self)
 	tip:Show()
@@ -84,10 +87,11 @@ end
 function O1.DumpData(tip,data)
 	for k,v in kpairs(data) do
 		local color="Silver"
-		if type(v)=="number" then color="Blue" 
-		elseif type(v)=="string" then color="Yellow" 
+		if type(v)=="number" then color="Cyan" 
+		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
 		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White" 
 		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+		else v=type(v) color="Blue"
 		end
 		if k=="description" then v =v:sub(1,10) end
 		tip:AddDoubleLine(k,v,colors("Orange",color))
@@ -102,6 +106,7 @@ end
 function O2:SetEmpty()
 	self:SetNoLevel()
 	self:SetPortraitIcon()
+	self:SetQuality(1)
 end
 _G.OrderHallCommanderMixinMembers={}
 local O3= _G.OrderHallCommanderMixinMembers --#Mixin_Members

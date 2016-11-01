@@ -11,7 +11,7 @@
 		<Size x="110" y="75"/>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Expire" justifyV="TOP" justifyH="CENTER" inherits="Game11Font">
+				<FontString parentKey="Expire" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightSmallOutline">
 					<Size x="95" y="30"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="5" y="-10"/>
@@ -62,7 +62,8 @@
 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin" virtual="true">
 		<Size x="890" y="115"/>
 		<Anchors>
-			<Anchor point="TOP" relativeKey="$parent" relativePoint="BOTTOM" x="0" y="-10"/>
+			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="0" y="0"/>
+			<Anchor point="BOTTOMRIGHT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="0"/>
 		</Anchors>
 		<Layers>
 			<Layer level="BACKGROUND">
