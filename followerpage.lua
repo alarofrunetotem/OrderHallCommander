@@ -1,7 +1,59 @@
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
+-- Generated on 04/11/2016 15:14:56
+local me,ns=...
+local addon=ns --#Addon (to keep eclipse happy)
+ns=nil
+local module=addon:NewSubModule('Followerpage',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
+function addon:GetFollowerpage() return module end
+-- Template
+local G=C_Garrison
+local _
+local AceGUI=LibStub("AceGUI-3.0")
+local C=addon:GetColorTable()
+local L=addon:GetLocale()
+local new=addon.NewTable
+local del=addon.DelTable
+local kpairs=addon:GetKpairs()
+local OHF=OrderHallMissionFrame
+local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+--*if-non-addon*
+local ShowTT=OrderHallCommanderMixin.ShowTT
+local HideTT=OrderHallCommanderMixin.HideTT
+--*end-if-non-addon*
+local dprint=print
+local ddump
+--@debug@
+LoadAddOn("Blizzard_DebugTools")
+ddump=DevTools_Dump
+LoadAddOn("LibDebug")
+--*if-non-addon*
+if LibDebug then LibDebug() dprint=print end
+--*end-if-non-addon*
+--[===[*if-addon*
+-- Addon Build, we need to create globals the easy way
+local function encapsulate()
+if LibDebug then LibDebug() dprint=print end
+end
+encapsulate()
+--*end-if-addon*[===]
+--@end-debug@
+--[===[@non-debug@
+dprint=function() end
+ddump=function() end
+local print=function() end
+--@end-non-debug@]===]
+
+-- End Template
 --*BEGIN
 local UpgradeFrame
 local UpgradeButtons={}
@@ -9,7 +61,8 @@ local pool={}
 --@debug@
 local debugInfo
 --@end-debug@
-
+function module:CheckSpell()
+end
 function module:OnInitialized()
 	UpgradeFrame=CreateFrame("Frame",nil,OHFFollowerTab)
 	local u=UpgradeFrame
@@ -21,11 +74,14 @@ function module:OnInitialized()
 	u:SetScript("OnShow",print)
 	self:SecureHook("GarrisonMission_SetFollowerModel","RefreshUpgrades")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
+	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","GARRISON_FOLLOWER_UPGRADED")
+	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","GARRISON_FOLLOWER_UPGRADED")
+	self:RegisterEvent("CURSOR_UPDATE",print)	
 --@debug@
 	UpgradeFrame:EnableMouse(true)
 	self:RawHookScript(UpgradeFrame,"OnEnter","ShowFollowerData")
 	debugInfo=u:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	debugInfo:SetPoint("TOPLEFT",70,00)
+	debugInfo:SetPoint("TOPLEFT",70,20)
 --@end-debug@	
 end
 function module:ShowFollowerData(this)
@@ -36,10 +92,11 @@ function module:ShowFollowerData(this)
 	tip:Show()
 end
 function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
-	if not followerId or followerType==LE_FOLLOWER_TYPE_GARRISON_7_0 then
-		self:RefreshUpgrades()
+	if OHFFollowerTab:IsVisible() then
+		self:ScheduleTimer("RefreshUpgrades",0.3)
 	end
 end
+		
 function module:RenderUpgradeButton(id,previous)
 		local qt=GetItemCount(id)
 		if qt== 0 then return previous end --Not rendering empty buttons
@@ -59,17 +116,31 @@ function module:RenderUpgradeButton(id,previous)
 		b:Show()
 		return b
 end 
+function module:RefreshIfNeeded(...)
+	print(SpellIsTargeting(),...)
+	if not SpellIsTargeting() then
+		print("Refreshing")
+		self:UnregisterEvent("CURSOR_UPDATE")
+		self:RefreshUpgrades()
+	else
+		print(...)
+	end
+	
+end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 --@debug@
-	debugInfo:SetText(followerID)
+	print("Refreshing",followerID)
 --@end-debug@
+	if not OHFFollowerTab:IsVisible() then return end
 	if model then
 		UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
 		UpgradeFrame:SetFrameLevel(model:GetFrameLevel()+5)
 	end
 	if not followerID then followerID=OHFFollowerTab.followerID end
 	local follower=addon:GetChampionData(followerID)
+	if not follower then print("No follower for ",followerID) return end
 	for i=1,#UpgradeButtons do
+		print("Releasing",i)
 		self:ReleaseButton(UpgradeButtons[i])
 	end
 	wipe(UpgradeButtons)
@@ -100,6 +171,7 @@ function module:AcquireButton()
 		b:EnableMouse(true)
 		b:RegisterForClicks("LeftButtonDown")
 		b:SetAttribute("type","item")
+		self:RawHookScript(b,"PostClick",function() module:RegisterEvent("CURSOR_UPDATE","RefreshIfNeeded") end)
 		b:SetSize(40,40)
 		b.Icon:SetSize(40,40)
 		b:EnableMouse(true)

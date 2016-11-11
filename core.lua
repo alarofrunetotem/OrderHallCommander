@@ -1,39 +1,60 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,ns=... 
---8<--------------------------------------------------------
-local addon=ns --#Addon
+--*TYPE module
+--*CONFIG noswitch=false,profile=true,enhancedProfile=true
+--*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
+--*MINOR 35
+-- Generated on 04/11/2016 15:14:56
+local me,ns=...
+local addon=ns --#Addon (to keep eclipse happy)
+ns=nil
+local module=addon:NewSubModule('Core',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
+function addon:GetCore() return module end
+-- Template
 local G=C_Garrison
 local _
-local _G=_G
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=function() return addon:NewTable() end
-local del=function(tb) return addon:DelTable(tb) end
+local new=addon.NewTable
+local del=addon.DelTable
+local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
-local dprint
+local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+--*if-non-addon*
+local ShowTT=OrderHallCommanderMixin.ShowTT
+local HideTT=OrderHallCommanderMixin.HideTT
+--*end-if-non-addon*
+local dprint=print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
-local function encapsulate() 
-	if LibDebug then LibDebug() end
-	dprint=print
+--*if-non-addon*
+if LibDebug then LibDebug() dprint=print end
+--*end-if-non-addon*
+--[===[*if-addon*
+-- Addon Build, we need to create globals the easy way
+local function encapsulate()
+if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+--*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
---8<-------------------------------------------------------
+
+-- End Template
+--*BEGIN 
 --local missionPanelMissionList=OrderHallMissionFrameMissions
 --[[
 Su OrderHallMissionFrameMissions viene chiamato Update() per aggiornare le missioni
@@ -59,17 +80,13 @@ local colors=addon.colors
 local menu
 local menuType="OHCMenu"
 local menuOptions={mission={},follower={}}
+function addon:ApplyMOVEPANEL(value)
+	OHF:EnableMouse(value)
+	OHF:SetMovable(value)
+
+end
 function addon:OnInitialized()
-	menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
-	self:RawHookScript(menu,"OnHide","ClearMenu")
-	--[[
-	OHF:SetHeight(720)
-	OHFMissions.CompleteDialog:SetHeight(OHF:GetHeight())
-	menu:SetPoint("TOPLEFT",OHFMissions.CombatAllyUI,"BOTTOMLEFT",0,5)
-	menu:SetPoint("TOPRIGHT",OHFMissions.CombatAllyUI,"BOTTOMRIGHT",0,5)
-	menu:SetPoint("BOTTOM",10,10)
-	menu:SetFrameLevel(OHF:GetFrameLevel()+10)
-	--]]
+	menu=CreateFrame("Frame")
 --@debug@
 	local f=menu
 	f:RegisterAllEvents()
@@ -77,20 +94,22 @@ function addon:OnInitialized()
 --@end-debug@
 	self:AddLabel(L["General"])
 	self:AddBoolean("MOVEPANEL",true,"test","long test")
-	
-	OHF:EnableMouse(true)
-	OHF:SetMovable(true)
 	OHF:RegisterForDrag("LeftButton")
 	OHF:SetScript("OnDragStart",function(frame)if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
-	self:SecureHookScript(OHFFollowerTab,"OnShow","ShowFollowerMenu")
-	self:SecureHookScript(OHFMissionTab,"OnShow","ShowMissionMenu")
+	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))	
+	--self:SecureHookScript(OHFFollowerTab,"OnShow","ShowFollowerMenu")
+	--self:SecureHookScript(OHFMissionTab,"OnShow","ShowMissionMenu")
+	--self:SecureHookScript(OHFMapTab,"OnShow","ClearMenu")
+	--self:RawHookScript(menu,"OnHide","ClearMenu")
+	wipe(dbOHCperChar)
 end
 function addon:ClearMenu()
 	if menu.widget then 
 		pcall(AceGUI.Release,AceGUI,menu.widget) 
 		menu.widget=nil 
 	end
+	menu:Hide()
 end
 function addon:RegisterForMenu(menu,...)
 	for i=1,select('#',...) do
@@ -100,13 +119,18 @@ function addon:RegisterForMenu(menu,...)
 		end
 	end
 end
+function addon:GetRegisteredForMenu(menu)
+	return menuOptions[menu]
+end
 function addon:ShowFollowerMenu()
-	print("Follower Menu")
+	print("Follower Tab")
 	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.follower))
+	menu:Show()
 end
 function addon:ShowMissionMenu()
-	print("Mission Menu")
+	print("Mission Tab")
 	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.mission))
+	menu:Show()
 end
 -- my implementation of tonumber which accounts for nan and inf
 function addon:tonumber(value,default)
@@ -265,6 +289,7 @@ end
 --@debug@
 local events={}
 function addon:Trace(frame, method)
+	if true then return end
 	method=method or "OnShow"
 	if type(frame)=="string" then frame=_G[frame] end
 	if not frame then return end
@@ -281,7 +306,11 @@ function addon:ShowGarrisonEvents(this,event,...)
 	if event:find("GARRISON") then
 		dprint(event,...)
 		tinsert(events,{event,...})
+		return self:PushEvent(event,...)
 	end
+end
+function addon:PushEvent(event,...)
+	tinsert(dbOHCperChar,event.. ' ' .. strjoin(tostringall(event,...)))
 end
 function addon:DumpEvents()
 	return events

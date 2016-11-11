@@ -41,7 +41,7 @@ followerpage.lua
 matchmaker.lua
 missionlist.lua
 missionpage.lua
-widgets.lua
+widgets.xml
 RelNotes.lua
 data.lua
 wowhead.lua

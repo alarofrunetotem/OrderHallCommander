@@ -7,10 +7,10 @@
 	<Button name="OHCMiniMissionButton" inherits="GarrisonLandingPageReportMissionTemplate" virtual="true">
 		<Size x="400" y="47"/>
 	</Button>
-	<Frame name="OHCStats" virtual="true">
+	<Frame name="OHCStats" virtual="true" enableMouse="true" mixin="OrderHallCommanderMixin">
 		<Size x="110" y="75"/>
 		<Layers>
-			<Layer level="ARTWORK">
+			<Layer level="OVERLAY">
 				<FontString parentKey="Expire" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightSmallOutline">
 					<Size x="95" y="30"/>
 					<Anchors>
@@ -18,21 +18,33 @@
 						<Anchor point="TOPRIGHT" x="5" y="-10"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Chance1" justifyV="BOTTOM" justifyH="CENTER" inherits="NumberFontNormalHuge">
+				<FontString parentKey="Chance" justifyV="BOTTOM" justifyH="CENTER" inherits="NumberFontNormalHuge">
 					<Size x="95" y="30"/>
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" x="5" y="10"/>
 						<Anchor point="BOTTOMRIGHT" x="5" y="10"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Chance2" justifyV="BOTTOM" justifyH="CENTER" inherits="NumberFontNormalHuge">
-					<Size x="95" y="30"/>
-					<Anchors>
-						<Anchor point="CENTER" x="5" y="0"/>
-					</Anchors>
-				</FontString>
 			</Layer>
 		</Layers>	
+		<Scripts>
+			<OnEnter method="Dump"/>
+			<OnLeave method="HideTT"/>
+		</Scripts>
+	</Frame>
+	<Frame name="OHCThreatsCounters" virtual="true" mixin="OrderHallCommanderMixin" enableMouse="true" inherits="GarrisonAbilityCounterTemplate">
+	<Scripts>
+		<OnEnter method="Dump"/>
+		<OnLeave method="HideTT"/>
+	</Scripts>
+	</Frame>
+	<Frame name="OHCThreats" virtual="true" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinThreats" enableMouse="true">
+ 		<Size x="128" y="24"/>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEnter method="ShowCounter"/>
+			<OnLeave method="HideTT"/>
+		</Scripts>
 	</Frame>
 	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMembers" virtual="true" enableMouse="false">
 		<Size x="1" y="70"/>
@@ -41,6 +53,7 @@
 		</Frames>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
+			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
@@ -59,18 +72,69 @@
 	<Button name="OHCUpgradeButton" enableMouse="true" virtual="true" inherits="GarrisonMissionListButtonRewardTemplate">
 		<Size x="32" y="32"/>
 	</Button>	
-	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin" virtual="true">
-		<Size x="890" y="115"/>
+	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallMixinMenu" inherits="GarrisonUITemplate" virtual="true">
+		<Size x="200" y="40"/>
+		<Frames>
+			<CheckButton parentKey="Pin">
+					<Size x="32" y="32" />
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="4" y="5"/>
+				</Anchors>
+				<NormalTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollUp-Up">
+					<Size x="32" y="32" />
+				</NormalTexture>
+				<!--
+				<HighlightTexture file="Interface\CHATFRAME/UI-ChatIcon-BlinkHilight" alphaMode="ADD">
+					<Size x="32" y="32" />
+				</HighlightTexture>
+				-->
+				<CheckedTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollDown-Up">
+					<Size x="32" y="32" />
+				</CheckedTexture>
+				<Scripts>
+					<OnLeave>
+						GameTooltip:FadeOut()
+					</OnLeave>
+					<OnClick method="OnClick" />
+					
+				</Scripts>
+			</CheckButton>
+		</Frames>
 		<Anchors>
-			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="0" y="0"/>
-			<Anchor point="BOTTOMRIGHT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="0"/>
+			<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="0"/>
+			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
 		</Anchors>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>	
+	<CheckButton name="OHCTab" mouseEnable="true" virtual="true" inherits="SpellBookSkillLineTabTemplate">
+		<Size x="100" y="50" />
+		<KeyValues>
+			<KeyValue key="flag" value="" type="string"/>
+			<KeyValue key="tipo" value="" type="string"/>
+		</KeyValues>
 		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" atlas="ClassHall-CombatAlly" setAllPoints="true"/>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon" file="Interface\ACHIEVEMENTFRAME\UI-ACHIEVEMENT-SHIELDS-NOPOINTS">
+					<Size x="48" y="48"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="0"/>
+					</Anchors>
+					<TexCoords left="0" right="0.5" top="0.5" bottom="1"/>
+				</Texture>			
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Name" text="Example" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="LEFT" x="40" y="10"/>
+						<Anchor point="RIGHT" x="40" y="10"/>
+					</Anchors>
+				</FontString>			
 			</Layer>
 		</Layers>
-	</Frame>	
+	</CheckButton>	
 	<!--
 	GarrisonFollowerXPGainTemplate
 	GarrisonFollowerXPBarTemplate

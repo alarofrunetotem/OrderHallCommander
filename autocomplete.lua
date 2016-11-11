@@ -1,44 +1,65 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,addon=...
---8<--------------------------------------------------------
+--*TYPE module
+--*CONFIG noswitch=false,profile=true,enhancedProfile=true
+--*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
+--*MINOR 35
+-- Generated on 04/11/2016 15:14:56
+local me,ns=...
+local addon=ns --#Addon (to keep eclipse happy)
+ns=nil
+local module=addon:NewSubModule('Autocomplete',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
+function addon:GetAutocomplete() return module end
+-- Template
 local G=C_Garrison
 local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
 local new=addon.NewTable
-local del=addon.Deltable
+local del=addon.DelTable
+local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
-local dprint
+local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+--*if-non-addon*
+local ShowTT=OrderHallCommanderMixin.ShowTT
+local HideTT=OrderHallCommanderMixin.HideTT
+--*end-if-non-addon*
+local dprint=print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
-local function encapsulate() 
-	if LibDebug then LibDebug() dprint=print end
+--*if-non-addon*
+if LibDebug then LibDebug() dprint=print end
+--*end-if-non-addon*
+--[===[*if-addon*
+-- Addon Build, we need to create globals the easy way
+local function encapsulate()
+if LibDebug then LibDebug() dprint=print end
 end
+encapsulate()
+--*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
---8<-------------------------------------------------------
-local module=addon:NewSubModule(module,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --# module
+
+-- End Template
+--*BEGIN 
 local CompleteButton=OHFMissions.CompleteDialog.BorderFrame.ViewButton
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local pairs=pairs
 local format=format
 local strsplit=strsplit
---@debug@
-if LibDebug then LibDebug() end
---@end-debug@
 ---------------------------------------------------------------------------
 function module:OnInitialized()
 	local ref=OHFMissions.CompleteDialog.BorderFrame.ViewButton
@@ -50,12 +71,12 @@ function module:OnInitialized()
 end
 
 function module:GenerateMissionCompleteList(title,anchor)
-	local w=AceGUI:Create("OHCMissionList")
+	local w=AceGUI:Create("OHCMissionsList")
 --@debug@
 	title=format("%s %s %s",title,w.frame:GetName(),GetTime()*1000)
 --@end-debug@
 	w:SetTitle(title)
-	w:SetCallback("OnClose",function(widget) widget:Release() return module:MissionsCleanup() end)
+	w:SetCallback("OnClose",function(widget) return module:MissionsCleanup() end)
 	--report:SetPoint("TOPLEFT",GMFMissions.CompleteDialog.BorderFrame)
 	--report:SetPoint("BOTTOMRIGHT",GMFMissions.CompleteDialog.BorderFrame)
 	w:ClearAllPoints()
@@ -68,7 +89,7 @@ function module:GenerateMissionCompleteList(title,anchor)
 end
 --@debug@
 function addon:ShowRewards()
-	module:GenerateMissionCompleteList("Test",UIParent)
+	return module:GenerateMissionCompleteList("Test",UIParent)
 end
 --@end-debug@
 local cappedCurrencies={
@@ -153,9 +174,9 @@ function module:MissionComplete(this,button,skiprescheck)
 		wipe(rewards.items)
 		local message=C("WARNING",'red')
 		local wasted={}
-		for i=1,#missions do
+		for i=1,1 do --#missions do
 			for k,v in pairs(missions[i].followers) do
-				rewards.followerBase[v]=addon:GetChampionData(followerType,v,qLevel)
+				rewards.followerQLevel[v]=addon:GetChampionData(v,'qLevel',0)
 			end
 			for k,v in pairs(missions[i].rewards) do
 				if v.itemID then GetItemInfo(v.itemID) end -- tickling server
@@ -267,8 +288,8 @@ function module:MissionAutoComplete(event,...)
 		-- gestire la distruzione di un follower... senza il follower
 	-- GARRISON_MISSION_COMPLETE_RESPONSE,missionID,canComplete,success,unknown_bool,unknown_table
 	elseif (event=="GARRISON_MISSION_COMPLETE_RESPONSE") then
-		local missionID,canComplete,success,unknown_bool,unknown_table	
-		if currentMission.completed then
+		local missionID,canComplete,success,unknown_bool,unknown_table=...
+		if currentMission.completed or select('#',...) == 1 then
 			canComplete=true
 			success=true
 		end
@@ -301,18 +322,20 @@ function module:MissionAutoComplete(event,...)
 				currentMission.state=0
 				currentMission.goldMultiplier=currentMission.goldMultiplier or 1
 				currentMission.xp=select(2,G.GetMissionInfo(currentMission.missionID))
-				report:AddMissionButton(currentMission,addon:GetParty(currentMission.missionID),currentMission.successChance,"report")
+				report:AddMissionButton(currentMission,currentMission.followers,currentMission.successChance,"report")
 			end
 			if (step==0) then
 				--@debug@
 				print("Fired mission complete for",currentMission.missionID)
 				--@end-debug@
+				addon:PushEvent("MarkMissionComplete",currentMission.missionID)
 				print(G.MarkMissionComplete(currentMission.missionID))
 				startTimer(2)
 			elseif (step==1) then
 				--@debug@
 				print("Fired bonus roll complete for",currentMission.missionID)
 				--@end-debug@
+				addon:PushEvent("MissionBonusROll",currentMission.missionID)
 				print(G.MissionBonusRoll(currentMission.missionID))
 				startTimer(2)
 			elseif (step>=2) then
@@ -397,8 +420,9 @@ function module:MissionsPrintResults(success)
 		followers=true
 		local a=addon:GetChampionData(k)
 		local b=addon:GetChampionData(k,'qLevel',0)
-		local c=rewards.followerQLevel[k]
-		report:AddFollower(a,v, b> addon:tonumber(c,0))
+		local c=rewards.followerQLevel[k] or 0
+		print("XP per",k,b,c)
+		report:AddFollower(a,v, b>c)
 	end
 	if not reported then
 		report:AddRow(L["Nothing to report"])
