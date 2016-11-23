@@ -1,10 +1,18 @@
 local me,addon=...
 local C=addon:GetColorTable()
-local module=addon:GetWidgets()
+local module=addon:GetWidgetsModule()
 local Type,Version,unique="OHCMissionsList",1,0
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
+local C=addon:GetColorTable()
 local G=C_Garrison
+local GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT=GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT:gsub('%%d',C('%%d','Yellow'))
+local GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP=GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP:gsub('%%d',C('%%d','Green'))
+local	GARRISON_FOLLOWER_XP_LEFT=GARRISON_FOLLOWER_XP_LEFT:gsub('%%d',C('%%d','Orange'))
+local GARRISON_FOLLOWER_XP_UPGRADE_STRING=GARRISON_FOLLOWER_XP_UPGRADE_STRING
+local GARRISON_FOLLOWER_XP_STRING=GARRISON_FOLLOWER_XP_STRING
+local GARRISON_FOLLOWER_DISBANDED=GARRISON_FOLLOWER_DISBANDED
+local BONUS_LOOT_LABEL=C(" (".. BONUS_LOOT_LABEL .. ")","Green")
 local m={} --#Widget
 function m:ScrollDown()
 	local obj=self.scroll
@@ -39,13 +47,9 @@ function m:AddMissionButton(mission,followers,perc,source)
 		b:SetMission(mission,followers,perc,source)
 		b:SetScale(0.7)
 		b:SetFullWidth(true)
+		b:RunSpinner(true)
 		self.missions[mission.missionID]=b
 		obj:AddChild(b)
-		local extra=b.extra
-		extra.Success:Hide()
-		extra.Failure:Hide()
-		extra.Spinner:Show()
-		extra.Spinner.Anim:Play()
 	end
 
 end
@@ -53,24 +57,28 @@ function m:AddMissionResult(missionID,success)
 	local mission=self.missions[missionID]
 	if mission then
 		local frame=mission.frame
-		local extra=mission.extra
-		extra.Spinner.Anim:Stop()
-		extra.Spinner:Hide()
+		mission:RunSpinner(false)
 		if success then
-			extra.Success:Show()
-			extra.Failure:Hide()
+			if success > 3 then
+				mission.Result:SetText(GARRISON_MISSION_SUCCESS .. ' ' .. BONUS_LOOT_LABEL)
+			else
+				mission.Result:SetText(GARRISON_MISSION_SUCCESS)
+			end			
+			mission.Result:SetTextColor(C:Green())
 			for i=1,#frame.Rewards do
 				frame.Rewards[i].Icon:SetDesaturated(false)
 				frame.Rewards[i].Quantity:Show()
 			end
 		else
-			extra.Success:Hide()
-			extra.Failure:Show()
+			mission.Result:SetText(GARRISON_MISSION_FAILED)
+			mission.Result:SetTextColor(C:Red())
+			
 			for i=1,#frame.Rewards do
 				frame.Rewards[i].Icon:SetDesaturated(true)
 				frame.Rewards[i].Quantity:Hide()
 			end
 		end
+		mission.Result:Show()
 	end
 end
 function m:AddRow(data,...)
@@ -83,41 +91,42 @@ function m:AddRow(data,...)
 	obj:AddChild(l)
 
 end
-function m:AddFollower(follower,xp,levelup)
-	local followerID=follower.followerID
-	local followerType=follower.followerTypeID
-	local fullname=G.GetFollowerLink(followerID)
+function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 	if xp < 0 then
-		return self:AddFollowerIcon(followerType,follower.portraitIconID,
-							format("%s was destroyed",fullname or L["A ship"]))
+		-- in this case levelup is a portraitIconId
+		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname))
 	end
-	if follower.isMaxLevel and not levelup then
+	local isMaxLevel=addon:GetFOllowerData(followerID,'isMaxLevel',false)
+	if isMaxLevel and not levelup then
 		return
 --			return self:AddFollowerIcon(followerType,follower.portraitIconID,format("%s is already at maximum xp",follower.fullname))
 	end
-	local quality=G.GetFollowerQuality(followerID) or follower.quality
-	local level=G.GetFollowerLevel(followerID) or follower.level
 	if levelup then
 		PlaySound("UI_Garrison_CommandTable_Follower_LevelUp");
 	end
+	
 	local message=GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT:format(fullname,xp)
+	local quality=addon:GetFollowerData(followerID,'quality')
+	local level=addon:GetFollowerData(followerID,'level')
+	local XP=addon:GetFollowerData(followerID,'xp',0) 
+	local levelXP=addon:GetFollowerData(followerID,'levelXP',0)
 	if levelup then
-		message=message..GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP:format(fullname,follower.level)
+		message=message..GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP:format(fullname,level)
 	end
 	message=message ..
-			GARRISON_FOLLOWER_XP_LEFT:format(follower.levelXP-follower.xp) ..
-			follower.isMaxLevel and GARRISON_FOLLOWER_XP_UPGRADE_STRING or GARRISON_FOLLOWER_XP_STRING		
-	return self:AddFollowerIcon(followerType,follower.portraitIconID,message)
+			GARRISON_FOLLOWER_XP_LEFT:format(levelXP-follower.xp) ..
+			(isMaxLevel and GARRISON_FOLLOWER_XP_UPGRADE_STRING or GARRISON_FOLLOWER_XP_STRING)		
+	return self:AddFollowerIcon(portrait,message)
 end
-function m:AddFollowerIcon(followerType,icon,text)
+function m:AddFollowerIcon(icon,text)
 	local l=self:AddIconText(icon,text)
 end
-function m:AddIconText(icon,text,qt)
+function m:AddIconText(icon,text,qt,isBonus)
 	local obj=self.scroll
 	local l=AceGUI:Create("Label")
 	l:SetFontObject(GameFontNormalSmall)
 	if (qt) then
-		l:SetText(format("%s x %s",text,qt))
+		l:SetText(format("%s x %s %s",text,qt,isBonus and BONUS_LOOT_LABEL or ''))
 	else
 		l:SetText(text)
 	end
@@ -132,13 +141,13 @@ function m:AddIconText(icon,text,qt)
 	end
 	return l
 end
-function m:AddItem(itemID,qt)
+function m:AddItem(itemID,qt,isBonus)
 	local obj=self.scroll
 	local _,itemlink,itemquality,_,_,_,_,_,_,itemtexture=GetItemInfo(itemID)
 	if not itemlink then
-		self:AddIconText(itemtexture,itemID,qt)
+		self:AddIconText(itemtexture,itemID,qt,isBonus)
 	else
-		self:AddIconText(itemtexture,itemlink,qt)
+		self:AddIconText(itemtexture,itemlink,qt,isBonus)
 	end
 end
 function m._Constructor()

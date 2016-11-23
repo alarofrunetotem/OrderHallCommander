@@ -8,9 +8,9 @@ local del=addon.DelTable
 local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
-local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
-local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
@@ -26,6 +26,7 @@ ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
+local safeG=addon.safeG
 --*end-if-non-addon*
 --*if-addon*
 -- Addon Build, we need to create globals the easy way
@@ -33,6 +34,22 @@ local function encapsulate()
 if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+local pcall=pcall
+local function parse(default,rc,...)
+	if rc then return default else return ... end
+end
+	
+addon.safeG=setmetatable({},{
+	__index=function(table,key)
+		rawset(table,key,
+			function(default,...)
+				return parse(default,pcall(G[key],...))
+			end
+		) 
+		return table[key]
+	end
+})
+
 --*end-if-addon*
 --@end-debug@
 --[===[@non-debug@

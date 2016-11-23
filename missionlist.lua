@@ -1,14 +1,15 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local function pp(...) print(__FILE__:sub(-15),...) end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/11/2016 15:14:56
+-- Generated on 20/11/2016 11:08:08
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
 local module=addon:NewSubModule('Missionlist',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
-function addon:GetMissionlist() return module end
+function addon:GetMissionlistModule() return module end
 -- Template
 local G=C_Garrison
 local _
@@ -20,9 +21,9 @@ local del=addon.DelTable
 local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
-local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
-local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
@@ -38,6 +39,7 @@ ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
+local safeG=addon.safeG
 --*end-if-non-addon*
 --[===[*if-addon*
 -- Addon Build, we need to create globals the easy way
@@ -45,6 +47,22 @@ local function encapsulate()
 if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+local pcall=pcall
+local function parse(default,rc,...)
+	if rc then return default else return ... end
+end
+	
+addon.safeG=setmetatable({},{
+	__index=function(table,key)
+		rawset(table,key,
+			function(default,...)
+				return parse(default,pcall(G[key],...))
+			end
+		) 
+		return table[key]
+	end
+})
+
 --*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
@@ -58,21 +76,40 @@ local print=function() end
 -- Additonal frames
 local GARRISON_MISSION_AVAILABILITY2=GARRISON_MISSION_AVAILABILITY .. " %s"
 local GARRISON_MISSION_ID="MissionID: %d"
-local missionstats={}
-local missionmembers={}
-local missionthreats={}
-local missionids={}
+local missionstats=setmetatable({}, {__mode = "k"})
+local missionmembers=setmetatable({}, {__mode = "k"})
+local missionthreats=setmetatable({}, {__mode = "k"})
+local missionids=setmetatable({}, {__mode = "k"})
+local spinners=setmetatable({}, {__mode = "k"})
+local parties=setmetatable({}, {__mode = "k"})
+local function nop() end
+local Current_Sorter
+local sorters={
+		Garrison_SortMissions_Original=nop,
+		Garrison_SortMissions_Chance=function(a,b) 
+			local achance=addon:GetParties(a.missionID):GetSelectedParty() 
+			local bchance=addon:GetParties(b.missionID):GetSelectedParty()
+			return achance.perc>bchance.perc 
+		end,
+		Garrison_SortMissions_Level=function(a,b) return a.level==b.level and a.iLevel<b.iLevel or a.level <b.level end,
+		Garrison_SortMissions_Age=function(a,b) print(a.name) return a.offerEndTime < b.offerEndTime end,
+		Garrison_SortMissions_Xp=nop,
+		Garrison_SortMissions_Duration=nop,
+		Garrison_SortMissions_Class=nop
+}
 function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",
 	{
 		Garrison_SortMissions_Original=L["Original method"],
 		Garrison_SortMissions_Chance=L["Success Chance"],
+		Garrison_SortMissions_Level=L["Level"],
 		Garrison_SortMissions_Age=L["Expiration Time"],
 		Garrison_SortMissions_Xp=L["Global approx. xp reward"],
 		Garrison_SortMissions_Duration=L["Duration Time"],
 		Garrison_SortMissions_Class=L["Reward type"],
 	},
 	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
+
 	addon:RegisterForMenu("mission","SORTMISSION")
 	for i=1,16 do
 		local name="OrderHallMissionFrameMissionsListScrollFrameButton"..i
@@ -83,6 +120,32 @@ function module:OnInitialized()
 	end
 	self:SecureHook("GarrisonMissionButton_SetRewards","AdjustMissionButton")
 	self:SecureHookScript(OHFMissionTab,"OnShow","InitialSetup")
+	self:SecureHook(OHFMissions,"UpdateMissions","MissionDataRefresh")
+	self:SecureHook("Garrison_SortMissions","SortMissions")	
+	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
+end
+function module:MissionDataRefresh(...)
+	print("Called UpdateMissions",...)
+end
+function module:SortMissions(missionsList)
+	if OHFMissions:IsVisible() then
+		if OHFMissions.inProgress then
+			table.sort(missionsList,function(a,b) return a.timeLeftSeconds < b.timeLeftSeconds end)
+		else
+			table.sort(missionsList,sorters[Current_Sorter])
+		end
+	end
+end
+function addon:ApplySORTMISSION(value)
+	Current_Sorter=value
+	local this=OHFMissions
+	if (this.showInProgress) then
+		module:SortMissions(this.inProgressMissions)
+	else
+		module:SortMissions(this.availableMissions)
+	end
+	print("Sorting by",value)
+	OHFMissions:Update()
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
@@ -109,13 +172,11 @@ function addon:CreateOption(flag,parent)
 			f=CreateFrame("Frame",nil,parent or UIParent,"OHCTab")
 			local s=self:GetFactory():DropDown(f,ToggleGet(flag,info.type),info.values,info)			
 			s:SetWidth(200)
-			s:SetPoint("BOTTOMLEFT",32,0)
 		elseif (info.type=="execute") then
 		elseif (info.type=="range") then
 			f=CreateFrame("Frame",nil,parent or UIParent,"OHCTab")
 			local s=self:GetFactory():Slider(f,info.min,info.max,ToggleGet(flag,info.type),info)
 			s:SetWidth(200)
-			s:SetPoint("BOTTOMLEFT",32,0)
 		else
 		end
 		if f then
@@ -135,12 +196,12 @@ function module:InitialSetup(this)
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
 		local flag,icon=strsplit(',',v)
 		--local f=addon:CreateOption(flag,menu)
-		local f=factory:Option(addon,menu,flag)
+		local f=factory:Option(addon,menu.Anchor,flag)
 		if type(f)=="table" and f.GetObjectType then
 			if previous then 
 				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-15)
 			else
-				f:SetPoint("TOPLEFT",menu,"TOPLEFT",0,-25)
+				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-25)
 			end
 			previous=f
 		end
@@ -164,9 +225,6 @@ function module:AdjustMissionButton(frame,rewards)
 	else
 		frame.Title:SetTextColor(C:White())
 	end
-	if mission.cost > addon:GetResources() then
-		frame.Title:SetTextColor(C:Red())
-	end
 	frame.RareText:Hide()
 	-- Adding stats frame (expiration date and chance)
 	if not missionstats[frame] then
@@ -176,12 +234,6 @@ function module:AdjustMissionButton(frame,rewards)
 --@end-debug@		
 	end
 	local stats=missionstats[frame]
-	stats:SetPoint("LEFT",48,0)
-	local perc=select(4,G.GetPartyMissionInfo(missionID)) 
-	local followers=mission.followers
-	if not followers or #mission.followers<1 then
-		followers,perc= addon:GetParty(missionID):GetFollowers(perc)
-	end
 	-- Compacting mission time and level
 	frame.RareText:Hide()
 	frame.Level:ClearAllPoints()
@@ -199,62 +251,60 @@ function module:AdjustMissionButton(frame,rewards)
 	frame.MissionType:SetPoint("LEFT",5,0)		
 	stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining)
 	stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))		
-	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
-	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))		
-	stats.Expire:Show()
+	if mission.inProgress then
+		stats:SetPoint("LEFT",48,30)
+		stats.Expire:Hide()
+	else
+		stats:SetPoint("LEFT",48,0)
+		stats.Expire:Show()
+	end
 	stats.Chance:Show()
 	if not missionmembers[frame] then
 		missionmembers[frame]=CreateFrame("Frame",nil,frame,"OHCMembers")
 	end
-	-- Adding members frame
-	local members=missionmembers[frame]
-	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
-	if followers then
-		for i=1,3 do
-			if followers[i] then
-				members.Champions[i]:SetFollower(followers[i])
-			else
-				members.Champions[i]:SetEmpty()
-			end
-		end
-		if #followers==0 then
-			stats.Chance:SetText("N/A")
-		end
-	end
-	self:FillCounterFrame(frame,missionID,followers)
-end
-function module:MissionTip(this)
-	local tip=GameTooltip
-	tip:SetOwner(this,"ANCHOR_CURSOR")	
-	tip:AddLine(me)
-	tip:AddDoubleLine(addon:GetAverageLevels())
---@debug@
-	local info=this:GetParent().info
-	OrderHallCommanderMixin.DumpData(tip,info)
-	tip:AddLine("Followers")
-	for i,id in ipairs(info.followers) do
-		tip:AddDoubleLine(id,G.GetFollowerName(id))
-	end
-	tip:AddLine("Rewards")
-	for i,d in pairs(info.rewards) do
-		tip:AddLine(i)
-		OrderHallCommanderMixin.DumpData(tip,info.rewards[i])
-	end
-	tip:AddLine("OverRewards")
-	for i,d in pairs(info.overmaxRewards) do
-		tip:AddLine(i)
-		OrderHallCommanderMixin.DumpData(tip,info.overmaxRewards[i])
-	end
---@end-debug@	
-	tip:Show()
-end
-local pippo=0
-function module:FillCounterFrame(frame,missionID,followers)
 	if not missionthreats[frame] then
 		missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
-		pippo=pippo+1
 	end
+	self:AddMembers(frame,rewards)
+end
+function module:AddMembers(frame,rewards)
+	local start=GetTime()
+	local nrewards=#rewards
+	local mission=frame.info
+	local missionID=mission and mission.missionID
+	local followers=mission.followers
+	local party=addon:GetParties(missionID):GetSelectedParty(mission)
+	local members=missionmembers[frame]
+	local stats=missionstats[frame]
+	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
+	for i=1,3 do
+		if party:Follower(i) then
+			members.Champions[i]:SetFollower(party:Follower(i))
+		else
+			members.Champions[i]:SetEmpty()
+		end
+	end
+	local perc=party.perc or 0
+	if perc==0 then
+		stats.Chance:SetText("N/A")
+	else
+		stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
+	end		
+	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
+	if party then
+		if party.timeimproved then	
+			frame.Summary:SetTextColor(C:Green())
+		elseif party.hasMissionTimeNegativeEffect then
+			frame.Summary:SetTextColor(C:Red())
+		end
+	end		
 	local threats=missionthreats[frame]
+	if frame.info.inProgress then
+		threats:Hide()
+		return
+	else
+		threats:Show()
+	end
 	threats:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-5)
 	local enemies=select(8,G.GetMissionInfo(missionID))
 	if type(enemies)~="table" then print("No enemies loaded") return end
@@ -268,7 +318,7 @@ function module:FillCounterFrame(frame,missionID,followers)
 			tinsert(mechanics,mechanic)
    	end
    end
-   for _,followerID in pairs(followers) do
+   for _,followerID in party:IterateFollowers() do
    	if not G.GetFollowerIsTroop(followerID) then
 		   local followerBias = G.GetFollowerBiasForMission(missionID,followerID)
 		   tinsert(counters,("%04d,%s,%s,%f"):format(1000-(followerBias*100),followerID,G.GetFollowerName(followerID),followerBias))
@@ -290,77 +340,59 @@ function module:FillCounterFrame(frame,missionID,followers)
          end
 		end
    end
-   threats:AddIcons(mechanics)
-   if missionID==1203 then
-   	DevTools_Dump(mechanics)
-   	DevTools_Dump(counters)
-   end
-   --del(mechanics)
+   local color="Yellow"
+   local baseCost, cost = party.baseCost or 0,party.cost or 0
+	if cost<baseCost then
+		color="Green"
+	elseif cost>baseCost then
+		color="Red"
+	end
+	if frame.IsCustom or OHFMissions.showInProgress then
+		cost=-1
+	end
+   threats:AddIconsAndCost(mechanics,cost,color,cost > addon:GetResources())
+   del(mechanics)
    del(counters)
 end
+function module:MissionTip(this)
+	local tip=GameTooltip
+	tip:SetOwner(this,"ANCHOR_CURSOR")	
+	tip:AddLine(me)
+	tip:AddDoubleLine(addon:GetAverageLevels())
+--@debug@
+	local info=this:GetParent().info
+	OrderHallCommanderMixin.DumpData(tip,info)
+	tip:AddLine("Followers")
+	for i,id in ipairs(info.followers) do
+		tip:AddDoubleLine(id,pcall(G.GetFollowerName,id))
+	end
+	tip:AddLine("Rewards")
+	for i,d in pairs(info.rewards) do
+		tip:AddLine('['..i..']')
+		OrderHallCommanderMixin.DumpData(tip,info.rewards[i])
+	end
+	tip:AddLine("OverRewards")
+	for i,d in pairs(info.overmaxRewards) do
+		tip:AddLine('['..i..']')
+		OrderHallCommanderMixin.DumpData(tip,info.overmaxRewards[i])
+	end
+--@end-debug@	
+	tip:Show()
+end
 function module:AdjustMissionTooltip(this,...)
+	if this.info.inProgress or this.info.completed then return end
 	local tip=GameTooltip
 	tip:AddLine(me)
+	local party=parties[this]
 --@debug@
-	OrderHallCommanderMixin.DumpData(tip,this)
+	if party then
+		OrderHallCommanderMixin.DumpData(tip,party)
+	end
 --@end-debug@	
 	tip:Show()
 	
 end
 function module:PostMissionClick(this,...)
-	dprint(this:GetName(),this.info)
-	self:FillMissionPage(this.info)
+	addon:GetMissionpageModule():FillMissionPage(this.info)
 end
-function module:FillMissionPage(missionInfo)
 
-	if type(missionInfo)=="number" then missionInfo=addon:GetMissionData(missionInfo) end
-	if not missionInfo then return end
-	local missionType=missionInfo.followerTypeID
-	if missionType==LE_FOLLOWER_TYPE_SHIPYARD_6_2 or missionType==LE_FOLLOWER_TYPE_GARRISON_7_0 then
-		if not missionInfo.canStart then return end
-	end
-	local main=OHF
-	if not main then return end
-	local missionpage=main.MissionTab.MissionPage
-	local stage=main.MissionTab.MissionPage.Stage
-	local missionenv=stage.MissionInfo.MissionTime
-	if not stage.MissionSeen then
-		if not stage.expires then
-			stage.expires=stage:CreateFontString()
-			stage.expires:SetFontObject(missionenv:GetFontObject())
-			stage.expires:SetDrawLayer(missionenv:GetDrawLayer())
-			stage.expires:SetPoint("TOPLEFT",missionenv,"BOTTOMLEFT")
-		end
-		stage.expires:SetFormattedText(GARRISON_MISSION_AVAILABILITY2,missionInfo.offerTimeRemaining or "")
-		stage.expires:SetTextColor(addon:GetAgeColor(missionInfo.offerEndTime))
-	else
-		stage.expires=stage.MissionSeen -- In order to anchor missionId
-	end
---@debug@
-	if not stage.missionid then
-		stage.missionid=stage:CreateFontString()
-		stage.missionid:SetFontObject(missionenv:GetFontObject())
-		stage.missionid:SetDrawLayer(missionenv:GetDrawLayer())
-		stage.missionid:SetPoint("TOPLEFT",stage.expires,"BOTTOMLEFT")
-	end
-	stage.missionid:SetFormattedText(GARRISON_MISSION_ID,missionInfo.missionID)
---@end-debug@
-	if( IsControlKeyDown()) then self:Print("Ctrl key, ignoring mission prefill") return end
-	if (addon:GetBoolean("NOFILL")) then return end
-	local missionID=missionInfo.missionID
-	addon:HoldEvents()
-	main:ClearParty()
-	local followers=addon:GetParty(missionID):GetFollowers()
-	for i=1,missionInfo.numFollowers do
-		local followerframe=missionpage.Followers[i]
-		local followerID=followers[i]
-		if (followerID) then
-			main:AssignFollowerToMission(followerframe,addon:GetChampionData(followerID))
-		end
-	end
-	main:UpdateMissionParty(main.MissionTab.MissionPage.Followers)
-	main:UpdateMissionData(main.MissionTab.MissionPage)
-	--self:Dump(GMF.MissionTab.MissionPage.Followers,"Selected followers")
-	--GarrisonMissionPage_UpdateEmptyString()
-	addon:ReleaseEvents()
-end

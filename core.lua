@@ -1,14 +1,15 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local function pp(...) print(__FILE__:sub(-15),...) end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/11/2016 15:14:56
+-- Generated on 20/11/2016 11:08:08
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
 local module=addon:NewSubModule('Core',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
-function addon:GetCore() return module end
+function addon:GetCoreModule() return module end
 -- Template
 local G=C_Garrison
 local _
@@ -20,9 +21,9 @@ local del=addon.DelTable
 local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
-local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
-local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
@@ -38,6 +39,7 @@ ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
+local safeG=addon.safeG
 --*end-if-non-addon*
 --[===[*if-addon*
 -- Addon Build, we need to create globals the easy way
@@ -45,6 +47,22 @@ local function encapsulate()
 if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+local pcall=pcall
+local function parse(default,rc,...)
+	if rc then return default else return ... end
+end
+	
+addon.safeG=setmetatable({},{
+	__index=function(table,key)
+		rawset(table,key,
+			function(default,...)
+				return parse(default,pcall(G[key],...))
+			end
+		) 
+		return table[key]
+	end
+})
+
 --*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
@@ -95,14 +113,9 @@ function addon:OnInitialized()
 	self:AddLabel(L["General"])
 	self:AddBoolean("MOVEPANEL",true,"test","long test")
 	OHF:RegisterForDrag("LeftButton")
-	OHF:SetScript("OnDragStart",function(frame)if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
+	OHF:SetScript("OnDragStart",function(frame) if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
 	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))	
-	--self:SecureHookScript(OHFFollowerTab,"OnShow","ShowFollowerMenu")
-	--self:SecureHookScript(OHFMissionTab,"OnShow","ShowMissionMenu")
-	--self:SecureHookScript(OHFMapTab,"OnShow","ClearMenu")
-	--self:RawHookScript(menu,"OnHide","ClearMenu")
-	wipe(dbOHCperChar)
 end
 function addon:ClearMenu()
 	if menu.widget then 
@@ -131,6 +144,19 @@ function addon:ShowMissionMenu()
 	print("Mission Tab")
 	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.mission))
 	menu:Show()
+end
+do
+local timer
+function addon:RefreshMissions()
+	if timer then self:CancelTimer(timer) end 
+	print("Scheduling refresh in",0.02)
+	timer=self:ScheduleTimer("EffectiveRefresh",0.02)
+end
+function addon:EffectiveRefresh()
+	timer=nil
+	addon:GetMatchmakerModule():ResetParties()
+	OHFMissions:UpdateMissions()
+end
 end
 -- my implementation of tonumber which accounts for nan and inf
 function addon:tonumber(value,default)
@@ -302,15 +328,26 @@ function addon:Trace(frame, method)
 		)
 	end
 end
+local lastevent=""
 function addon:ShowGarrisonEvents(this,event,...)
 	if event:find("GARRISON") then
-		dprint(event,...)
+		if event=="GARRISON_MISSION_LIST_UPDATE" and event==lastevent then
+			return
+		end
+		if event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
+			local _,_,_,followers=...
+			if type(followers)=="table" then
+				tinsert(dbOHCperChar,followers)			
+				DevTools_Dump(followers)
+			end
+		end
+		lastevent=event
 		tinsert(events,{event,...})
 		return self:PushEvent(event,...)
 	end
 end
 function addon:PushEvent(event,...)
-	tinsert(dbOHCperChar,event.. ' ' .. strjoin(tostringall(event,...)))
+	tinsert(dbOHCperChar,event.. ' ' .. strjoin(tostringall(' ',...)))
 end
 function addon:DumpEvents()
 	return events

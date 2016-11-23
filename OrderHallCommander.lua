@@ -1,9 +1,10 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local function pp(...) print(__FILE__:sub(-15),...) end
 --*TYPE addon
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/11/2016 15:14:56
+-- Generated on 20/11/2016 11:08:08
 local me,ns=...
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
@@ -20,9 +21,9 @@ local del=addon.DelTable
 local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
-local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
-local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
@@ -38,6 +39,7 @@ ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --[===[*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
+local safeG=addon.safeG
 --*end-if-non-addon*]===]
 --*if-addon*
 -- Addon Build, we need to create globals the easy way
@@ -45,6 +47,22 @@ local function encapsulate()
 if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+local pcall=pcall
+local function parse(default,rc,...)
+	if rc then return default else return ... end
+end
+	
+addon.safeG=setmetatable({},{
+	__index=function(table,key)
+		rawset(table,key,
+			function(default,...)
+				return parse(default,pcall(G[key],...))
+			end
+		) 
+		return table[key]
+	end
+})
+
 --*end-if-addon*
 --@end-debug@
 --[===[@non-debug@
@@ -95,21 +113,49 @@ end
 local colors=addon.colors
 _G.OrderHallCommanderMixin={}
 local Mixin=OrderHallCommanderMixin --#Mixin
+function Mixin:CounterTooltip()
+	local tip=self:AnchorTT()
+	tip:AddLine(self.Ability)
+	tip:AddLine(self.Description)
+	tip:Show()
+	
+end
+function Mixin:DebugOnLoad()
+	self:RegisterForDrag("LeftButton")
+end
+function Mixin:Bump(tipo,value)
+	value = value or 1
+	local riga=tipo..'Refresh'
+	self[tipo]=self[tipo]+value
+	self[riga]:SetFormattedText("%s: %d",tipo,self[tipo])
+end
+function Mixin:DragStart()
+	self:StartMoving()
+end
+function Mixin:DragStop()
+	self:StopMovingOrSizing()
+end
+function Mixin:AnchorTT(anchor)
+	anchor=anchor or "ANCHOR_TOPRIGHT"
+	GameTooltip:SetOwner(self,anchor)
+	return GameTooltip
+end
 function Mixin:ShowTT()
 	if not self.tooltip then return end
-	local tip=GameTooltip
-	tip:SetOwner(self, "ANCHOR_TOPRIGHT")
+	local tip=Mixin.AnchorTT(self)
 	tip:SetText(self.tooltip)
 	tip:Show()
 end
 function Mixin:HideTT()
 	GameTooltip:Hide()
 end
-function Mixin:Dump()
-	local	tip=GameTooltip
-	tip:SetOwner(self,"ANCHOR_CURSOR")
-	tip:AddLine(self:GetName(),C:Green())
-	self.DumpData(tip,self)
+function Mixin:Dump(data)
+	local	tip=self:AnchorTT("ANCHOR_CURSOR")
+	if type(data)~="table" then
+		data=self
+	end
+	tip:AddLine(data:GetName(),C:Green())
+	self.DumpData(tip,data)
 	tip:Show()
 end
 function Mixin.DumpData(tip,data)
@@ -126,25 +172,11 @@ function Mixin.DumpData(tip,data)
 	end
 end
 local threatPool
-OrderHallCommanderMixinThreats={}
-local MixinThreats=OrderHallCommanderMixinThreats --#MixinThreats
-function MixinThreats:OnLoad()
+function Mixin:ThreatsOnLoad()
 	if not threatPool then threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
 	self.usedPool={}
-	
 end
-function MixinThreats:ShowCounter()
-	local	tip=GameTooltip
-	tip:SetOwner(self,"ANCHOR_TOPRIGHT")
-	tip:AddLine("Counter list",C:Green())
-	for index,mechanic in pairs(self.mechanics) do
-		tip:AddLine(mechanic.name,C:Red())
-		Mixin.DumpData(tip,mechanic.ability)
-		Mixin.DumpData(tip,mechanic)
-	end
-	tip:Show()
-end
-function MixinThreats:AddIcons(mechanics)
+function Mixin:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
 	for i=1,#self.usedPool do
 		threatPool:Release(self.usedPool[i])
 	end
@@ -159,6 +191,7 @@ function MixinThreats:AddIcons(mechanics)
 		th.Icon:SetTexture(icons[mechanic.id].icon)
 		th.Name=mechanic.name
 		th.Description=mechanic.description
+		th.Ability=mechanic.ability.name
 		th:SetParent(self)
 		th:SetFrameStrata(self:GetFrameStrata())
 		th:SetFrameLevel(self:GetFrameLevel()+1)
@@ -172,12 +205,30 @@ function MixinThreats:AddIcons(mechanics)
 		th.Border:SetVertexColor(addon:ColorFromBias(mechanic.bias))
 		th:Show()
 	end
+	if cost >=0 then
+		self.Cost:Show()
+		self.Cost:SetFormattedText(addon.resourceFormat,cost)
+		self.Cost:SetTextColor(C[color]())
+		self.Cost:ClearAllPoints()
+		self.Cost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
+		self.HighCost:SetTextColor(C.Red())
+		self.HighCost:ClearAllPoints()
+		self.HighCost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
+		if notEnoughResources then
+			self.HighCost:Show()
+		else
+			self.HighCost:Hide()
+		end
+	else
+		self.Cost:Hide()
+		self.HighCost:Hide()
+	end
 end
 
 OrderHallCommanderMixinFollowerIcon={} 
 local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
 function MixinFollowerIcon:SetFollower(followerID)
-	local info=addon:GetChampionData(followerID)
+	local info=addon:GetFollowerData(followerID)
 	self:SetupPortrait(info)
 	if info.isMaxLevel then
 		self:SetILevel(info.iLevel)
@@ -190,10 +241,7 @@ function MixinFollowerIcon:SetEmpty()
 	self:SetPortraitIcon()
 	self:SetQuality(1)
 end
-OrderHallCommanderMixinMembers={}
-local MixinMembers= OrderHallCommanderMixinMembers --#MixinMembers
-function MixinMembers:OnLoad()
-	dprint("Loading members")
+function Mixin:MembersOnLoad()
 	for i=1,3 do
 		if self.Champions[i] then
 			self.Champions[1]:SetPoint("RIGHT")
@@ -220,7 +268,25 @@ function MixinMenu:OnLoad()
 	self.CloseButton:Hide()
 	self.CloseButton:SetScript("OnClick",nil)
 	self.Pin:SetAllPoints(self.CloseButton)
+	self.Pin:SetChecked(addon.db.profile.pin)
+	self.Pin.tooltip=L["Hide/show OrderHallCommander menu"]
+	self.Pin:SetScript("OnClick",function(this) self:OnClick(this) end)
+	self.Pin:SetScript("OnEnter",function(this) self:ShowTT(this) end)
+	self.Pin:GetCheckedTexture():SetRotation(math.rad(90))
+	self.Pin:GetNormalTexture():SetRotation(math.rad(90))
+	self.DefaultWidth=self.DefaultWidth or 200
+	self:OnClick(self.Pin)
 end	
-function MixinMenu:OnClick()
-	print("Cliccato pin")
+function MixinMenu:OnClick(this)
+	addon.db.profile.pin=this:GetChecked()
+	if this:GetChecked() then
+		self.Anchor:Hide()
+		self:SetWidth(20)		
+		self:SetHeight(20)
+	else
+		self:SetWidth(self.DefaultWidth)
+		self:SetHeight(OHF:GetHeight())
+		self.Anchor:Show()
+	end
 end
+

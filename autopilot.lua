@@ -1,14 +1,15 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local function pp(...) print(__FILE__:sub(-15),...) end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/11/2016 15:14:56
+-- Generated on 20/11/2016 11:08:08
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
 local module=addon:NewSubModule('Autopilot',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
-function addon:GetAutopilot() return module end
+function addon:GetAutopilotModule() return module end
 -- Template
 local G=C_Garrison
 local _
@@ -20,9 +21,9 @@ local del=addon.DelTable
 local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
-local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
-local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
@@ -38,6 +39,7 @@ ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
+local safeG=addon.safeG
 --*end-if-non-addon*
 --[===[*if-addon*
 -- Addon Build, we need to create globals the easy way
@@ -45,6 +47,22 @@ local function encapsulate()
 if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+local pcall=pcall
+local function parse(default,rc,...)
+	if rc then return default else return ... end
+end
+	
+addon.safeG=setmetatable({},{
+	__index=function(table,key)
+		rawset(table,key,
+			function(default,...)
+				return parse(default,pcall(G[key],...))
+			end
+		) 
+		return table[key]
+	end
+})
+
 --*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@

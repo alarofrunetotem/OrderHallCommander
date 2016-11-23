@@ -1,14 +1,15 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local function pp(...) print(__FILE__:sub(-15),...) end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/11/2016 15:14:56
+-- Generated on 20/11/2016 11:08:08
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
 local module=addon:NewSubModule('Autocomplete',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
-function addon:GetAutocomplete() return module end
+function addon:GetAutocompleteModule() return module end
 -- Template
 local G=C_Garrison
 local _
@@ -20,9 +21,9 @@ local del=addon.DelTable
 local kpairs=addon:GetKpairs()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
-local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions 
+local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
-local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visibe in both follower and mission mode)
+local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
@@ -38,6 +39,7 @@ ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
+local safeG=addon.safeG
 --*end-if-non-addon*
 --[===[*if-addon*
 -- Addon Build, we need to create globals the easy way
@@ -45,6 +47,22 @@ local function encapsulate()
 if LibDebug then LibDebug() dprint=print end
 end
 encapsulate()
+local pcall=pcall
+local function parse(default,rc,...)
+	if rc then return default else return ... end
+end
+	
+addon.safeG=setmetatable({},{
+	__index=function(table,key)
+		rawset(table,key,
+			function(default,...)
+				return parse(default,pcall(G[key],...))
+			end
+		) 
+		return table[key]
+	end
+})
+
 --*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
@@ -103,6 +121,8 @@ local rewards={
 	items={},
 	followerQLevel=setmetatable({},{__index=function() return 0 end}),
 	followerXP=setmetatable({},{__index=function() return 0 end}),
+	followerPortrait={},
+	followerName={},
 	currencies=setmetatable({},{__index=function(t,k) rawset(t,k,{icon="",qt=0}) return t[k] end}),
 	bonuses={}
 }
@@ -165,18 +185,22 @@ function module:CloseReport()
 end
 function module:MissionComplete(this,button,skiprescheck)
 	missions=G.GetCompleteMissions(followerType)
+	addon:PushEvent("Starting autocomplete")
 	if (missions and #missions > 0) then
 		this:SetEnabled(false)
 		OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(false) -- Disabling standard Blizzard Completion
-		wipe(rewards.followerQLevel)
-		wipe(rewards.followerXP)
-		wipe(rewards.currencies)
-		wipe(rewards.items)
+		for k,v in pairs(rewards) do
+			if type(v)=="table" then
+				wipe(rewards[k])
+			end
+		end
 		local message=C("WARNING",'red')
 		local wasted={}
-		for i=1,1 do --#missions do
-			for k,v in pairs(missions[i].followers) do
-				rewards.followerQLevel[v]=addon:GetChampionData(v,'qLevel',0)
+		for i=1,#missions do
+			for _,v in pairs(missions[i].followers) do
+				rewards.followerQLevel[v]=addon:GetFollowerData(v,'qLevel',0)
+				rewards.followerPortrait[v]=addon:GetFollowerData(v,'portraitIconID')
+				rewards.followerName[v]=G.GetFollowerLink(v)
 			end
 			for k,v in pairs(missions[i].rewards) do
 				if v.itemID then GetItemInfo(v.itemID) end -- tickling server
@@ -255,37 +279,42 @@ GARRISON_FOLLOWER_LIST_UPDATE,followerType
 function module:MissionAutoComplete(event,...)
 -- C_Garrison.MarkMissionComplete Mark mission as complete and prepare it for bonus roll, da chiamare solo in caso di successo
 -- C_Garrison.MissionBonusRoll
---@debug@
-	print("evt",event,...)
---@end-debug@
 	if event=="LOOT" then
 		return self:MissionsPrintResults()
 	end
 	local current=report:GetUserData('current')
 	local currentMission=report:GetUserData('missions')[current]
 	local missionID=currentMission and currentMission.missionID or 0
+--@debug@
+	print("evt",missionID,event,...)
+--@end-debug@
 	-- GARRISON_FOLLOWER_XP_CHANGED: followerType,followerID, xpGained, oldXp, oldLevel, oldQuality
 	if (event=="GARRISON_FOLLOWER_XP_CHANGED") then
 		local followerType,followerID, xpGained, oldXp, oldLevel, oldQuality=...
-		if addon:tonumber(xpGained,0) then
-			rewards.followerXP[followerID]=rewards.followerXP[followerID]+addon:tonumber(xpGained,0)
+		xpGained=addon:tonumber(xpGained,0)
+		if xpGained>0 then
+			rewards.followerXP[followerID]=rewards.followerXP[followerID]+xpGained
 		end
 		return
 	-- GARRISON_MISSION_BONUS_ROLL_LOOT: itemID
 	elseif (event=="GARRISON_MISSION_BONUS_ROLL_LOOT") then
 		local itemID=...
-		if (missionID) then
-			rewards.items[format("%d:%s",missionID,itemID)]=1
-		else
-			rewards.items[format("%d:%s",0,itemID)]=1
-		end
+		local key=format("%d:%s",missionID,itemID)
+		--if not rewards.items[key] then
+			--rewards.bonuses[key]=1
+		--end
 		return
 	-- GARRISON_FOLLOWER_DURABILITY_CHANGED,followerType,followerID,number(Durability left?)
 	elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
-		local followerType,followerID,durabilityLeft=...		
+		local followerType,followerID,durabilityLeft=...	
+		durabilityLeft=addon:tonumber(durabilityLeft)
+		if durabilityLeft<1 then
+			rewards.followerXP[followerID]=-1
+		end
 	-- GARRISON_FOLLOWER_REMOVED
 	elseif (event=="GARRISON_FOLLOWER_REMOVED") then
 		-- gestire la distruzione di un follower... senza il follower
+		-- Should be managed on GARRISON_FOLLOWER_DURABILITY_CHANGED event
 	-- GARRISON_MISSION_COMPLETE_RESPONSE,missionID,canComplete,success,unknown_bool,unknown_table
 	elseif (event=="GARRISON_MISSION_COMPLETE_RESPONSE") then
 		local missionID,canComplete,success,unknown_bool,unknown_table=...
@@ -305,12 +334,11 @@ function module:MissionAutoComplete(event,...)
 		return
 	-- GARRISON_MISSION_BONUS_ROLL_COMPLETE: missionID, requestCompleted; happens after calling C_Garrison.MissionBonusRoll
 	elseif (event=="GARRISON_MISSION_BONUS_ROLL_COMPLETE") then
-		local missionID, requestCompleted =...
-		if (not requestCompleted) then
-			-- We need to call server again
-			currentMission.state=1
-		else
+		local missionID, bonusSuccess =...
+		if (not bonusSuccess) then
 			currentMission.state=3
+		else
+			currentMission.state=4
 		end
 		startTimer(0.1)
 		return
@@ -326,20 +354,24 @@ function module:MissionAutoComplete(event,...)
 			end
 			if (step==0) then
 				--@debug@
-				print("Fired mission complete for",currentMission.missionID)
+				print("Fired MarkMissionCompleter",currentMission.missionID)
 				--@end-debug@
 				addon:PushEvent("MarkMissionComplete",currentMission.missionID)
-				print(G.MarkMissionComplete(currentMission.missionID))
+				G.MarkMissionComplete(currentMission.missionID)
 				startTimer(2)
 			elseif (step==1) then
 				--@debug@
-				print("Fired bonus roll complete for",currentMission.missionID)
+				print("Fired MissionBonusRoll",currentMission.missionID)
 				--@end-debug@
-				addon:PushEvent("MissionBonusROll",currentMission.missionID)
-				print(G.MissionBonusRoll(currentMission.missionID))
+				addon:PushEvent("MissionBonusRoll",currentMission.missionID)
+				G.MissionBonusRoll(currentMission.missionID)
 				startTimer(2)
 			elseif (step>=2) then
-				self:GetMissionResults(step==3,currentMission)
+				--@debug@
+				print("Advanced to next mission  last:",currentMission.missionID,step)
+				--@end-debug@
+				addon:PushEvent("Next mission last:",currentMission.missionID)
+				self:GetMissionResults(step,currentMission)
 				--addon:RefreshFollowerStatus()
 				--shipyard:RefreshFollowerStatus()
 				local current=report:GetUserData('current')
@@ -349,21 +381,24 @@ function module:MissionAutoComplete(event,...)
 			end
 			currentMission.state=step
 		else
+			addon:PushEvent("Building final report")
 			report:AddButton(L["Building Final report"])
 			startTimer(1,"LOOT")
 		end
 	end
 end
-function module:GetMissionResults(success,currentMission)
+function module:GetMissionResults(finalStatus,currentMission)
 	stopTimer()
-	if (success) then
-		report:AddMissionResult(currentMission.missionID,true)
-		PlaySound("UI_Garrison_Mission_Complete_Mission_Success")
+--	PlaySound("UI_Garrison_CommandTable_MissionSuccess_Stinger");
+--	PlaySound("UI_Garrison_Mission_Complete_MissionFail_Stinger");	
+	if (finalStatus>=3) then
+		report:AddMissionResult(currentMission.missionID,finalStatus)
+		PlaySound("UI_Garrison_CommandTable_MissionSuccess_Stinger")
 	else
 		report:AddMissionResult(currentMission.missionID,false)
-		PlaySound("UI_Garrison_Mission_Complete_Encounter_Fail")
+		PlaySound("UI_Garrison_Mission_Complete_MissionFail_Stinger")
 	end
-	if success then
+	if finalStatus>2 then
 		local resourceMultiplier=currentMission.resourceMultiplier or {}
 		local goldMultiplier=currentMission.goldMultiplier or 1
 		for k,v in pairs(currentMission.rewards) do
@@ -382,6 +417,24 @@ function module:GetMissionResults(success,currentMission)
 				rewards.items[format("%d:%s",currentMission.missionID,v.itemID)]=1
 			end
 		end
+		if finalStatus>3 then
+			for k,v in pairs(currentMission.overmaxRewards) do
+				v.quantity=v.quantity or 0
+				if v.currencyID then
+					rewards.currencies[v.currencyID].icon=v.icon
+					local multi=resourceMultiplier[v.currencyID]
+					if v.currencyID == 0 then
+						rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity * goldMultiplier
+					elseif resourceMultiplier[v.currencyID] then
+						rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity * multi
+					else
+						rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity
+					end
+				elseif v.itemID then
+					rewards.bonuses[format("%d:%s",currentMission.missionID,v.itemID)]=1
+				end
+			end
+		end		
 	end
 end
 function module:MissionsPrintResults(success)
@@ -414,15 +467,32 @@ function module:MissionsPrintResults(success)
 		reported=true
 		report:AddItem(itemid,qt)
 	end
+	wipe(items)
+	for k,v in pairs(rewards.bonuses) do
+		local missionid,itemid=strsplit(":",k)
+		if (not items[itemid]) then
+			items[itemid]=1
+		else
+			items[itemid]=items[itemid]+1
+		end
+	end
+	for itemid,qt in pairs(items) do
+		reported=true
+		report:AddItem(itemid,qt,true)
+	end
 	del(items)
 	for k,v in pairs(rewards.followerXP) do
 		reported=true
 		followers=true
-		local a=addon:GetChampionData(k)
-		local b=addon:GetChampionData(k,'qLevel',0)
-		local c=rewards.followerQLevel[k] or 0
-		print("XP per",k,b,c)
-		report:AddFollower(a,v, b>c)
+		if v~=0 then
+			if v>0 then
+				local b=addon:GetFollowerData(k,'qLevel',0)
+				local c=rewards.followerQLevel[k] or 0
+				report:AddFollower(k,v, b>c,rewards.followerPortrait[k],	rewards.followerName[k])
+			else
+				report:AddFollower(k,v, false,rewards.followerPortrait[k],	rewards.followerName[k])
+			end
+		end
 	end
 	if not reported then
 		report:AddRow(L["Nothing to report"])

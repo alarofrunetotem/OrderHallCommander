@@ -3,11 +3,14 @@
 	<Script file="OrderHallCommander.lua"/>
 	<Button name="OHCMissionButton" inherits="OrderHallMissionListButtonTemplate" virtual="true">
 		<Size x="832" y="75"/>
+		<KeyValues>
+			<KeyValue name="IsCustom" value="true" type="boolean"/>
+		</KeyValues>
 	</Button>
 	<Button name="OHCMiniMissionButton" inherits="GarrisonLandingPageReportMissionTemplate" virtual="true">
 		<Size x="400" y="47"/>
 	</Button>
-	<Frame name="OHCStats" virtual="true" enableMouse="true" mixin="OrderHallCommanderMixin">
+	<Frame parentKey="Stats" name="OHCStats" virtual="true" enableMouse="true" mixin="OrderHallCommanderMixin">
 		<Size x="110" y="75"/>
 		<Layers>
 			<Layer level="OVERLAY">
@@ -33,26 +36,40 @@
 		</Scripts>
 	</Frame>
 	<Frame name="OHCThreatsCounters" virtual="true" mixin="OrderHallCommanderMixin" enableMouse="true" inherits="GarrisonAbilityCounterTemplate">
-	<Scripts>
-		<OnEnter method="Dump"/>
-		<OnLeave method="HideTT"/>
-	</Scripts>
-	</Frame>
-	<Frame name="OHCThreats" virtual="true" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinThreats" enableMouse="true">
- 		<Size x="128" y="24"/>
 		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnEnter method="ShowCounter"/>
+			<OnEnter method="CounterTooltip"/>
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
-	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMembers" virtual="true" enableMouse="false">
+	<Frame parentKey="Threats" name="OHCThreats" virtual="true" mixin="OrderHallCommanderMixin" enableMouse="true">
+ 		<Size x="128" y="24"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Cost" justifyV="TOP" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="250" y="20"/>
+				</FontString>
+				<FontString parentKey="HighCost" text="GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP" justifyV="BOTTOM" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="350" y="20"/>
+				</FontString>
+			</Layer>
+		</Layers> 		
+		<Scripts>
+			<OnLoad method="ThreatsOnLoad"/>
+<!--@debug@-->				
+			<OnEnter>
+				self:Dump(self:GetParent())
+			</OnEnter>
+<!--@end-debug@-->				
+			<OnLeave method="HideTT"/>
+		</Scripts>
+	</Frame>
+	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin" virtual="true" enableMouse="false">
 		<Size x="1" y="70"/>
 		<Frames>
 			<Frame parentArray="Champions" inherits="OHCFollowerIcon" />
 		</Frames>
 		<Scripts>
-			<OnLoad method="OnLoad"/>
+			<OnLoad method="MembersOnLoad"/>
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
@@ -73,39 +90,46 @@
 		<Size x="32" y="32"/>
 	</Button>	
 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallMixinMenu" inherits="GarrisonUITemplate" virtual="true">
-		<Size x="200" y="40"/>
+		<Size x="32" y="40"/>
+		<KeyValues>
+			<KeyValue key="PinOpen" value="true" type="boolean"/>
+			<KeyValue key="DefaultWidth" value="200" type="number"/>
+		</KeyValues>		
 		<Frames>
 			<CheckButton parentKey="Pin">
-					<Size x="32" y="32" />
+				<Size x="32" y="32" />
 				<Anchors>
 					<Anchor point="TOPRIGHT" x="4" y="5"/>
 				</Anchors>
 				<NormalTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollUp-Up">
 					<Size x="32" y="32" />
 				</NormalTexture>
-				<!--
 				<HighlightTexture file="Interface\CHATFRAME/UI-ChatIcon-BlinkHilight" alphaMode="ADD">
 					<Size x="32" y="32" />
 				</HighlightTexture>
-				-->
 				<CheckedTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollDown-Up">
 					<Size x="32" y="32" />
 				</CheckedTexture>
 				<Scripts>
 					<OnLeave>
-						GameTooltip:FadeOut()
+						GameTooltip:Hide()
 					</OnLeave>
-					<OnClick method="OnClick" />
-					
 				</Scripts>
 			</CheckButton>
+			<Frame parentKey="Anchor">
+				<Size x="0" y="100" />
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-50"/>
+					<Anchor point="TOPRIGHT" x="0" y="-50"/>
+				</Anchors>
+			</Frame>
 		</Frames>
 		<Anchors>
 			<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="0"/>
-			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
 		</Anchors>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
+			<OnLeave>GameTooltip:Hide()</OnLeave>
 		</Scripts>
 	</Frame>	
 	<CheckButton name="OHCTab" mouseEnable="true" virtual="true" inherits="SpellBookSkillLineTabTemplate">
@@ -135,6 +159,96 @@
 			</Layer>
 		</Layers>
 	</CheckButton>	
+	<Frame parentKey="Spinner" name="OHCSpinner" virtual="true" inherits="LoadingSpinnerTemplate">
+		<Scripts>
+			<OnLoad>
+				self.Start=function(self) self:Show() self.Anim:Play() end
+				self.Stop=function(self) self.Anim:Stop() self:Hide() end
+			</OnLoad>
+		</Scripts>
+	</Frame>
+<!--@debug@-->	
+	<Frame name="OHCDebug" mixin="OrderHallCommanderMixin" visible="true" enableMouse="true" movable="true">
+		<Size x="240" y="150"/>
+		<KeyValues>
+			<KeyValue key="Missions" value="0" type="number"/>
+			<KeyValue key="Followers" value="0" type="number"/>
+			<KeyValue key="Coroutines" value="0" type="number"/>
+			<KeyValue key="Parties" value="0" type="number"/>
+		</KeyValues>		
+		<Anchors>
+			<Anchor point="BOTTOMLEFT" x="0" y="20"/>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentGameMenuFrameHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size x="256" y="64"/>
+					<Anchors>
+						<Anchor point="TOP" x="0" y="12"/>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="OHC Debug">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentGameMenuFrameHeader" x="0" y="-14"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="MissionsRefresh" text="Missions" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-20"/>
+						<Anchor point="TOPRIGHT" x="-10" y="-20"/>
+					</Anchors>
+				</FontString>			
+				<FontString parentKey="FollowersRefresh" text="Followers" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-40"/>
+						<Anchor point="TOPRIGHT" x="-10" y="-40"/>
+					</Anchors>
+				</FontString>			
+				<FontString parentKey="CoroutinesRefresh" text="Coroutines" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-60"/>
+						<Anchor point="TOPRIGHT" x="-10" y="-60"/>
+					</Anchors>
+				</FontString>			
+				<FontString parentKey="PartiesRefresh" text="Parties" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-80"/>
+						<Anchor point="TOPRIGHT" x="-10" y="-80"/>
+					</Anchors>
+				</FontString>			
+				<FontString parentKey="CacheRefresh" text="Cache Refresh" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-100"/>
+						<Anchor point="TOPRIGHT" x="-10" y="-100"/>
+					</Anchors>
+				</FontString>			
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="DebugOnLoad"/>
+			<OnDragStart method="DragStart"/>
+			<OnDragStop method="DragStop"/>
+		</Scripts>
+	</Frame>
+<!--@end-debug@-->	
 	<!--
 	GarrisonFollowerXPGainTemplate
 	GarrisonFollowerXPBarTemplate

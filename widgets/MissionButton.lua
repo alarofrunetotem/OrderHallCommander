@@ -1,6 +1,6 @@
 local me,addon=...
 local C=addon:GetColorTable()
-local module=addon:GetWidgets()
+local module=addon:GetWidgetsModule()
 local Type,Version="OHCMissionButton",1
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
@@ -22,6 +22,13 @@ function m:OnAcquire()
 end
 function m:Show()
 	return self.frame:Show()
+end
+function m:RunSpinner(start)
+	if start then
+		self.Spinner:Start()
+	else
+		self.Spinner:Stop()
+	end
 end
 function m:SetHeight(h)
 	return self.frame:SetHeight(h)
@@ -80,11 +87,11 @@ function m:SetMission(mission,followers,perc,source)
 	frame:EnableMouse(true)
 	frame.Title:SetText(mission.name)
 	local rc,message =pcall(GarrisonMissionButton_SetRewards,frame,mission.rewards)
-	if #frame.Rewards > 0 then
-		local Reward=frame.Rewards[1]
-		Reward:ClearAllPoints()
-		Reward:SetPoint("RIGHT")
-	end
+--	if #frame.Rewards > 0 then
+--		local Reward=frame.Rewards[1]
+--		Reward:ClearAllPoints()
+--		Reward:SetPoint("RIGHT")
+--	end
 	if not rc then frame.Title:SetText(message) end
 	 
 	
@@ -99,7 +106,7 @@ function m._Constructor()
 	frame:SetScript("OnClick",function(self,button) print(button) return button=="RightButton" and self.obj:Fire("OnRightClick",self,button) or  self.obj:Fire("OnClick",self,button) end)
 	frame.LocBG:SetPoint("LEFT")
 	frame.MissionType:SetPoint("TOPLEFT",5,-2)
-	local widget={extra={}}
+	local widget={}
 	setmetatable(widget,{__index=frame})
 	widget.frame=frame
 	widget.scripts={}
@@ -107,21 +114,13 @@ function m._Constructor()
 	for k,v in pairs(m) do widget[k]=v end
 	widget._Constructor=nil
 	-- Spinner
-	local extra=widget.extra
-	extra.Spinner=CreateFrame("Frame",nil,frame,"LoadingSpinnerTemplate")
+	widget.Spinner=CreateFrame("Frame",nil,frame,"OHCSpinner")
+	addon:SetBackdrop(widget.Spinner,1,0,0)
 	-- Failed text string
-	extra.Failure=frame:CreateFontString()
-	-- Success text string
-	extra.Success=frame:CreateFontString()
-	extra.Failure:SetFontObject("GameFontRedLarge")
-	extra.Success:SetFontObject("GameFontGreenLarge")
-	extra.Failure:SetText(FAILED)
-	extra.Success:SetText(SUCCESS)
-	extra.Failure:Hide()
-	extra.Success:Hide()
-	extra.Success:SetPoint("BOTTOMLEFT",100,0)
-	extra.Failure:SetPoint("BOTTOMLEFT",100,0)
-	extra.Spinner:SetPoint("CENTER")
+	widget.Spinner:SetPoint("CENTER",-50,-5)
+	widget.Result=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
+	widget.Result:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",-20,-5)
+	widget.Result:Hide()
 	return AceGUI:RegisterAsWidget(widget)
 end
 AceGUI:RegisterWidgetType(Type,m._Constructor,Version)
