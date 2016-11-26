@@ -208,6 +208,12 @@ function module:MissionComplete(this,button,skiprescheck)
 					wasted[v.currencyID]=(wasted[v.currencyID] or 0) + v.quantity
 				end
 			end
+      for k,v in pairs(missions[i].overmaxRewards) do
+        if v.itemID then GetItemInfo(v.itemID) end -- tickling server
+        if v.currencyID and tContains(cappedCurrencies,v.currencyID) then
+          wasted[v.currencyID]=(wasted[v.currencyID] or 0) + v.quantity
+        end
+      end
 			local m=missions[i]
 --totalTimeString, totalTimeSeconds, isMissionTimeImproved, successChance, partyBuffs, isEnvMechanicCountered, xpBonus, materialMultiplier, goldMultiplier = C_Garrison.GetPartyMissionInfo(MISSION_PAGE_FRAME.missionInfo.missionID);
 
