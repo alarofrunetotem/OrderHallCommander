@@ -416,7 +416,7 @@ function module:OnInitialized()
 	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")	
 end
 function module:Refresh()
-	return addon:UpdateMissions()
+	return addon:RefreshMissions()
 end
 function module:ResetParties()
 	for _,party in pairs(parties) do
