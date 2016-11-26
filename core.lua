@@ -104,6 +104,7 @@ function addon:ApplyMOVEPANEL(value)
 
 end
 function addon:OnInitialized()
+  dbOHCperChar=dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
 	local f=menu
