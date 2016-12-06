@@ -1,10 +1,10 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print(__FILE__:sub(-15),...) end
+local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE addon
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 20/11/2016 11:08:08
+-- Generated on 04/12/2016 11:15:56
 local me,ns=...
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
@@ -27,6 +27,10 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
+local garrisonType=LE_GARRISON_TYPE_7_0
+local FAKE_FOLLOWERID="0x0000000000000000"
+local MAXLEVEL=110
 --[===[*if-non-addon*
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -73,6 +77,7 @@ local print=function() end
 
 -- End Template
 --*BEGIN
+local MISSING=ITEM_MISSING:format('|cff'..C.Red.c)..'|r'
 local ctr=0
 function addon.resolve(frame) 
 	local name
@@ -112,7 +117,14 @@ function addon:ColorFromBias(followerBias)
 end
 local colors=addon.colors
 _G.OrderHallCommanderMixin={}
+_G.OrderHallCommanderMixinThreats={}
+_G.OrderHallCommanderMixinFollowerIcon={} 
+_G.OrderHallCommanderMixinMenu={}
 local Mixin=OrderHallCommanderMixin --#Mixin
+local MixinThreats=OrderHallCommanderMixinThreats --#MixinThreats
+local MixinMenu=OrderHallCommanderMixinMenu --#MixinMenu
+local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
+
 function Mixin:CounterTooltip()
 	local tip=self:AnchorTT()
 	tip:AddLine(self.Ability)
@@ -176,15 +188,21 @@ function Mixin:ThreatsOnLoad()
 	if not threatPool then threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
 	self.usedPool={}
 end
-function Mixin:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
+
+function MixinThreats:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
+	local icons=OHF.abilityCountersForMechanicTypes
+	if not icons then
+		--@debug@
+		print("Empty icons")
+		--@end-debug@ 
+		return false 
+	end
 	for i=1,#self.usedPool do
 		threatPool:Release(self.usedPool[i])
 	end
 	self.mechanics=mechanics
 	wipe(self.usedPool)
 	local previous
-	local icons=OHF.abilityCountersForMechanicTypes
-	if not icons then return end
 	for index,mechanic in pairs(mechanics) do
 		local th=threatPool:Acquire()
 		tinsert(self.usedPool,th)
@@ -211,7 +229,7 @@ function Mixin:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
 		self.Cost:SetTextColor(C[color]())
 		self.Cost:ClearAllPoints()
 		self.Cost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
-		self.HighCost:SetTextColor(C.Red())
+		self.HighCost:SetTextColor(C.Orange())
 		self.HighCost:ClearAllPoints()
 		self.HighCost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
 		if notEnoughResources then
@@ -223,12 +241,12 @@ function Mixin:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
 		self.Cost:Hide()
 		self.HighCost:Hide()
 	end
+	return true
 end
 
-OrderHallCommanderMixinFollowerIcon={} 
-local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
 function MixinFollowerIcon:SetFollower(followerID)
 	local info=addon:GetFollowerData(followerID)
+	self.followerID=followerID
 	self:SetupPortrait(info)
 	if info.isMaxLevel then
 		self:SetILevel(info.iLevel)
@@ -237,9 +255,28 @@ function MixinFollowerIcon:SetFollower(followerID)
 	end
 end
 function MixinFollowerIcon:SetEmpty()
-	self:SetNoLevel()
+	self.followerID=false
+	self:SetLevel(MISSING)
 	self:SetPortraitIcon()
 	self:SetQuality(1)
+end
+function MixinFollowerIcon:ShowTooltip()
+	if not self.followerID then
+		return self:Dump()
+	end
+	local link = C_Garrison.GetFollowerLink(self.followerID);
+	print(link)
+	if link then
+		local levelXP=G.GetFollowerLevelXP(self.followerID)
+		local xp=G.GetFollowerXP(self.followerID)
+		GarrisonFollowerTooltip:ClearAllPoints()
+		GarrisonFollowerTooltip:SetPoint("BOTTOM", self, "TOP")
+		local _, garrisonFollowerID, quality, level, itemLevel, ability1, ability2, ability3, ability4, trait1, trait2, trait3, trait4, spec1 = strsplit(":", link)
+		GarrisonFollowerTooltip_Show(tonumber(garrisonFollowerID), true, tonumber(quality), tonumber(level), xp,levelXP,  tonumber(itemLevel), tonumber(spec1), tonumber(ability1), tonumber(ability2), tonumber(ability3), tonumber(ability4), tonumber(trait1), tonumber(trait2), tonumber(trait3), tonumber(trait4))
+	end
+end
+function MixinFollowerIcon:HideTooltip()
+	GarrisonFollowerTooltip:Hide()
 end
 function Mixin:MembersOnLoad()
 	for i=1,3 do
@@ -254,8 +291,6 @@ function Mixin:MembersOnLoad()
 		self.Champions[i]:SetEmpty()
 	end
 end
-OrderHallMixinMenu={}
-local MixinMenu=OrderHallMixinMenu --#MixinMenu
 function MixinMenu:OnLoad()
 	self.Top:SetAtlas("_StoneFrameTile-Top", true);
 	self.Bottom:SetAtlas("_StoneFrameTile-Bottom", true);
@@ -265,28 +300,7 @@ function MixinMenu:OnLoad()
 	self.GarrCorners.TopRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.GarrCorners.BottomLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	self.CloseButton:Hide()
-	self.CloseButton:SetScript("OnClick",nil)
-	self.Pin:SetAllPoints(self.CloseButton)
-	self.Pin:SetChecked(addon.db.profile.pin)
-	self.Pin.tooltip=L["Hide/show OrderHallCommander menu"]
-	self.Pin:SetScript("OnClick",function(this) self:OnClick(this) end)
-	self.Pin:SetScript("OnEnter",function(this) self:ShowTT(this) end)
-	self.Pin:GetCheckedTexture():SetRotation(math.rad(90))
-	self.Pin:GetNormalTexture():SetRotation(math.rad(90))
-	self.DefaultWidth=self.DefaultWidth or 200
-	self:OnClick(self.Pin)
+	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end	
-function MixinMenu:OnClick(this)
-	addon.db.profile.pin=this:GetChecked()
-	if this:GetChecked() then
-		self.Anchor:Hide()
-		self:SetWidth(20)		
-		self:SetHeight(20)
-	else
-		self:SetWidth(self.DefaultWidth)
-		self:SetHeight(OHF:GetHeight())
-		self.Anchor:Show()
-	end
-end
+
 

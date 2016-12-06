@@ -9,6 +9,7 @@ local G=C_Garrison
 local GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT=GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT:gsub('%%d',C('%%d','Yellow'))
 local GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP=GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP:gsub('%%d',C('%%d','Green'))
 local	GARRISON_FOLLOWER_XP_LEFT=GARRISON_FOLLOWER_XP_LEFT:gsub('%%d',C('%%d','Orange'))
+local COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED=COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED:gsub('%%d',C('%%d','Green'))
 local GARRISON_FOLLOWER_XP_UPGRADE_STRING=GARRISON_FOLLOWER_XP_UPGRADE_STRING
 local GARRISON_FOLLOWER_XP_STRING=GARRISON_FOLLOWER_XP_STRING
 local GARRISON_FOLLOWER_DISBANDED=GARRISON_FOLLOWER_DISBANDED
@@ -78,6 +79,8 @@ function m:AddMissionResult(missionID,success)
 				frame.Rewards[i].Quantity:Hide()
 			end
 		end
+		frame.Title:ClearAllPoints()
+		frame.Title:SetPoint("TOPLEFT",165,-7)
 		mission.Result:Show()
 	end
 end
@@ -91,12 +94,17 @@ function m:AddRow(data,...)
 	obj:AddChild(l)
 
 end
+function m:AddPlayerXP(xpgain)
+	if xpgain>0 then
+		self:AddRow(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED:format(xpgain))
+	end
+
+end
 function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 	if xp < 0 then
-		-- in this case levelup is a portraitIconId
 		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname))
 	end
-	local isMaxLevel=addon:GetFOllowerData(followerID,'isMaxLevel',false)
+	local isMaxLevel=addon:GetFollowerData(followerID,'isMaxLevel',false)
 	if isMaxLevel and not levelup then
 		return
 --			return self:AddFollowerIcon(followerType,follower.portraitIconID,format("%s is already at maximum xp",follower.fullname))
@@ -111,11 +119,14 @@ function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 	local XP=addon:GetFollowerData(followerID,'xp',0) 
 	local levelXP=addon:GetFollowerData(followerID,'levelXP',0)
 	if levelup then
-		message=message..GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP:format(fullname,level)
+		message=message..' ' .. GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT_LEVEL_UP:format(fullname,level)
 	end
-	message=message ..
-			GARRISON_FOLLOWER_XP_LEFT:format(levelXP-follower.xp) ..
-			(isMaxLevel and GARRISON_FOLLOWER_XP_UPGRADE_STRING or GARRISON_FOLLOWER_XP_STRING)		
+	if levelXP > 0 then
+		message=message .. ' ' ..
+			GARRISON_FOLLOWER_XP_LEFT:format(levelXP-addon:GetFollowerData(followerID,'xp',levelXP)) ..
+			' ' ..
+			(isMaxLevel and GARRISON_FOLLOWER_XP_UPGRADE_STRING or GARRISON_FOLLOWER_XP_STRING)
+	end		
 	return self:AddFollowerIcon(portrait,message)
 end
 function m:AddFollowerIcon(icon,text)

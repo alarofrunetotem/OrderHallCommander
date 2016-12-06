@@ -41,7 +41,7 @@
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
-	<Frame parentKey="Threats" name="OHCThreats" virtual="true" mixin="OrderHallCommanderMixin" enableMouse="true">
+	<Frame parentKey="Threats" name="OHCThreats" virtual="true" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinThreats" enableMouse="true">
  		<Size x="128" y="24"/>
 		<Layers>
 			<Layer level="OVERLAY">
@@ -76,8 +76,8 @@
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
 		<Size x="52" y="60"/>
 		<Scripts>
-			<OnEnter method="Dump"/>
-			<OnLeave method="HideTT"/>
+			<OnEnter method="ShowTooltip"/>
+			<OnLeave method="HideTooltip"/>
 		</Scripts>
 	</Frame>
 	<Frame name="OHCFollowerPortrait" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
@@ -88,44 +88,40 @@
 	</Button>
 	<Button name="OHCUpgradeButton" enableMouse="true" virtual="true" inherits="GarrisonMissionListButtonRewardTemplate">
 		<Size x="32" y="32"/>
-	</Button>	
-	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallMixinMenu" inherits="GarrisonUITemplate" virtual="true">
-		<Size x="32" y="40"/>
+	</Button>
+	<Button name="OHCPin" virtual="true" enableMouse="true" hidden="true">
+		<Size x="64" y="64" />
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="OrderHallMissionFrame" relativePoint="TOPRIGHT" x="-15" y="13"/>
+		</Anchors>
+		<NormalTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollUp-Up">
+			<Size x="66" y="66" />
+		</NormalTexture>
+		<HighlightTexture file="Interface\CHATFRAME/UI-ChatIcon-BlinkHilight" alphaMode="ADD">
+			<Size x="60" y="60" />
+		</HighlightTexture>
+		<Scripts>
+			<OnLeave>
+				GameTooltip:Hide()
+			</OnLeave>
+			<OnEnter>
+				GameTooltip:SetOwner(self,"ANCHOR_TOPRIGHE")
+				if not self.tooltip then return end
+				GameTooltip:SetText(self.tooltip)
+				GameTooltip:Show()				
+			</OnEnter>
+		</Scripts>
+	</Button>
+
+	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="GarrisonUITemplate" virtual="true">
+		<Size x="200" y="30"/>
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
 			<KeyValue key="DefaultWidth" value="200" type="number"/>
 		</KeyValues>		
-		<Frames>
-			<CheckButton parentKey="Pin">
-				<Size x="32" y="32" />
-				<Anchors>
-					<Anchor point="TOPRIGHT" x="4" y="5"/>
-				</Anchors>
-				<NormalTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollUp-Up">
-					<Size x="32" y="32" />
-				</NormalTexture>
-				<HighlightTexture file="Interface\CHATFRAME/UI-ChatIcon-BlinkHilight" alphaMode="ADD">
-					<Size x="32" y="32" />
-				</HighlightTexture>
-				<CheckedTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollDown-Up">
-					<Size x="32" y="32" />
-				</CheckedTexture>
-				<Scripts>
-					<OnLeave>
-						GameTooltip:Hide()
-					</OnLeave>
-				</Scripts>
-			</CheckButton>
-			<Frame parentKey="Anchor">
-				<Size x="0" y="100" />
-				<Anchors>
-					<Anchor point="TOPLEFT" x="0" y="-50"/>
-					<Anchor point="TOPRIGHT" x="0" y="-50"/>
-				</Anchors>
-			</Frame>
-		</Frames>
 		<Anchors>
 			<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="0"/>
+			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
 		</Anchors>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
@@ -169,12 +165,13 @@
 	</Frame>
 <!--@debug@-->	
 	<Frame name="OHCDebug" mixin="OrderHallCommanderMixin" visible="true" enableMouse="true" movable="true">
-		<Size x="240" y="150"/>
+		<Size x="240" y="160"/>
 		<KeyValues>
 			<KeyValue key="Missions" value="0" type="number"/>
 			<KeyValue key="Followers" value="0" type="number"/>
 			<KeyValue key="Coroutines" value="0" type="number"/>
 			<KeyValue key="Parties" value="0" type="number"/>
+			<KeyValue key="NumParties" value="0" type="number"/>
 		</KeyValues>		
 		<Anchors>
 			<Anchor point="BOTTOMLEFT" x="0" y="20"/>
@@ -233,11 +230,18 @@
 						<Anchor point="TOPRIGHT" x="-10" y="-80"/>
 					</Anchors>
 				</FontString>			
-				<FontString parentKey="CacheRefresh" text="Cache Refresh" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+				<FontString parentKey="NumPartiesRefresh" text="Num Parties" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
 					<Size x="95" y="30"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="10" y="-100"/>
 						<Anchor point="TOPRIGHT" x="-10" y="-100"/>
+					</Anchors>
+				</FontString>			
+				<FontString parentKey="CacheRefresh" text="Cache Refresh" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-120"/>
+						<Anchor point="TOPRIGHT" x="-10" y="-120"/>
 					</Anchors>
 				</FontString>			
 			</Layer>
@@ -248,6 +252,7 @@
 			<OnDragStop method="DragStop"/>
 		</Scripts>
 	</Frame>
+	<Frame name="OHCAlertFrameTemplate" inherits="GarrisonStandardFollowerAlertFrameTemplate" virtual="true"/>
 <!--@end-debug@-->	
 	<!--
 	GarrisonFollowerXPGainTemplate

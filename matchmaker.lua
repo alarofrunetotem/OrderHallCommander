@@ -1,10 +1,10 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print(__FILE__:sub(-15),...) end
+local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceSerializer-3.0","AceConsole-3.0"
 --*MINOR 35
--- Generated on 20/11/2016 11:08:08
+-- Generated on 04/12/2016 11:15:56
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -27,6 +27,9 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
+local garrisonType=LE_GARRISON_TYPE_7_0
+local FAKE_FOLLOWERID="0x0000000000000000"
 --*if-non-addon*
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -164,82 +167,97 @@ end
 	 
 function partyManager:Fail(...)
 --@debug@
-	pp("Failed",self.missionID,...)
+	--pp("Failed",self.missionID,...)
 --@end-debug@
 	return false
 end	 
+local keys={
+'f1',
+'f2',
+'f3'
+}
 function partyManager:FillRealFollowers(candidate)
+	candidate.busyUntil=GetTime()
+	candidate.xpGainers=0
 	for i=1,3 do
-		if i > self.numFollowers then return end
-		local followerID,classSpec=strsplit(',',candidate['f'..i])
-		local troops=self.troops
-		if classSpec~=0 then
-			local better=(candidate.hasKillTroopsEffect and IsLower or IsHigher)
-			local base=better()
-			local found
-			for i,troop in pairs(troops) do
-				local ignore=false
-				if troop.status and troop.status=="GARRISON_FOLLOWER_ON_MISSION" and  troop.classSpec==classSpec  then
-					if i>1 and troop.followerID==candidate[i-1] then
-						ignore=true
-					end
-					if i>2 and troop.followerID==candidate[i-2] then
-						ignore=true
-					end
-						if better(troop.durability,base) then
-							found=i
-							base=troop.durability
+		if i > (self.numFollowers or 3) then return end
+		local key=keys[i];
+		if  candidate[key] then 
+			local followerID,classSpec=strsplit(',',candidate['f'..i])
+			--GARRISON_FOLLOWER_COMBAT_ALLY
+			classSpec=addon:tonumber(classSpec,0)
+			local troops=self.troops
+			if classSpec~=0 then
+				local better=(candidate.hasKillTroopsEffect and IsLower or IsHigher)
+				local base=better()
+				local baseBusy=base
+				local found,foundBusy
+				for t,troop in pairs(troops) do
+					local ignore=false
+					if troop.classSpec==classSpec then
+						if i>1 and troop.followerID==candidate[i-1] then
+							ignore=true
 						end
+						if i>2 and troop.followerID==candidate[i-2] then
+							ignore=true
+						end
+						if troop.status then
+							if better(troop.durability,baseBusy) and not ignore then
+								foundBusy=t
+								baseBusy=troop.durability
+							end
+						else
+							if better(troop.durability,base) and not ignore then
+								found=t
+								base=troop.durability
+							end
+						end
+					end
 				end
+				-- SAVETROOPS doesnt allow to have unintended casualties
+				if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect and addon:GetFollowerData(followerID,'durability') > 1 then 
+					followerID=nil
+				else
+					if found then
+						followerID=troops[found].followerID
+					elseif foundBusy then
+						followerID=troops[foundBusy].followerID
+					else
+						followerID=nil
+					end
+				end
+			else
+				local qlevel=addon:GetFollowerData(followerID,'qLevel',0)
+				if qlevel < addon.MAXQLEVEL then
+					candidate.xpGainers=candidate.xpGainers+1
+				end 
+				
 			end
-			if not found then
-				return self:Fail("NOTROOPS") 
+			candidate[i]=followerID
+			if followerID then
+				candidate.busyUntil=math.max(addon:GetFollowerData(followerID,'busyUntil',0),candidate.busyUntil)
 			end
-			followerID=troops[found].followerID
-			-- SAVETROOPS doesnt allow to have unintended casualties
-			if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect and addon:GetFollowerData(followerID,'durability') > 1 then 
-				return self:Fail("SAVETROOPS") 
-			end
+		else
+			candidate[i]=nil
 		end
-		candidate[i]=followerID
 	end		
 end
 function partyManager:SatisfyCondition(candidate,key,table)
-	local followerID,classSpec=strsplit(',',candidate[key])
+	if type(candidate) ~= "table" then return false end
+	local followerID=candidate[key]
+	if not followerID then return self:Fail("No follower id for party slot",key) end
 	if addon:GetBoolean("SPARE") and candidate.cost > candidate.baseCost then return self:Fail("SPARE") end
 	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
-	classSpec=addon:tonumber(classSpec,0)
-	local troops=self.troops
-	if classSpec~=0 then
-		local better=(candidate.hasKillTroopsEffect and IsLower or IsHigher)
-		local base=better()
-		local found
-		for i,troop in pairs(troops) do
-			if not troop.status and troop.classSpec==classSpec  then
-				if not table or not tContains(table,troop.followerID) then
-					if better(troop.durability,base) then
-						found=i
-						base=troop.durability
-					end
-				end
-			end
-		end
-		if not found then
-			return self:Fail("NOTROOPS") 
-		end
-		followerID=troops[found].followerID
-		-- SAVETROOPS doesnt allow to have unintended casualties
-		if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect and addon:GetFollowerData(followerID,'durability') > 1 then 
-			return self:Fail("SAVETROOPS") 
-		end
-	end
 	if G.GetFollowerStatus(followerID) then
 		return self:Fail("BUSY", G.GetFollowerStatus(followerID),G.GetFollowerName(followerID))
 	else
-		candidate[addon:tonumber(key:sub(2))]=followerID
 		return true 
 	end
+end
+function partyManager:IterateIndex()
+	self:GenerateIndex()
+	return ipairs(self.candidatesIndex)
 end
 function partyManager:GetSelectedParty(mission)
 	if type(mission)=="table" and mission.inProgress then
@@ -253,10 +271,10 @@ function partyManager:GetSelectedParty(mission)
 			end	
 			self.candidates.progress=setmetatable(candidate,CandidateMeta)		
 		end 
-		return self.candidates.progress	
+		return self.candidates.progress,"progress"	
 	end
 	if type(mission)=="string" and self.candidates[mission] then
-		return self.candidates[mission]
+		return self.candidates[mission],mission
 	end
 	if not self.ready then
 		self:Match()
@@ -265,21 +283,37 @@ function partyManager:GetSelectedParty(mission)
 	wipe(self.troops)
 	addon:GetAllTroops(self.troops)
 	local lastkey
+	local bestkey
+	self:GenerateIndex()
 	for i,key in ipairs(self.candidatesIndex) do
 		local candidate=self.candidates[key]
-		lastkey=key
-		if self:SatisfyCondition(candidate,'f1') and
-			self:SatisfyCondition(candidate,'f2') and
-			self:SatisfyCondition(candidate,'f3') then
-			candidate.order=i
-			candidate.key=key
-			return candidate
+		if candidate then
+			self:FillRealFollowers(candidate)
+			lastkey=key
+			if self:SatisfyCondition(candidate,1) and
+				self:SatisfyCondition(candidate,2) and
+				self:SatisfyCondition(candidate,3) then
+				if not bestkey then bestkey=key end
+				if self.missionClass~="FollowerXp" or candidate.xpGainers > 0 or not addon:GetBoolean("MAXIMIZEXP") then
+					candidate.order=i
+					candidate.key=key
+					return candidate,key
+				end
+			end
 		end
 	end
-	if lastkey and #self.candidates[lastkey] >= self.numFollowers then 
-		return self.candidates[lastkey] -- should not return busy followers
+	--@debug@
+	pp("Bestkey,Lastkey",self.missionID,bestkey,lastkey)
+	--@end-debug@
+	if bestkey then 
+		return self.candidates[bestkey],bestkey
 	end
-	return emptyCandidate
+	if lastkey then 
+		if self.candidates[lastkey].busyUntil <= GetTime() then
+			return self.candidates[lastkey],lastkey -- should not return busy followers
+		end
+	end
+	return setmetatable(self:GetEffects(),CandidateMeta)
 end
 function partyManager:Remove(...)
 	local tbl=...
@@ -305,7 +339,6 @@ function partyManager:GetEffects()
 	missionEffects.xpBonus=xpBonus
 	missionEffects.materials=materials
 	missionEffects.gold=gold
-	missionEffects.perc=chance
 	chance=chance*10 + 5
 	if timeImproved then chance=chance +1 end  
 	if missionEffects.hasMissionTimeNegativeEffect then chance=chance-1 end
@@ -336,17 +369,14 @@ function partyManager:Build(...)
 		end 
 	end
 	local missionEffects=self:GetEffects()
-	missionEffects.f1=format("%s,%s",tostringall(followers[1].followerID,followers[1].isTroop and followers[1].classSpec or "0"))
-	missionEffects.f2=format("%s,%s",tostringall(followers[2].followerID,followers[2].isTroop and followers[2].classSpec or "0"))
-	missionEffects.f3=format("%s,%s",tostringall(followers[3].followerID,followers[3].isTroop and followers[3].classSpec or "0"))
---@debug@
-	missionEffects.f1=missionEffects.f1..','..addon:GetFollowerData(followers[1].followerID,'name')
-	missionEffects.f2=missionEffects.f2..','..addon:GetFollowerData(followers[2].followerID,'name')
-	missionEffects.f3=missionEffects.f3..','..addon:GetFollowerData(followers[3].followerID,'name')
---@end-debug@	
-	if G.AreMissionFollowerRequirementsMet(self.missionID) then
-		self.candidates[format("%04d",10000-missionEffects.chance)]=setmetatable(missionEffects,CandidateMeta)
-	end
+	for i=1,#followers do 
+		local k='f'..i
+		missionEffects[k]=format("%s,%s",tostringall(followers[i].followerID,followers[i].isTroop and followers[i].classSpec or "0"))
+	--@debug@
+		missionEffects[k]=missionEffects [k]..','..addon:GetFollowerData(followers[i].followerID,'name')
+	--@end-debug@
+	end	
+	self.candidates[format("%04d",10000-missionEffects.chance)]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
 
 end	
@@ -360,6 +390,9 @@ function partyManager:Match()
 	local totChamps=#champs
 	local mission=addon:GetMissionData(self.missionID)
 	self.numFollowers=mission.numFollowers
+	self.missionType=addon:reward2class(mission)
+	self.missionClass,self.missionValue=strsplit(':',self.missionType)
+	self.missionValue=addon:tonumber(self.missionVale,0)
 	local t=addon:GetTroopTypes()
 	local t1_1,t1_2=addon:GetTroop(t[1],2)
 	local t2_1,t2_2=addon:GetTroop(t[2],2)
@@ -391,23 +424,25 @@ function partyManager:Match()
 			coroutine.yield()
 		end
 	end
+	self:Build()
 	if not async then releaseEvents() end
-	if not self.candidatesIndex then self.candidatesIndex=new() end
+	del(champs)
+	return self
+end
+function partyManager:GenerateIndex()
+	if not self.candidatesIndex then self.candidatesIndex=new() else wipe(self.candidatesIndex) end
 	for k,_ in pairs(self.candidates) do
 		tinsert(self.candidatesIndex,k)
 	end	
 	table.sort(self.candidatesIndex)
-	del(champs)
-	return self
-end
+end	
 function module:OnInitialized()
 	addon:AddBoolean("SAVETROOPS",false,L["Dont kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
 	addon:AddBoolean("SPARE",false,L["Keep cost low"],L["Always counter increased resource cost"])
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
 	addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
-	addon:AddSlider("WAIT",0,0,120,L["Wait time"],L["Minutes you are willing to wait for a better party"])
-	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP","WAIT")
+	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP")
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
@@ -415,7 +450,7 @@ function module:OnInitialized()
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")	
 	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")	
 end
-function module:Refresh()
+function module:Refresh(event)
 	return addon:RefreshMissions()
 end
 function module:ResetParties()
@@ -452,6 +487,13 @@ function addon:GetParties(missionID)
 		parties[missionID].troops=new()
 		parties[missionID].candidates=new()
 	end
+--@debug@
+	local n=0
+	for _,_ in pairs(parties) do
+		n=n+1
+	end
+	OHCDebug:Bump("NumParties")
+--@end-debug@	
 	return parties[missionID]
 end
 function addon:GetAllParties()

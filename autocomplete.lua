@@ -1,10 +1,10 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print(__FILE__:sub(-15),...) end
+local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 20/11/2016 11:08:08
+-- Generated on 04/12/2016 11:15:56
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -27,6 +27,10 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
+local garrisonType=LE_GARRISON_TYPE_7_0
+local FAKE_FOLLOWERID="0x0000000000000000"
+local MAXLEVEL=110
 --*if-non-addon*
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -78,6 +82,8 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local pairs=pairs
 local format=format
 local strsplit=strsplit
+local mebefore={level=0,xp=0,xpMax=0}
+local meafter={level=0,xp=0,xpMax=0}
 ---------------------------------------------------------------------------
 function module:OnInitialized()
 	local ref=OHFMissions.CompleteDialog.BorderFrame.ViewButton
@@ -100,7 +106,7 @@ function module:GenerateMissionCompleteList(title,anchor)
 	w:ClearAllPoints()
 	w:SetPoint("TOP",anchor)
 	w:SetPoint("BOTTOM",anchor)
-	w:SetWidth(500)
+	w:SetWidth(700)
 	w:SetParent(anchor)
 	w.frame:SetFrameStrata("HIGH")
 	return w
@@ -183,8 +189,15 @@ function module:CloseReport()
 	if report then pcall(report.Close,report) report=nil end
 	print(pcall(OHF.CloseMissionComplete(OHF)))
 end
+local function fillMyStatus(tab)
+	tab.level,tab.xp,tab.xpMax=UnitLevel("player") or 0,UnitXP('player') or 0,UnitXPMax('player') or 0
+end
+local function printMyStatus(tab)
+	pp(tab.level,tab.xp,tab.xpMax)
+end
 function module:MissionComplete(this,button,skiprescheck)
 	missions=G.GetCompleteMissions(followerType)
+	fillMyStatus(mebefore)	
 	addon:PushEvent("Starting autocomplete")
 	if (missions and #missions > 0) then
 		this:SetEnabled(false)
@@ -208,15 +221,14 @@ function module:MissionComplete(this,button,skiprescheck)
 					wasted[v.currencyID]=(wasted[v.currencyID] or 0) + v.quantity
 				end
 			end
-      for k,v in pairs(missions[i].overmaxRewards) do
-        if v.itemID then GetItemInfo(v.itemID) end -- tickling server
-        if v.currencyID and tContains(cappedCurrencies,v.currencyID) then
-          wasted[v.currencyID]=(wasted[v.currencyID] or 0) + v.quantity
-        end
-      end
+	      for k,v in pairs(missions[i].overmaxRewards) do
+	        if v.itemID then GetItemInfo(v.itemID) end -- tickling server
+	        if v.currencyID and tContains(cappedCurrencies,v.currencyID) then
+	          wasted[v.currencyID]=(wasted[v.currencyID] or 0) + v.quantity
+	        end
+	      end
 			local m=missions[i]
 --totalTimeString, totalTimeSeconds, isMissionTimeImproved, successChance, partyBuffs, isEnvMechanicCountered, xpBonus, materialMultiplier, goldMultiplier = C_Garrison.GetPartyMissionInfo(MISSION_PAGE_FRAME.missionInfo.missionID);
-
 			_,_,m.isMissionTimeImproved,m.successChance,_,_,m.xpBonus,m.resourceMultiplier,m.goldMultiplier=G.GetPartyMissionInfo(m.missionID)
 		end
 		local stop
@@ -232,7 +244,7 @@ function module:MissionComplete(this,button,skiprescheck)
 			end
 		end
 		if stop and not skiprescheck then
-			self:Popup(message.."\n" ..format(L["If you %s, you will loose them\nClick on %s to abort"],ACCEPT,CANCEL),0,
+			self:Popup(message.."\n" ..format(L["If you %s, you will lose them\nClick on %s to abort"],ACCEPT,CANCEL),0,
 				function()
 					StaticPopup_Hide("LIBINIT_POPUP")
 					module:MissionComplete(this,button,true)
@@ -309,6 +321,7 @@ function module:MissionAutoComplete(event,...)
 		--if not rewards.items[key] then
 			--rewards.bonuses[key]=1
 		--end
+		startTimer(0.1)
 		return
 	-- GARRISON_FOLLOWER_DURABILITY_CHANGED,followerType,followerID,number(Durability left?)
 	elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
@@ -323,10 +336,12 @@ function module:MissionAutoComplete(event,...)
 		-- Should be managed on GARRISON_FOLLOWER_DURABILITY_CHANGED event
 	-- GARRISON_MISSION_COMPLETE_RESPONSE,missionID,canComplete,success,unknown_bool,unknown_table
 	elseif (event=="GARRISON_MISSION_COMPLETE_RESPONSE") then
-		local missionID,canComplete,success,unknown_bool,unknown_table=...
+		local missionID,canComplete,success,overMaxSucceeded,follower_deaths=...
 		if currentMission.completed or select('#',...) == 1 then
 			canComplete=true
 			success=true
+		else
+			currentMission.overSuccess=overMaxSucceeded
 		end
 		if (not canComplete) then
 			-- We need to call server again
@@ -340,13 +355,8 @@ function module:MissionAutoComplete(event,...)
 		return
 	-- GARRISON_MISSION_BONUS_ROLL_COMPLETE: missionID, requestCompleted; happens after calling C_Garrison.MissionBonusRoll
 	elseif (event=="GARRISON_MISSION_BONUS_ROLL_COMPLETE") then
-		local missionID, bonusSuccess =...
-		if (not bonusSuccess) then
-			currentMission.state=3
-		else
-			currentMission.state=4
-		end
-		startTimer(0.1)
+		currentMission.state=currentMission.overSuccess and 4 or 3
+		startTimer(0.2)
 		return
 	else -- event == LOOP or INIT
 		if (currentMission) then
@@ -404,9 +414,9 @@ function module:GetMissionResults(finalStatus,currentMission)
 		report:AddMissionResult(currentMission.missionID,false)
 		PlaySound("UI_Garrison_Mission_Complete_MissionFail_Stinger")
 	end
+	local resourceMultiplier=currentMission.resourceMultiplier or {}
+	local goldMultiplier=currentMission.goldMultiplier or 1
 	if finalStatus>2 then
-		local resourceMultiplier=currentMission.resourceMultiplier or {}
-		local goldMultiplier=currentMission.goldMultiplier or 1
 		for k,v in pairs(currentMission.rewards) do
 			v.quantity=v.quantity or 0
 			if v.currencyID then
@@ -423,25 +433,25 @@ function module:GetMissionResults(finalStatus,currentMission)
 				rewards.items[format("%d:%s",currentMission.missionID,v.itemID)]=1
 			end
 		end
-		if finalStatus>3 then
-			for k,v in pairs(currentMission.overmaxRewards) do
-				v.quantity=v.quantity or 0
-				if v.currencyID then
-					rewards.currencies[v.currencyID].icon=v.icon
-					local multi=resourceMultiplier[v.currencyID]
-					if v.currencyID == 0 then
-						rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity * goldMultiplier
-					elseif resourceMultiplier[v.currencyID] then
-						rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity * multi
-					else
-						rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity
-					end
-				elseif v.itemID then
-					rewards.bonuses[format("%d:%s",currentMission.missionID,v.itemID)]=1
-				end
-			end
-		end		
 	end
+	if finalStatus>3 then
+		for k,v in pairs(currentMission.overmaxRewards) do
+			v.quantity=v.quantity or 0
+			if v.currencyID then
+				rewards.currencies[v.currencyID].icon=v.icon
+				local multi=resourceMultiplier[v.currencyID]
+				if v.currencyID == 0 then
+					rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity * goldMultiplier
+				elseif resourceMultiplier[v.currencyID] then
+					rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity * multi
+				else
+					rewards.currencies[v.currencyID].qt=rewards.currencies[v.currencyID].qt+v.quantity
+				end
+			elseif v.itemID then
+				rewards.bonuses[format("%d:%s",currentMission.missionID,v.itemID)]=1
+			end
+		end
+	end		
 end
 function module:MissionsPrintResults(success)
 	stopTimer()
@@ -506,6 +516,22 @@ function module:MissionsPrintResults(success)
 	if not followers then
 		report:AddRow(L["No follower gained xp"])
 	end
+	if mebefore.level < 110 then
+		fillMyStatus(meafter)
+		--@debug@
+		printMyStatus(mebefore)
+		printMyStatus(meafter)
+		--@end-debug@
+		local xpgain=0
+		if meafter.level>mebefore.level then
+			xpgain=mebefore.xpMax-mebefore.xp + meafter.xp
+		else
+			xpgain=meafter.xp-mebefore.xp
+		end
+		if xpgain > 0 then
+			report:AddPlayerXP(xpgain)
+		end
+	end	
 	report:AddRow(DONE)
 	if addon.quick then
 		self:ScheduleTimer("CloseReport",0.1)

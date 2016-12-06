@@ -87,6 +87,7 @@ function m:SetMission(mission,followers,perc,source)
 	frame:EnableMouse(true)
 	frame.Title:SetText(mission.name)
 	local rc,message =pcall(GarrisonMissionButton_SetRewards,frame,mission.rewards)
+	addon:GetMissionlistModule():AdjustMissionButton(frame,mission.rewards)
 --	if #frame.Rewards > 0 then
 --		local Reward=frame.Rewards[1]
 --		Reward:ClearAllPoints()
@@ -106,6 +107,7 @@ function m._Constructor()
 	frame:SetScript("OnClick",function(self,button) print(button) return button=="RightButton" and self.obj:Fire("OnRightClick",self,button) or  self.obj:Fire("OnClick",self,button) end)
 	frame.LocBG:SetPoint("LEFT")
 	frame.MissionType:SetPoint("TOPLEFT",5,-2)
+	frame.isResult=true
 	local widget={}
 	setmetatable(widget,{__index=frame})
 	widget.frame=frame
@@ -115,11 +117,10 @@ function m._Constructor()
 	widget._Constructor=nil
 	-- Spinner
 	widget.Spinner=CreateFrame("Frame",nil,frame,"OHCSpinner")
-	addon:SetBackdrop(widget.Spinner,1,0,0)
 	-- Failed text string
-	widget.Spinner:SetPoint("CENTER",-50,-5)
+	widget.Spinner:SetPoint("CENTER")
 	widget.Result=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
-	widget.Result:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",-20,-5)
+	widget.Result:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-10)
 	widget.Result:Hide()
 	return AceGUI:RegisterAsWidget(widget)
 end

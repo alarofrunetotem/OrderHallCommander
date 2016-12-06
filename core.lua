@@ -1,10 +1,10 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print(__FILE__:sub(-15),...) end
+local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 20/11/2016 11:08:08
+-- Generated on 04/12/2016 11:15:56
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -27,6 +27,10 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
+local garrisonType=LE_GARRISON_TYPE_7_0
+local FAKE_FOLLOWERID="0x0000000000000000"
+local MAXLEVEL=110
 --*if-non-addon*
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -90,9 +94,13 @@ OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 000000003
 OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 --]]
 -- Upvalued functions
+local I=LibStub("LibItemUpgradeInfo-1.0",true)
+local GetItemInfo=GetItemInfo
+if I then GetItemInfo=I:GetCachingGetItemInfo() end
 local select,CreateFrame,pairs,type,tonumber,math=select,CreateFrame,pairs,type,tonumber,math
 local QuestDifficultyColors,GameTooltip=QuestDifficultyColors,GameTooltip
 local tinsert,tremove,tContains=tinsert,tremove,tContains
+local format=format
 local resolve=addon.resolve
 local colors=addon.colors
 local menu
@@ -104,7 +112,7 @@ function addon:ApplyMOVEPANEL(value)
 
 end
 function addon:OnInitialized()
-  dbOHCperChar=dbOHCperChar or {}
+  _G.dbOHCperChar=_G.dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
 	local f=menu
@@ -136,27 +144,18 @@ end
 function addon:GetRegisteredForMenu(menu)
 	return menuOptions[menu]
 end
-function addon:ShowFollowerMenu()
-	print("Follower Tab")
-	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.follower))
-	menu:Show()
-end
-function addon:ShowMissionMenu()
-	print("Mission Tab")
-	addon:CreateOptionsLayer(menu,"MOVEPANEL",unpack(menuOptions.mission))
-	menu:Show()
-end
 do
 local timer
 function addon:RefreshMissions()
 	if timer then self:CancelTimer(timer) end 
-	print("Scheduling refresh in",0.02)
-	timer=self:ScheduleTimer("EffectiveRefresh",0.02)
+	print("Scheduling refresh in",0.1)
+	timer=self:ScheduleTimer("EffectiveRefresh",0.1)
 end
 function addon:EffectiveRefresh()
+	print("Effective refresh in",0.1)
 	timer=nil
 	addon:GetMatchmakerModule():ResetParties()
-	OHFMissions:UpdateMissions()
+	addon:GetMissionlistModule():OnUpdateMissions()
 end
 end
 -- my implementation of tonumber which accounts for nan and inf
@@ -227,92 +226,43 @@ function addon:GetAgeColor(age)
 		local q=self:GetDifficultyColor(hours+20,true)
 		return q.r,q.g,q.b
 end
-local widgetsForKey={}
-function addon:CreateOptionsLayer(frame,...)
-	if frame.widget then
-		frame.widget.frame:SetParent(nil)
-		AceGUI:Release(frame.widget)
+function addon:reward2class(mission)
+	local overReward=mission.overmaxRewards
+	if not overReward then overReward=mission.OverRewards end
+	local reward=mission.rewards
+	if not reward then reward=mission.Rewards end
+	if not overReward or not reward then
+		return format("%-10s:%5d","Generic",0)
 	end
-	local o=AceGUI:Create(menuType) -- a transparent frame
-	o:SetLayout("Flow")
-	o:SetCallback("OnClose",function(widget) print("Close called") widget:Release() end)
-	local totsize=0
-	wipe(widgetsForKey)
-	for i=1,select('#',...) do
-		totsize=totsize+self:AddOptionToOptionsLayer(o,select(i,...))
-	end
-	--o.frame:SetParent(frame)
-	o:ClearAllPoints()
-	o:SetPoint("TOPLEFT",frame,5,-5)
-	o:SetPoint("BOTTOMRIGHT",frame,-5,5)
-	o.frame:Show()
-	frame.widget=o
-	return o,totsize
-end
-function addon:AddOptionToOptionsLayer(o,flag,maxsize)
-	maxsize=tonumber(maxsize) or 160
-	if (not flag) then return 0 end
-	local info=addon:GetVarInfo(flag)
-	if (info) then
-		local data={option=info}
-		local widget
-		if (info.type=="toggle") then
-			widget=AceGUI:Create("CheckBox")
-			local value=addon:GetBoolean(flag)
-			widget:SetValue(value)
-			local color=value and "Green" or "Silver"
-			widget:SetLabel(C(info.name,color))
-			widget:SetWidth(min(widget.text:GetStringWidth()+40,maxsize))
-		elseif(info.type=="select") then
-			widget=AceGUI:Create("Dropdown")
-			widget:SetValue(addon:GetVar(flag))
-			widget:SetLabel(info.name)
-			widget:SetText(info.values[self:GetVar(flag)])
-			widget:SetList(info.values)
-			widget:SetWidth(maxsize)
-		elseif (info.type=="execute") then
-			widget=AceGUI:Create("Button")
-			widget:SetText(info.name)
-			widget:SetWidth(maxsize)
-			widget:SetCallback("OnClick",function(widget,event,value)
-				self[info.func](self,data,value)
-			end)
-		elseif (info.type=="range") then
-			local value=addon:GetNumber(flag)
-			widget=AceGUI:Create("Slider")
-			widget:SetLabel(info.name)
-			widget:SetValue(value)
-			widget:SetSliderValues(info.min,info.max,info.step)
-			widget:SetWidth(maxsize)
-			widget:SetCallback("OnClick",function(widget,event,value)
-				self[info.func](self,data,value)
-			end)
-		else
-			widget=AceGUI:Create("Label")
-			widget:SetText(info.name)
-			widget:SetWidth(maxsize)
+	overReward=overReward[1]
+	reward=reward[1]
+	if reward.currencyID then
+		local name=GetCurrencyInfo(reward.currencyID)
+		if name=="" then name = MONEY end
+		return format("%-10s:%5d",name,reward.quantity/10000)
+	else
+		local class,subclass=select(12,GetItemInfo(reward.itemID))
+		if class==12 then
+			return format("%-10s:%5d","Quest",0)
+		elseif class==7 then
+			return format("%-10s:%5d","Reagent",0)
+		elseif tContains(self:GetData('ArtifactPower'),reward.itemID) then
+			return format("%-10s:%5d","Artifact",0)
+		elseif tContains(self:GetData('Equipment'),reward.itemID) then
+			return format("%-10s:%5d","Equipment",0)
+		elseif overReward.itemID==141028 then
+			return format("%-10s:%5d","FollowerXp",0)
+		elseif overReward.itemID==1447868 then
+			return format("%-10s:%5d","PlayerXp",0)
+		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
+			return format("%-10s:%5d","ItemLevel",0)
+		elseif overReward.itemID==141344 then
+			return format("%-10s:%5d","Reputation",0)
 		end
-		widget:SetCallback("OnValueChanged",function(widget,event,value)
-			if (type(value=='boolean')) then
-				local color=value and "Green" or "Silver"
-				widget:SetLabel(C(info.name,color))
-			end
-			self[info.set](self,data,value)
-		end)
-		widget:SetCallback("OnEnter",function(widget)
-			GameTooltip:SetOwner(widget.frame,"ANCHOR_CURSOR")
-			GameTooltip:AddLine(info.desc)
-			GameTooltip:Show()
-		end)
-		widget:SetCallback("OnLeave",function(widget)
-			GameTooltip:FadeOut()
-		end)
-		o:AddChildren(widget)
-		widgetsForKey[flag]=widget
 	end
-	return maxsize
+	return format("%-10s:%5d","Generic",0)
+	
 end
-
 --@debug@
 local events={}
 function addon:Trace(frame, method)
@@ -348,10 +298,13 @@ function addon:ShowGarrisonEvents(this,event,...)
 	end
 end
 function addon:PushEvent(event,...)
-	tinsert(dbOHCperChar,event.. ' ' .. strjoin(tostringall(' ',...)))
+	if not AlarLog then AlarLog={} end
+	if not AlarLog[me] then AlarLog[me]={} end
+	tinsert(AlarLog[me],event.. " : '" .. strjoin(tostringall("' '",...)) .. "'")
 end
 function addon:DumpEvents()
 	return events
 end
+addon:PushEvent("ADDON_LOADED")
 _G.OHC=addon
 --@end-debug@
