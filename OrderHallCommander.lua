@@ -265,7 +265,6 @@ function MixinFollowerIcon:ShowTooltip()
 		return self:Dump()
 	end
 	local link = C_Garrison.GetFollowerLink(self.followerID);
-	print(link)
 	if link then
 		local levelXP=G.GetFollowerLevelXP(self.followerID)
 		local xp=G.GetFollowerXP(self.followerID)

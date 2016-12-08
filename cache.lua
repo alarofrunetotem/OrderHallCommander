@@ -164,14 +164,16 @@ function module:GetAverageLevels(cached)
 	end
 	return avgLevel,avgIlevel
 end
-function module:deleteFollower(followerID)
+function module:DeleteFollower(followerID)
+	del(cachedFollowers[followerID])
 end
-function module:buildFollower(followerID)
+function module:BuildFollower(followerID)
 	local rc,data=pcall(G.GetFollowerInfo,followerID)
 	if rc then
 		if data and data.isCollected then
 			data.lastUpdate=GetTime()
-			return data
+			data.busyUntil=volatile.followers.busyUntil(data.followerID)
+			cachedFollowers[followerID]=data
 		elseif data then
 			del(data,true)
 		end
@@ -222,12 +224,6 @@ function module:GetFollowerData(...)
 	local data=f[id] 
 	if data then
 		self:refreshFollower(data) 
-	else
-		-- Missing follower, let's build id
-		data=self:buildFollower(id)
-		if data then
-			f[id]=data
-		end
 	end
 	if data then
 		if key then
@@ -380,9 +376,9 @@ function module:Refresh(event,...)
 	elseif event=="GARRISON_FOLLOWER_ADDED" then
 		local followerID, name, class, level, quality, isUpgraded, texPrefix, currentType = ...	
 		if currentType==followerType  then
-			self:GetFollowerData(followerID) -- kicks rebuild
+			self:BuildFollower(followerID) -- kicks rebuild
+			return self:ParseFollowers()
 		end
-		return self:ParseFollowers()
 	elseif event=="GARRISON_FOLLOWER_XP_CHANGED"  then
 		local currentType,followerID,xp=...
 		if currentType==followerType and xp > 0 then
@@ -394,21 +390,23 @@ function module:Refresh(event,...)
 			end
 		end
 	elseif event=="GARRISON_FOLLOWER_UPGRADED"then
-		for k,_ in pairs(volatile) do
-			follower[k]=nil
+		local followerID=...
+		local follower=cachedFollowers[followerID]
+		if follower and follower.followerTypeID==followerType then
+			self:refreshFollower(follower)
 		end
 	elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
 		local currentType,followerID,durability=...
 		if currentType==followerType then
 			if durability==0 then
-				self:deleteFollower(followerID)
+				self:DeleteFollower(followerID)
 			else
 				local follower=cachedFollowers[followerID]
 				if follower then
 					follower.durability=durability
 					follower.lastUpdate=GetTime()
 				else
-					self:GetFollowerData(followerID) -- kicks rebuild
+					self:BuildFollower(followerID) -- kicks rebuild
 				end
 			end
 		end

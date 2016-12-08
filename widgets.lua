@@ -77,8 +77,7 @@ local print=function() end
 
 -- End Template
 --*BEGIN 
---- Quick backdrop
---
+
 function module:OnInitialized()
 	
 end

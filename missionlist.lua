@@ -87,10 +87,11 @@ local missionids=setmetatable({}, {__mode = "k"})
 local spinners=setmetatable({}, {__mode = "k"})
 local parties=setmetatable({}, {__mode = "k"})
 local buttonlist={}
+local oGarrison_SortMissions=Garrison_SortMissions
 local function nop() end
 local Current_Sorter
 local sorters={
-		Garrison_SortMissions_Original=nop,
+		Garrison_SortMissions_Original=oGarrison_SortMissions,
 		Garrison_SortMissions_Chance=function(a,b) 
 			local aparty=addon:GetParties(a.missionID):GetSelectedParty() 
 			local bparty=addon:GetParties(b.missionID):GetSelectedParty()
@@ -106,7 +107,7 @@ local sorters={
 		Garrison_SortMissions_Duration=function(a,b) 
 			local aparty=addon:GetParties(a.missionID):GetSelectedParty() 
 			local bparty=addon:GetParties(b.missionID):GetSelectedParty()
-			return aparty.perc>bparty.perc 
+			return aparty.timeseconds<bparty.timeseconds 
 		end,
 		Garrison_SortMissions_Class=function(a,b)
 			local aclass=addon:reward2class(a) 
@@ -163,32 +164,39 @@ function module:OnUpdate(this)
 end
 -- called when needed a full upodate (reload mission data)
 function module:OnUpdateMissions(...)
-	print("OnUpdateMissions")
-	for _,frame in pairs(buttonlist) do
-		if frame:IsVisible() then
-			self:AdjustMissionButton(frame,frame.info.rewards)
+	if OHFMissions:IsVisible() then
+		print("OnUpdateMissions")
+		self:SortMissions()
+		OHFMissions:Update()
+		for _,frame in pairs(buttonlist) do
+			if frame:IsVisible() then
+				self:AdjustMissionButton(frame,frame.info.rewards)
+			end
 		end
 	end
 end
-function module:SortMissions(missionsList)
+local function sortfunc1(a,b)
+	return a.timeLeftSeconds < b.timeLeftSeconds
+end
+function module:SortMissions()
 	if OHFMissions:IsVisible() then
+		UpdateAddOnMemoryUsage()
+		local pre=GetAddOnMemoryUsage(me)
+		local path="available"
 		if OHFMissions.inProgress then
-			table.sort(missionsList,function(a,b) return a.timeLeftSeconds < b.timeLeftSeconds end)
+			table.sort(OHFMissions.inProgressMissions,sortfunc1)
+			pat="inProgress"
 		else
-			table.sort(missionsList,sorters[Current_Sorter])
+			table.sort(OHFMissions.availableMissions,sorters[Current_Sorter])
 		end
+		UpdateAddOnMemoryUsage()
+		local post=GetAddOnMemoryUsage(me)
+		print("Called sortmissions for",path,"memory from",pre,"to",post)
 	end
 end
 function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
-	local this=OHFMissions
-	if (this.showInProgress) then
-		module:SortMissions(this.inProgressMissions)
-	else
-		module:SortMissions(this.availableMissions)
-	end
-	print("Sorting by",value)
-	OHFMissions:UpdateMissions()
+	addon:RefreshMissions()
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
@@ -250,8 +258,7 @@ end
 function module:MainOnShow()
 	self:SecureHook(OHFMissions,"UpdateMissions","OnUpdateMissions")
 	self:SecureHook(OHFMissions,"Update","OnUpdate")
-	--self:SecureHook("Garrison_SortMissions","SortMissions")	
-	--addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
+	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 end
 function module:MainOnHide()
 	self:Unhook(OHFMissions,"UpdateMissions")
@@ -500,6 +507,7 @@ function module:AdjustMissionTooltip(this,...)
 	
 end
 function module:PostMissionClick(this,...)
-	addon:GetMissionpageModule():FillMissionPage(this.info,parties[this.info.missionID])
+	local mission=this.info or this.missionInfo -- callable also from mission page
+	addon:GetMissionpageModule():FillMissionPage(mission,parties[mission.missionID])
 end
 

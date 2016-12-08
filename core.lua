@@ -147,9 +147,13 @@ end
 do
 local timer
 function addon:RefreshMissions()
-	if timer then self:CancelTimer(timer) end 
-	print("Scheduling refresh in",0.1)
-	timer=self:ScheduleTimer("EffectiveRefresh",0.1)
+	if OHFMissionPage:IsVisible() then
+		addon:GetMissionlistModule():PostMissionClick(OHFMissionPage)
+	else	
+		if timer then self:CancelTimer(timer) end 
+		print("Scheduling refresh in",0.1)
+		timer=self:ScheduleTimer("EffectiveRefresh",0.1)
+	end
 end
 function addon:EffectiveRefresh()
 	print("Effective refresh in",0.1)

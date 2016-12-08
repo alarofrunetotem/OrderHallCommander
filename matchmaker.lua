@@ -97,7 +97,6 @@ __index = function(t,key)
 	return function(...) return parse(nil,pcall(C_Garrison[key],...)) end end
 }
 --upvalues
-local MAX_LEVEL=110
 local assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent=assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent
 local select,tinsert,format,pcall,setmetatable,coroutine=select,tinsert,format,pcall,setmetatable,coroutine
 local tostringall=tostringall
@@ -178,7 +177,6 @@ local keys={
 }
 function partyManager:FillRealFollowers(candidate)
 	candidate.busyUntil=GetTime()
-	candidate.xpGainers=0
 	for i=1,3 do
 		if i > (self.numFollowers or 3) then return end
 		local key=keys[i];
@@ -226,12 +224,6 @@ function partyManager:FillRealFollowers(candidate)
 						followerID=nil
 					end
 				end
-			else
-				local qlevel=addon:GetFollowerData(followerID,'qLevel',0)
-				if qlevel < addon.MAXQLEVEL then
-					candidate.xpGainers=candidate.xpGainers+1
-				end 
-				
 			end
 			candidate[i]=followerID
 			if followerID then
@@ -249,8 +241,8 @@ function partyManager:SatisfyCondition(candidate,key,table)
 	if addon:GetBoolean("SPARE") and candidate.cost > candidate.baseCost then return self:Fail("SPARE") end
 	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
-	if G.GetFollowerStatus(followerID) then
-		return self:Fail("BUSY", G.GetFollowerStatus(followerID),G.GetFollowerName(followerID))
+	if addon:GetFollowerData(followerID,"busyUntil",GetTime()+10) > GetTime() then
+		return false
 	else
 		return true 
 	end
@@ -284,6 +276,9 @@ function partyManager:GetSelectedParty(mission)
 	addon:GetAllTroops(self.troops)
 	local lastkey
 	local bestkey
+	local xpkey
+	local xpperc=0
+	local xpgainers=0
 	self:GenerateIndex()
 	for i,key in ipairs(self.candidatesIndex) do
 		local candidate=self.candidates[key]
@@ -294,7 +289,13 @@ function partyManager:GetSelectedParty(mission)
 				self:SatisfyCondition(candidate,2) and
 				self:SatisfyCondition(candidate,3) then
 				if not bestkey then bestkey=key end
-				if self.missionClass~="FollowerXp" or candidate.xpGainers > 0 or not addon:GetBoolean("MAXIMIZEXP") then
+				if addon:GetBoolean("MAXIMIZEXP") then
+					if candidate.perc >= 100 and candidate.xpGainers >xpgainers then
+						xpkey=key
+						xpperc=candidate.perc
+						xpgainers=candidate.xpGainers
+					end
+				else
 					candidate.order=i
 					candidate.key=key
 					return candidate,key
@@ -303,8 +304,11 @@ function partyManager:GetSelectedParty(mission)
 		end
 	end
 	--@debug@
-	pp("Bestkey,Lastkey",self.missionID,bestkey,lastkey)
+	pp("XPKey,Bestkey,Lastkey",self.missionID,xpkey,bestkey,lastkey)
 	--@end-debug@
+	if xpkey then 
+		return self.candidates[xpkey],xpkey
+	end
 	if bestkey then 
 		return self.candidates[bestkey],bestkey
 	end
@@ -339,16 +343,19 @@ function partyManager:GetEffects()
 	missionEffects.xpBonus=xpBonus
 	missionEffects.materials=materials
 	missionEffects.gold=gold
-	chance=chance*10 + 5
-	if timeImproved then chance=chance +1 end  
-	if missionEffects.hasMissionTimeNegativeEffect then chance=chance-1 end
+	local improvements=5
+	if timeImproved then improvements=improvements -1 end  
+	if missionEffects.hasMissionTimeNegativeEffect then improvements=improvements+1 end
 	missionEffects.baseCost,missionEffects.cost=G.GetMissionCost(self.missionID)
 	if missionEffects.baseCost < missionEffects.cost then
-		chance=chance-2
+		improvements=improvements+2
 	elseif missionEffects.baseCost > missionEffects.cost then
-		chance=chance+1
+		improvements=improvements-1
 	end
-	missionEffects.chance=chance
+	if missionEffects.hasKillTroopsEffect then
+		improvements=improvements+2
+	end
+	missionEffects.improvements=improvements
 	return missionEffects
 
 end
@@ -369,14 +376,26 @@ function partyManager:Build(...)
 		end 
 	end
 	local missionEffects=self:GetEffects()
+	missionEffects.xpGainers=0
+	missionEffects.champions=0
 	for i=1,#followers do 
+		local followerID=followers[i].followerID
 		local k='f'..i
-		missionEffects[k]=format("%s,%s",tostringall(followers[i].followerID,followers[i].isTroop and followers[i].classSpec or "0"))
+		if not followers[i].isTroop then
+			local qlevel=addon:GetFollowerData(followerID,'qLevel',0)
+			missionEffects.champions=missionEffects.champions+1
+			if qlevel < addon.MAXQLEVEL then
+				missionEffects.xpGainers=missionEffects.xpGainers+1
+			end 
+		end
+		missionEffects[k]=format("%s,%s",tostringall(followerID,followers[i].isTroop and followers[i].classSpec or "0"))
 	--@debug@
-		missionEffects[k]=missionEffects [k]..','..addon:GetFollowerData(followers[i].followerID,'name')
+		missionEffects[k]=missionEffects [k]..','..addon:GetFollowerData(followerID,'name')
 	--@end-debug@
-	end	
-	self.candidates[format("%04d",10000-missionEffects.chance)]=setmetatable(missionEffects,CandidateMeta)
+	end
+	local index=format("%03d:%1d:%1d:%1d",900-missionEffects.perc,missionEffects.improvements,missionEffects.champions,3-missionEffects.xpGainers)
+	missionEffects.chance=index	
+	self.candidates[index]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
 
 end	
