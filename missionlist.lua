@@ -1,10 +1,10 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/12/2016 11:15:56
+-- Generated on 08/12/2016 19:08:51
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -31,91 +31,69 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
 local MAXLEVEL=110
---*if-non-addon*
+
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
---*end-if-non-addon*
+
 local dprint=print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
---*if-non-addon*
+
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
---*end-if-non-addon*
---[===[*if-addon*
--- Addon Build, we need to create globals the easy way
-local function encapsulate()
-if LibDebug then LibDebug() dprint=print end
-end
-encapsulate()
-local pcall=pcall
-local function parse(default,rc,...)
-	if rc then return default else return ... end
-end
-	
-addon.safeG=setmetatable({},{
-	__index=function(table,key)
-		rawset(table,key,
-			function(default,...)
-				return parse(default,pcall(G[key],...))
-			end
-		) 
-		return table[key]
-	end
-})
 
---*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
-
--- End Template
+-- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 -- Additonal frames
 local GARRISON_MISSION_AVAILABILITY2=GARRISON_MISSION_AVAILABILITY .. " %s"
 local GARRISON_MISSION_ID="MissionID: %d"
-local missionstats=setmetatable({}, {__mode = "k"})
-local missionmembers=setmetatable({}, {__mode = "k"})
-local missionthreats=setmetatable({}, {__mode = "k"})
-local missionids=setmetatable({}, {__mode = "k"})
-local spinners=setmetatable({}, {__mode = "k"})
-local parties=setmetatable({}, {__mode = "k"})
+local missionstats=setmetatable({}, {__mode = "v"})
+local missionmembers=setmetatable({}, {__mode = "v"})
+local missionthreats=setmetatable({}, {__mode = "v"})
+local missionIDS={}
+local spinners=setmetatable({}, {__mode = "v"})
+local parties=setmetatable({}, {__mode = "v"})
 local buttonlist={}
 local oGarrison_SortMissions=Garrison_SortMissions
 local function nop() end
 local Current_Sorter
 local sorters={
-		Garrison_SortMissions_Original=oGarrison_SortMissions,
+		Garrison_SortMissions_Original=nop,
 		Garrison_SortMissions_Chance=function(a,b) 
-			local aparty=addon:GetParties(a.missionID):GetSelectedParty() 
-			local bparty=addon:GetParties(b.missionID):GetSelectedParty()
-			return aparty.perc>bparty.perc 
+			local aparty=addon:GetParties(a.missionID) 
+			local bparty=addon:GetParties(b.missionID)
+			return aparty.bestChance>bparty.bestChance 
 		end,
-		Garrison_SortMissions_Level=function(a,b) return a.level==b.level and a.iLevel<b.iLevel or a.level <b.level end,
+		Garrison_SortMissions_Level=function(a,b) return a.level==b.level and a.iLevel>b.iLevel or a.level >b.level end,
 		Garrison_SortMissions_Age=function(a,b) return (a.offerEndTime or 0) < (b.offerEndTime or 0) end,
 		Garrison_SortMissions_Xp=function(a,b) 
-			local aparty=addon:GetParties(a.missionID):GetSelectedParty() 
-			local bparty=addon:GetParties(b.missionID):GetSelectedParty()
-			return aparty.perc>bparty.perc 
+			local aparty=addon:GetParties(a.missionID) 
+			local bparty=addon:GetParties(b.missionID)
+			return aparty.totalXP>bparty.totalXP 
 		end,
 		Garrison_SortMissions_Duration=function(a,b) 
-			local aparty=addon:GetParties(a.missionID):GetSelectedParty() 
-			local bparty=addon:GetParties(b.missionID):GetSelectedParty()
-			return aparty.timeseconds<bparty.timeseconds 
+			local aparty=addon:GetParties(a.missionID) 
+			local bparty=addon:GetParties(b.missionID)
+			return aparty.bestTimeseconds<bparty.bestTimeseconds 
 		end,
 		Garrison_SortMissions_Class=function(a,b)
-			local aclass=addon:reward2class(a) 
-			local bclass=addon:reward2class(b) 
-			return aclass>bclass
+			local aparty=addon:GetParties(a.missionID) 
+			local bparty=addon:GetParties(b.missionID)
+			return aparty.missionType>bparty.missionType
 		end,
 }
 function module:OnInitialized()
+--[[
+-- Dunno why but every attempt of changing sort starts a memory leak
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",
 	{
 		Garrison_SortMissions_Original=L["Original method"],
@@ -129,9 +107,15 @@ function module:OnInitialized()
 	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 
 	addon:RegisterForMenu("mission","SORTMISSION")
+--]]
 	self:LoadButtons(OHFMissions.listScroll.scrollChild:GetChildren())	
-
+	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
+	--@debug@
+	pp("Current sorter",Current_Sorter)
+	--@end-debug@
+	--hooksecurefunc("Garrison_SortMissions",print)--function(missions) module:SortMissions(missions) end)
+	--self:SecureHook("Garrison_SortMissions",print)--function(missions) module:SortMissions(missions) end)
 end
 function module:Print(...)
 	print(...)
@@ -149,15 +133,18 @@ function module:LoadButtons(...)
 end
 -- This method is called also when overing on tooltips
 -- keeps a reference to the mission currently bound to this button
-local missionIDS={}
-function module:OnUpdate(this)
-	print("OnUpdate")
+function module:OnUpdate()
+	local tipOwner=GameTooltip:GetOwner()
+	tipOwner=tipOwner and tipOwner:GetName() or "none"
+	local skipDataRefresh=tipOwner:find("OrderHallMissionFrameMissionsListScrollFrameButto")==1
+	pp("OnUpdate")
 	for _,frame in pairs(buttonlist) do
 		if frame:IsVisible() then
 			self:AdjustPosition(frame)
-			if frame.info.missionID ~= missionIDS[frame] then
+			if not skipDataRefresh  and frame.info.missionID ~= missionIDS[frame] then
+				pp(frame.info.missionID,missionIDS[frame])
 				self:AdjustMissionButton(frame)
-				missionIDS[frame]=frame.info.missionIDS
+				missionIDS[frame]=frame.info.missionID
 			end
 		end
 	end
@@ -165,38 +152,58 @@ end
 -- called when needed a full upodate (reload mission data)
 function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
-		print("OnUpdateMissions")
-		self:SortMissions()
-		OHFMissions:Update()
-		for _,frame in pairs(buttonlist) do
-			if frame:IsVisible() then
-				self:AdjustMissionButton(frame,frame.info.rewards)
-			end
-		end
+		pp("OnUpdateMissions")
+		--self:SortMissions()
+		--OHFMissions:Update()
+		--for _,frame in pairs(buttonlist) do
+		--	if frame:IsVisible() then
+		--		self:AdjustMissionButton(frame,frame.info.rewards)
+		--	end
+		--end
 	end
 end
 local function sortfunc1(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
 end
+local prova={
+	{followerTypeID=1},
+	{followerTypeID=2},
+}
 function module:SortMissions()
 	if OHFMissions:IsVisible() then
-		UpdateAddOnMemoryUsage()
-		local pre=GetAddOnMemoryUsage(me)
-		local path="available"
 		if OHFMissions.inProgress then
 			table.sort(OHFMissions.inProgressMissions,sortfunc1)
-			pat="inProgress"
 		else
-			table.sort(OHFMissions.availableMissions,sorters[Current_Sorter])
+			print("Gino",Current_Sorter)
+			local prova=OHFMissions.availableMissions
+			--table.sort(OHFMissions.availableMissions,sorters[Current_Sorter])
+			--Garrison_SortMissions(OHFMissions.availableMissions)
+			Garrison_SortMissions(prova)
 		end
-		UpdateAddOnMemoryUsage()
-		local post=GetAddOnMemoryUsage(me)
-		print("Called sortmissions for",path,"memory from",pre,"to",post)
 	end
 end
 function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
-	addon:RefreshMissions()
+	module:SortMissions()
+	OHFMissions:Update()
+	--self:RefreshMissions()
+end
+local timer
+function addon:RefreshMissions()
+	if OHFMissionPage:IsVisible() then
+		module:PostMissionClick(OHFMissionPage)
+	else	
+		if timer then self:CancelTimer(timer) end 
+		print("Scheduling refresh in",0.1)
+		timer=self:ScheduleTimer("EffectiveRefresh",0.1)
+	end
+end
+function addon:EffectiveRefresh()
+	print("Effective refresh in",0.1)
+	timer=nil
+	wipe(parties)
+	wipe(missionIDS)
+	module:OnUpdate()
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
@@ -256,14 +263,16 @@ function module:InitialSetup(this)
 	self:MainOnShow()
 end
 function module:MainOnShow()
-	self:SecureHook(OHFMissions,"UpdateMissions","OnUpdateMissions")
+	pp("Hooking")
 	self:SecureHook(OHFMissions,"Update","OnUpdate")
-	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
+	self:SecureHook(OHFMissions,"UpdateMissions","OnUpdateMissions")
+	--self:SortMissions()
+	self:OnUpdate()
 end
 function module:MainOnHide()
+	pp("Unhooking")
 	self:Unhook(OHFMissions,"UpdateMissions")
 	self:Unhook(OHFMissions,"Update")
-	self:Unhook("Garrison_SortMissions")	
 end
 function module:AdjustPosition(frame)
 	local mission=frame.info
@@ -300,6 +309,7 @@ function module:AdjustMissionButton(frame)
 	local mission=frame.info
 	local missionID=mission and mission.missionID
 	if not missionID then return end
+	missionIDS[frame]=missionID
 	-- Adding stats frame (expiration date and chance)
 	if not missionstats[frame] then
 		missionstats[frame]=CreateFrame("Frame",nil,frame,"OHCStats")
@@ -340,11 +350,22 @@ function module:AddMembers(frame)
 	local nrewards=#mission.rewards
 	local missionID=mission and mission.missionID
 	local followers=mission.followers
-	local party,key=addon:GetParties(missionID):GetSelectedParty(mission)
-	parties[missionID]=key
+	local key=parties[missionID]
+	local party
+	if not key then
+		party,key=addon:GetSelectedParty(missionID,mission)
+		parties[missionID]=key
+		pp("New party retrieved",party)
+	else
+		pp(key,"party retrieved",party)
+		party=addon:GetSelectedParty(missionID,key)
+	end
 	local members=missionmembers[frame]
 	local stats=missionstats[frame]
 	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
+	if type(party.Follower)~="function" then 
+		pp(party,key,missionid)
+	end
 	for i=1,3 do
 		if party:Follower(i) then
 			members.Champions[i]:SetFollower(party:Follower(i))
@@ -375,7 +396,7 @@ function module:AddMembers(frame)
 		threats:Show()
 	end
 	threats:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-5)
-	local enemies=select(8,G.GetMissionInfo(missionID))
+	local enemies=addon:GetMissionData(missionID,'enemies')
 	if type(enemies)~="table" then print("No enemies loaded") return end
 	local mechanics=new()
 	local counters=new()

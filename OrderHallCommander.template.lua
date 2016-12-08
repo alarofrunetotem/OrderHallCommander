@@ -42,7 +42,6 @@ local pcall=pcall
 local function parse(default,rc,...)
 	if rc then return default else return ... end
 end
-	
 addon.safeG=setmetatable({},{
 	__index=function(table,key)
 		rawset(table,key,
@@ -53,7 +52,6 @@ addon.safeG=setmetatable({},{
 		return table[key]
 	end
 })
-
 --*end-if-addon*
 --@end-debug@
 --[===[@non-debug@

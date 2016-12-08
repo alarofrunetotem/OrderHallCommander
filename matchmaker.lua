@@ -1,10 +1,10 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceSerializer-3.0","AceConsole-3.0"
 --*MINOR 35
--- Generated on 04/12/2016 11:15:56
+-- Generated on 08/12/2016 19:08:51
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -30,51 +30,28 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
---*if-non-addon*
+local MAXLEVEL=110
+
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
---*end-if-non-addon*
+
 local dprint=print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
---*if-non-addon*
+
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
---*end-if-non-addon*
---[===[*if-addon*
--- Addon Build, we need to create globals the easy way
-local function encapsulate()
-if LibDebug then LibDebug() dprint=print end
-end
-encapsulate()
-local pcall=pcall
-local function parse(default,rc,...)
-	if rc then return default else return ... end
-end
-	
-addon.safeG=setmetatable({},{
-	__index=function(table,key)
-		rawset(table,key,
-			function(default,...)
-				return parse(default,pcall(G[key],...))
-			end
-		) 
-		return table[key]
-	end
-})
 
---*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
-
--- End Template
+-- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 local lethalMechanicEffectID = 437;
 local cursedMechanicEffectID = 471;
@@ -177,6 +154,8 @@ local keys={
 }
 function partyManager:FillRealFollowers(candidate)
 	candidate.busyUntil=GetTime()
+	local troops=new()
+	addon:GetAllTroops(troops)			
 	for i=1,3 do
 		if i > (self.numFollowers or 3) then return end
 		local key=keys[i];
@@ -184,7 +163,6 @@ function partyManager:FillRealFollowers(candidate)
 			local followerID,classSpec=strsplit(',',candidate['f'..i])
 			--GARRISON_FOLLOWER_COMBAT_ALLY
 			classSpec=addon:tonumber(classSpec,0)
-			local troops=self.troops
 			if classSpec~=0 then
 				local better=(candidate.hasKillTroopsEffect and IsLower or IsHigher)
 				local base=better()
@@ -232,7 +210,8 @@ function partyManager:FillRealFollowers(candidate)
 		else
 			candidate[i]=nil
 		end
-	end		
+	end
+	del(troops)		
 end
 function partyManager:SatisfyCondition(candidate,key,table)
 	if type(candidate) ~= "table" then return false end
@@ -251,29 +230,7 @@ function partyManager:IterateIndex()
 	self:GenerateIndex()
 	return ipairs(self.candidatesIndex)
 end
-function partyManager:GetSelectedParty(mission)
-	if type(mission)=="table" and mission.inProgress then
-		if not self.candidates or not self.candidates.progress then
-			local candidate=self:GetEffects()
-			local followers=mission.followers
-			if followers then
-				for i =1,#followers do
-					candidate[i]=followers[i]
-				end
-			end	
-			self.candidates.progress=setmetatable(candidate,CandidateMeta)		
-		end 
-		return self.candidates.progress,"progress"	
-	end
-	if type(mission)=="string" and self.candidates[mission] then
-		return self.candidates[mission],mission
-	end
-	if not self.ready then
-		self:Match()
-		self.ready=true
-	end
-	wipe(self.troops)
-	addon:GetAllTroops(self.troops)
+local function GetSelectedParty(self)
 	local lastkey
 	local bestkey
 	local xpkey
@@ -318,6 +275,33 @@ function partyManager:GetSelectedParty(mission)
 		end
 	end
 	return setmetatable(self:GetEffects(),CandidateMeta)
+end
+function partyManager:GetSelectedParty(mission)
+	if type(mission)=="table" and mission.inProgress then
+		if not self.candidates or not self.candidates.progress then
+			local candidate=self:GetEffects()
+			local followers=mission.followers
+			if followers then
+				for i =1,#followers do
+					candidate[i]=followers[i]
+				end
+			end	
+			self.candidates.progress=setmetatable(candidate,CandidateMeta)		
+		end 
+		return self.candidates.progress,"progress"	
+	end
+	if type(mission)=="string" and self.candidates[mission] then
+		return self.candidates[mission],mission
+	end
+	if not self.ready then
+		self:Match()
+		self.ready=true
+	end
+	local candidate=GetSelectedParty(self)
+	self.bestChance=candidate.perc or 0
+	self.bestTimeseconds=candidate.timeseconds or 0
+	self.totalXP=(self.baseXP+self.rewardXP+(candidate.bonusXP or 0))*(candidate.xpGainers or 0)
+	return candidate
 end
 function partyManager:Remove(...)
 	local tbl=...
@@ -411,7 +395,10 @@ function partyManager:Match()
 	self.numFollowers=mission.numFollowers
 	self.missionType=addon:reward2class(mission)
 	self.missionClass,self.missionValue=strsplit(':',self.missionType)
-	self.missionValue=addon:tonumber(self.missionVale,0)
+	self.missionValue=addon:tonumber(self.missionValue,0)
+	self.baseXP=mission.baseXP
+	self.rewardXP=self.missionClass=="FollowerXP" and self.missionValue or 0
+	self.totalXP=mission.baseXP
 	local t=addon:GetTroopTypes()
 	local t1_1,t1_2=addon:GetTroop(t[1],2)
 	local t2_1,t2_2=addon:GetTroop(t[2],2)
@@ -470,6 +457,7 @@ function module:OnInitialized()
 	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")	
 end
 function module:Refresh(event)
+	self:ResetParties()
 	return addon:RefreshMissions()
 end
 function module:ResetParties()
@@ -499,11 +487,13 @@ end
 function addon:ReleaseEvents()
 	return releaseEvents()
 end
+function addon:GetSelectedParty(missionID,key)
+	return self:GetParties(missionID):GetSelectedParty(key)
+end
 function addon:GetParties(missionID)
 	if not parties[missionID] then
 		parties[missionID]=newParty()
 		parties[missionID].missionID=missionID
-		parties[missionID].troops=new()
 		parties[missionID].candidates=new()
 	end
 --@debug@
@@ -511,7 +501,7 @@ function addon:GetParties(missionID)
 	for _,_ in pairs(parties) do
 		n=n+1
 	end
-	OHCDebug:Bump("NumParties")
+	OHCDebug:Set("NumParties",n)
 --@end-debug@	
 	return parties[missionID]
 end

@@ -1,10 +1,10 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/12/2016 11:15:56
+-- Generated on 08/12/2016 19:08:51
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -31,51 +31,27 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
 local MAXLEVEL=110
---*if-non-addon*
+
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
---*end-if-non-addon*
+
 local dprint=print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
---*if-non-addon*
+
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
---*end-if-non-addon*
---[===[*if-addon*
--- Addon Build, we need to create globals the easy way
-local function encapsulate()
-if LibDebug then LibDebug() dprint=print end
-end
-encapsulate()
-local pcall=pcall
-local function parse(default,rc,...)
-	if rc then return default else return ... end
-end
-	
-addon.safeG=setmetatable({},{
-	__index=function(table,key)
-		rawset(table,key,
-			function(default,...)
-				return parse(default,pcall(G[key],...))
-			end
-		) 
-		return table[key]
-	end
-})
 
---*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
-
--- End Template
+-- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local UpgradeFrame
 local UpgradeButtons={}

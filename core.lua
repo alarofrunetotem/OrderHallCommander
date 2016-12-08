@@ -1,10 +1,10 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local function pp(...) print("|cffff9900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/12/2016 11:15:56
+-- Generated on 08/12/2016 19:08:51
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -31,51 +31,27 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
 local MAXLEVEL=110
---*if-non-addon*
+
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
---*end-if-non-addon*
+
 local dprint=print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
---*if-non-addon*
+
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
---*end-if-non-addon*
---[===[*if-addon*
--- Addon Build, we need to create globals the easy way
-local function encapsulate()
-if LibDebug then LibDebug() dprint=print end
-end
-encapsulate()
-local pcall=pcall
-local function parse(default,rc,...)
-	if rc then return default else return ... end
-end
-	
-addon.safeG=setmetatable({},{
-	__index=function(table,key)
-		rawset(table,key,
-			function(default,...)
-				return parse(default,pcall(G[key],...))
-			end
-		) 
-		return table[key]
-	end
-})
 
---*end-if-addon*[===]
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
-
--- End Template
+-- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 --local missionPanelMissionList=OrderHallMissionFrameMissions
 --[[
@@ -94,9 +70,9 @@ OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 000000003
 OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 --]]
 -- Upvalued functions
-local I=LibStub("LibItemUpgradeInfo-1.0",true)
+--local I=LibStub("LibItemUpgradeInfo-1.0",true)
 local GetItemInfo=GetItemInfo
-if I then GetItemInfo=I:GetCachingGetItemInfo() end
+--if I then GetItemInfo=I:GetCachingGetItemInfo() end
 local select,CreateFrame,pairs,type,tonumber,math=select,CreateFrame,pairs,type,tonumber,math
 local QuestDifficultyColors,GameTooltip=QuestDifficultyColors,GameTooltip
 local tinsert,tremove,tContains=tinsert,tremove,tContains
@@ -109,7 +85,6 @@ local menuOptions={mission={},follower={}}
 function addon:ApplyMOVEPANEL(value)
 	OHF:EnableMouse(value)
 	OHF:SetMovable(value)
-
 end
 function addon:OnInitialized()
   _G.dbOHCperChar=_G.dbOHCperChar or {}
@@ -120,7 +95,7 @@ function addon:OnInitialized()
 	self:RawHookScript(f,"OnEvent","ShowGarrisonEvents")
 --@end-debug@
 	self:AddLabel(L["General"])
-	self:AddBoolean("MOVEPANEL",true,"test","long test")
+	self:AddBoolean("MOVEPANEL",true,L["Make Order Hall Mission Panel movable"],L["Position is not saved on logout"])
 	OHF:RegisterForDrag("LeftButton")
 	OHF:SetScript("OnDragStart",function(frame) if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
@@ -145,22 +120,7 @@ function addon:GetRegisteredForMenu(menu)
 	return menuOptions[menu]
 end
 do
-local timer
-function addon:RefreshMissions()
-	if OHFMissionPage:IsVisible() then
-		addon:GetMissionlistModule():PostMissionClick(OHFMissionPage)
-	else	
-		if timer then self:CancelTimer(timer) end 
-		print("Scheduling refresh in",0.1)
-		timer=self:ScheduleTimer("EffectiveRefresh",0.1)
-	end
-end
-function addon:EffectiveRefresh()
-	print("Effective refresh in",0.1)
-	timer=nil
-	addon:GetMatchmakerModule():ResetParties()
-	addon:GetMissionlistModule():OnUpdateMissions()
-end
+
 end
 -- my implementation of tonumber which accounts for nan and inf
 function addon:tonumber(value,default)
