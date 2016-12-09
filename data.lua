@@ -167,19 +167,24 @@ function addon:GetData(key)
 end
 function module:OnInitialized()
 	--
-	addon.coroutineExecute(module,0.01,"TickleServer")
+	addon.coroutineExecute(module,0,"TickleServer")
+end
+function module:AddItem(itemID)
+
 end
 function module:TickleServer()
-	pp("GetItemInfo tickling started")
+	addon:Print("Precaching items")
+	local i=0
 	for _,categories in pairs(data) do
 		for _,itemid in pairs(categories) do
 			if type(itemid)=="number" then
 				pcall(GetItemInfo,itemid)
+				i=i+1
 				coroutine.yield()
 			end
 		end
 	end
-	pp("GetItemInfo tickling done")
+	addon:Print("Precached ",i," items")
 end
 --@do-not-package@
 --[[
