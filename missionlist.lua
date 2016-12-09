@@ -86,16 +86,14 @@ local sorters={
 			return aparty.bestTimeseconds<bparty.bestTimeseconds 
 		end,
 		Garrison_SortMissions_Class=function(a,b)
-			local aparty=addon:GetParties(a.missionID) 
-			local bparty=addon:GetParties(b.missionID)
-			return aparty.missionType>bparty.missionType
+			local a=addon:GetMissionData(a.missionID) 
+			local b=addon:GetMissionData(b.missionID)
+			return a.missionSort>b.missionSort
 		end,
 }
 function module:OnInitialized()
---[[
 -- Dunno why but every attempt of changing sort starts a memory leak
-	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",
-	{
+	local sorters={
 		Garrison_SortMissions_Original=L["Original method"],
 		Garrison_SortMissions_Chance=L["Success Chance"],
 		Garrison_SortMissions_Level=L["Level"],
@@ -103,32 +101,34 @@ function module:OnInitialized()
 		Garrison_SortMissions_Xp=L["Global approx. xp reward"],
 		Garrison_SortMissions_Duration=L["Duration Time"],
 		Garrison_SortMissions_Class=L["Reward type"],
-	},
-	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
-
-	addon:RegisterForMenu("mission","SORTMISSION")
---]]
-	self:LoadButtons(OHFMissions.listScroll.scrollChild:GetChildren())	
+	}
+	--addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
+	--addon:RegisterForMenu("mission","SORTMISSION")
+	self:LoadButtons()
+	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
 	--@debug@
 	pp("Current sorter",Current_Sorter)
 	--@end-debug@
 	--hooksecurefunc("Garrison_SortMissions",print)--function(missions) module:SortMissions(missions) end)
-	--self:SecureHook("Garrison_SortMissions",print)--function(missions) module:SortMissions(missions) end)
+	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
+	--function(missions) module:SortMissions(missions) end)
 end
 function module:Print(...)
 	print(...)
 end
 function module:LoadButtons(...)
---	for i=1,select('#',...) do
---		local button=select(i,...)
-	local buttons=OHFMissions.listScroll.buttons
-	for i=1,#buttons do
-		local button=buttons[i]	
-		self:SecureHookScript(button,"OnEnter","AdjustMissionTooltip")
-		self:SecureHookScript(button,"OnClick","PostMissionClick")
-		tinsert(buttonlist,button)
+	buttonlist=OHFMissions.listScroll.buttons
+	for i=1,#buttonlist do
+		local b=buttonlist[i]	
+		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
+		self:SecureHookScript(b,"OnClick","PostMissionClick")
+		local scale=0.8
+		local f,h,s=b.Title:GetFont()
+		b.Title:SetFont(f,h*scale,s)
+		local f,h,s=b.Summary:GetFont()
+		b.Summary:SetFont(f,h*scale,s)		
 	end
 end
 -- This method is called also when overing on tooltips
@@ -174,11 +174,12 @@ function module:SortMissions()
 		if OHFMissions.inProgress then
 			table.sort(OHFMissions.inProgressMissions,sortfunc1)
 		else
-			print("Gino",Current_Sorter)
+			print("Using secure call",Current_Sorter)
 			local prova=OHFMissions.availableMissions
-			--table.sort(OHFMissions.availableMissions,sorters[Current_Sorter])
+			securecall(table.sort,OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
+			OHFMissions:Update()
 			--Garrison_SortMissions(OHFMissions.availableMissions)
-			Garrison_SortMissions(prova)
+			--Garrison_SortMissions(prova)
 		end
 	end
 end
@@ -469,7 +470,11 @@ function module:MissionTip(this)
 		OrderHallCommanderMixin.DumpData(tip,info.overmaxRewards[i])
 	end
 	tip:AddDoubleLine("MissionID",info.missionID)
-	tip:AddDoubleLine("Type",addon:reward2class(info))
+	local mission=addon:GetMissionData(info.missionID)
+	tip:AddDoubleLine("MissionClass",mission.missionClass)
+	tip:AddDoubleLine("MissionValue",mission.missionValue)
+	tip:AddDoubleLine("MissionSort",mission.missionSort)
+	
 --@end-debug@	
 	tip:Show()
 end
