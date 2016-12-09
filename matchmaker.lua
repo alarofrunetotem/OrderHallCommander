@@ -81,7 +81,11 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local emptyTable={}
 local holdEvents
 local releaseEvents
+local debug=setmetatable({},{__index=function(t,k) rawset(t,k,new()) return t[k] end})
 local events={stacklevel=0,frames={}} --#events
+function addon:GetDebug()
+	return debug
+end
 function events.hold() --#eventsholdEvents
 	if events.stacklevel==0 then
 		events.frames={GetFramesRegisteredForEvent('GARRISON_FOLLOWER_LIST_UPDATE')}
@@ -143,7 +147,9 @@ end
 	 
 function partyManager:Fail(...)
 --@debug@
-	--pp("Failed",self.missionID,...)
+	local rc,name=false,''
+	if self.lastChecked then rc,name =pcall(G.GetFollowerName,self.lastChecked) end 
+	self:AddDebug(name,...)
 --@end-debug@
 	return false
 end	 
@@ -214,14 +220,17 @@ function partyManager:FillRealFollowers(candidate)
 	del(troops)		
 end
 function partyManager:SatisfyCondition(candidate,key,table)
-	if type(candidate) ~= "table" then return false end
+	if type(candidate) ~= "table" then return self:Fail("NOTABLE") end
 	local followerID=candidate[key]
+	self.lastChecked=followerID
 	if not followerID then return self:Fail("No follower id for party slot",key) end
-	if addon:GetBoolean("SPARE") and candidate.cost > candidate.baseCost then return self:Fail("SPARE") end
+	if addon:GetBoolean("SPARE") and candidate.cost > candidate.baseCost then return self:Fail("SPARE",addon:GetBoolean("SPARE"),candidate.cost , candidate.baseCost) end
 	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
-	if addon:GetFollowerData(followerID,"busyUntil",GetTime()+10) > GetTime() then
-		return false
+	local ready=addon:GetFollowerData(followerID,"busyUntil")
+	if not ready then return self:Fail("No ready data") end
+	if ready > GetTime() then
+		return self:Fail("BUSY",ready - GetTime())
 	else
 		return true 
 	end
@@ -241,6 +250,13 @@ local function GetSelectedParty(self)
 		local candidate=self.candidates[key]
 		if candidate then
 			self:FillRealFollowers(candidate)
+			--@debug@
+			local rc,f1=pcall(G.GetFollowerName,candidate[1])
+			local rc,f2=pcall(G.GetFollowerName,candidate[2])
+			local rc,f3=pcall(G.GetFollowerName,candidate[3])
+			self:AddDebug(key,"Examining",candidate.f1,candidate.f2,candidate.f3)
+			self:AddDebug(key,"Filled",f1,f2,f3)
+			--@end-debug@
 			lastkey=key
 			if self:SatisfyCondition(candidate,1) and
 				self:SatisfyCondition(candidate,2) and
@@ -277,7 +293,11 @@ local function GetSelectedParty(self)
 	return setmetatable(self:GetEffects(),CandidateMeta)
 end
 function partyManager:GetSelectedParty(mission)
+	wipe(debug[self.missionID])
 	if type(mission)=="table" and mission.inProgress then
+--@debug@
+		self:AddDebug("inProgress")
+--@end-debug@
 		if not self.candidates or not self.candidates.progress then
 			local candidate=self:GetEffects()
 			local followers=mission.followers
@@ -291,9 +311,15 @@ function partyManager:GetSelectedParty(mission)
 		return self.candidates.progress,"progress"	
 	end
 	if type(mission)=="string" and self.candidates[mission] then
+--@debug@
+		self:AddDebug("Returning explicity set key ",mission)
+--@end-debug@
 		return self.candidates[mission],mission
 	end
 	if not self.ready then
+--@debug@
+		self:AddDebug("Rebuilding list")
+--@end-debug@		
 		self:Match()
 		self.ready=true
 	end
@@ -377,12 +403,16 @@ function partyManager:Build(...)
 		missionEffects[k]=missionEffects [k]..','..addon:GetFollowerData(followerID,'name')
 	--@end-debug@
 	end
-	local index=format("%03d:%1d:%1d:%1d",900-missionEffects.perc,missionEffects.improvements,missionEffects.champions,3-missionEffects.xpGainers)
+	self.unique=self.unique+1	
+	local index=format("%03d:%1d:%1d:%1d:%2d",900-missionEffects.perc,missionEffects.improvements,missionEffects.champions,3-missionEffects.xpGainers,self.unique)
 	missionEffects.chance=index	
 	self.candidates[index]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
 
 end	
+function partyManager:AddDebug(...)
+	tinsert(debug[self.missionID],strjoin(' ',tostringall(...)))
+end
 function partyManager:Match()
 --@debug@
 	OHCDebug:Bump("Parties")
@@ -392,13 +422,14 @@ function partyManager:Match()
 	addon:GetAllChampions(champs)
 	local totChamps=#champs
 	local mission=addon:GetMissionData(self.missionID)
+	self.unique=0
 	self.numFollowers=mission.numFollowers
-	self.missionType=addon:reward2class(mission)
-	self.missionClass,self.missionValue=strsplit(':',self.missionType)
-	self.missionValue=addon:tonumber(self.missionValue,0)
+	self.missionSort=addon:Reward2Class(mission)
+	self.missionClass=mission.missionClass
+	self.missionValue=mission.missionValue
 	self.baseXP=mission.baseXP
-	self.rewardXP=self.missionClass=="FollowerXP" and self.missionValue or 0
-	self.totalXP=mission.baseXP
+	self.rewardXP=(self.missionClass=="FollowerXP" and self.missionValue) or 0
+	self.totalXP=self.baseXP+self.rewardXP
 	local t=addon:GetTroopTypes()
 	local t1_1,t1_2=addon:GetTroop(t[1],2)
 	local t2_1,t2_2=addon:GetTroop(t[2],2)
