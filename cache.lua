@@ -53,7 +53,7 @@ local print=function() end
 --@end-non-debug@]===]
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
-local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED
+local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
 local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug=
 		pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug
@@ -161,7 +161,7 @@ function module:BuildFollower(followerID)
 end
 function module:refreshMission(data)
 	local runtime,runtimesec,inProgress,duration,dureationsec,bool1,string1=G.GetMissionTimes(data.missionID)
-	data.missionType=addon:reward2class(data)
+	data.missionSort=addon:Reward2Class(data)
 end
 function module:refreshFollower(data)
 	if data.lastUpdate < followersRefresh then
@@ -302,6 +302,7 @@ function module:ParseFollowers()
 		categoryInfoFrame.Count:SetFormattedText(
 			CATEGORY_INFO_FORMAT, 
 			category.count, category.limit,unpack(shipmentInfo[category.icon]));
+		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)			
 		categoryInfoFrame:ClearAllPoints();
 		categoryInfoFrame:SetWidth(35 + categoryInfoFrame.Count:GetWidth())
 		if i==1 then

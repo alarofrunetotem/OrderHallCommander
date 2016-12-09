@@ -190,42 +190,72 @@ function addon:GetAgeColor(age)
 		local q=self:GetDifficultyColor(hours+20,true)
 		return q.r,q.g,q.b
 end
-function addon:reward2class(mission)
+local function tContains(table, item)
+	local index = 1;
+	while table[index] do
+		if ( item == table[index] ) then
+			return index;
+		end
+		index = index + 1;
+	end
+	return nil;
+end
+local function Reward2Class(self,mission)
 	local overReward=mission.overmaxRewards
 	if not overReward then overReward=mission.OverRewards end
 	local reward=mission.rewards
 	if not reward then reward=mission.Rewards end
 	if not overReward or not reward then
-		return format("%-10s:%5d","Generic",0)
+		return "Generic",0
 	end
 	overReward=overReward[1]
 	reward=reward[1]
 	if reward.currencyID then
 		local name=GetCurrencyInfo(reward.currencyID)
 		if name=="" then name = MONEY end
-		return format("%-10s:%5d",name,reward.quantity/10000)
-	else
-		local class,subclass=select(12,GetItemInfo(reward.itemID))
-		if class==12 then
-			return format("%-10s:%5d","Quest",0)
-		elseif class==7 then
-			return format("%-10s:%5d","Reagent",0)
-		elseif tContains(self:GetData('ArtifactPower'),reward.itemID) then
-			return format("%-10s:%5d","Artifact",0)
-		elseif tContains(self:GetData('Equipment'),reward.itemID) then
-			return format("%-10s:%5d","Equipment",0)
-		elseif overReward.itemID==141028 then
-			return format("%-10s:%5d","FollowerXp",0)
+		return name,reward.quantity/10000
+	elseif reward.followerXP then
+			return "FollowerXp",reward.followerXP
+	elseif type(reward.itemID) == "number" then
+		if tContains(self:GetData('ArtifactPower'),reward.itemID) then
+			return "Artifact",0
 		elseif overReward.itemID==1447868 then
-			return format("%-10s:%5d","PlayerXp",0)
-		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
-			return format("%-10s:%5d","ItemLevel",0)
+			return "PlayerXP",0
 		elseif overReward.itemID==141344 then
-			return format("%-10s:%5d","Reputation",0)
+			return "Reputation",0
+		elseif tContains(self:GetData('Equipment'),reward.itemID) then
+			return "Equipment",0
+		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
+			return "Upgrades",0
+		else
+			local class,subclass=select(12,GetItemInfo(reward.itemID))
+			class=class or -1
+			if class==12 then
+				return "Quest",0
+			elseif class==7 then
+				return "Reagent",reward.quantity or 1
+			end
 		end
 	end
-	return format("%-10s:%5d","Generic",0)
-	
+	return "Generic",reward.quantity or 1
+end
+local classSort={
+	[MONEY]=11,
+	Artifact=12,
+	Equipment=13,
+	Quest=14,
+	Upgrades=15,
+	Reputation=16,
+	PlayerXP=17,
+	FollowerXP=18,
+	Generic=19
+}
+function addon:Reward2Class(mission)
+	if not mission.missionClass then
+		mission.missionClass,mission.missionValue=Reward2Class(self,mission)
+		mission.missionSort=classSort[mission.missionClass]
+	end
+	return mission.missionSort
 end
 --@debug@
 local events={}
