@@ -137,12 +137,13 @@ function module:OnUpdate()
 	local tipOwner=GameTooltip:GetOwner()
 	tipOwner=tipOwner and tipOwner:GetName() or "none"
 	local skipDataRefresh=tipOwner:find("OrderHallMissionFrameMissionsListScrollFrameButto")==1
-	pp("OnUpdate")
+--@debug@
+	print("OnUpdate")
+--@end-debug@	
 	for _,frame in pairs(buttonlist) do
 		if frame:IsVisible() then
 			self:AdjustPosition(frame)
 			if not skipDataRefresh  and frame.info.missionID ~= missionIDS[frame] then
-				pp(frame.info.missionID,missionIDS[frame])
 				self:AdjustMissionButton(frame)
 				missionIDS[frame]=frame.info.missionID
 			end
@@ -152,7 +153,10 @@ end
 -- called when needed a full upodate (reload mission data)
 function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
+		addon:ResetParties()
+--@debug@
 		pp("OnUpdateMissions")
+--@end-debug@	
 		--self:SortMissions()
 		--OHFMissions:Update()
 		--for _,frame in pairs(buttonlist) do
@@ -266,14 +270,17 @@ end
 function module:MainOnShow()
 	pp("Hooking")
 	self:SecureHook(OHFMissions,"Update","OnUpdate")
-	self:SecureHook(OHFMissions,"UpdateMissions","OnUpdateMissions")
+	self:Hook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
+	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission",function() pp("Called inside updatemissions") pp("\n",debugstack(1)) end)
 	--self:SortMissions()
 	self:OnUpdate()
 end
 function module:MainOnHide()
 	pp("Unhooking")
+	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
 	self:Unhook(OHFMissions,"UpdateMissions")
 	self:Unhook(OHFMissions,"Update")
+	self:Unhook(OHFMissions,"OnUpdate")
 end
 function module:AdjustPosition(frame)
 	local mission=frame.info
@@ -303,7 +310,7 @@ function module:AdjustPosition(frame)
 	else
 		frame.Level:SetText(mission.level)
 	end
-	
+	local missionID=mission.missionID
 end
 function module:AdjustMissionButton(frame)
 	if not OHF:IsVisible() then return end
@@ -356,17 +363,18 @@ function module:AddMembers(frame)
 	if not key then
 		party,key=addon:GetSelectedParty(missionID,mission)
 		parties[missionID]=key
-		pp("New party retrieved",party)
+--@debug@
+		print("Party recalculated",party)
+--@end-debug@		
 	else
-		pp(key,"party retrieved",party)
+--@debug@
+		print(key,"Party retrieved",party)
+--@end-debug@		
 		party=addon:GetSelectedParty(missionID,key)
 	end
 	local members=missionmembers[frame]
 	local stats=missionstats[frame]
 	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
-	if type(party.Follower)~="function" then 
-		pp(party,key,missionid)
-	end
 	for i=1,3 do
 		if party:Follower(i) then
 			members.Champions[i]:SetFollower(party:Follower(i))
@@ -381,13 +389,7 @@ function module:AddMembers(frame)
 		stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	end		
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
-	if party then
-		if party.timeimproved then	
-			frame.Summary:SetTextColor(C:Green())
-		elseif party.hasMissionTimeNegativeEffect then
-			frame.Summary:SetTextColor(C:Red())
-		end
-	end		
+
 	local threats=missionthreats[frame]
 	if frame.info.inProgress then
 		frame.Overlay:SetFrameLevel(20)
@@ -480,6 +482,10 @@ function module:MissionTip(this)
 end
 local bestTimes={}
 local bestTimesIndex={}
+local nobonusloot=G.GetFollowerAbilityDescription(471)
+local increasedcost=G.GetFollowerAbilityDescription(472)
+local increasedduration=G.GetFollowerAbilityDescription(428)
+local killtroops=G.GetFollowerAbilityDescription(437)
 function module:AdjustMissionTooltip(this,...)
 	if this.info.inProgress or this.info.completed then return end
 	local missionID=this.info.missionID
@@ -493,14 +499,41 @@ function module:AdjustMissionTooltip(this,...)
 --@end-debug@	
 	local party=addon:GetParties(missionID)
 	local key=parties[missionID]
+	if party then
+		local candidate =party:GetSelectedParty(key)
+		if candidate then
+			if candidate.hasBonusLootNegativeEffect then
+				GameTooltip:AddLine(nobonusloot,C:Red())
+			end
+			if candidate.hasKillTroopsEffect then
+				GameTooltip:AddLine(killtroops,C:Red())
+			end
+			if candidate.hasResurrectTroopsEffect then
+				GameTooltip:AddLine(L["Resurrect troops effect"],C:Green())
+			end
+			if candidate.cost > candidate.baseCost then
+				GameTooltip:AddLine(increasedcost,C:Red())
+			end
+			if candidate.hasMissionTimeNegativeEffect then
+				GameTooltip:AddLine(increasedduration,C:Red())
+			end
+			if candidate.timeImproved then
+				GameTooltip:AddLine(L["Duration reduced"],C:Green())
+			end
+			-- Not important enough to be specifically shown
+			-- hasSuccessChanceNegativeEffect
+			-- hasUncounterableSuccessChanceNegativeEffect
+		end
+	end
 	-- Mostrare per ogni tempo di attesa solo la percentuale migliore
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
+	key=key or "999999999999999999999"
 	if key then
 		for _,otherkey in party:IterateIndex() do
 			if otherkey < key then
 				local candidate=party:GetSelectedParty(otherkey)
-				local duration=(candidate.busyUntil or 0)-GetTime()
+				local duration=math.max((candidate.busyUntil or 0)-GetTime(),0)
 				if duration > 0 then
 					if not bestTimes[duration] or bestTimes[duration] < candidate.perc then
 						bestTimes[duration]=candidate.perc
@@ -520,7 +553,7 @@ function module:AdjustMissionTooltip(this,...)
 				local key=bestTimesIndex[i]
 				if bestTimes[key] > bestChance then
 					bestChance=bestTimes[key]
-					tip:AddDoubleLine(SecondsToTime(key),GARRISON_MISSION_PERCENT_CHANCE:format(bestChance))
+					tip:AddDoubleLine(SecondsToTime(key),GARRISON_MISSION_PERCENT_CHANCE:format(bestChance),C.Orange.r,C.Orange.g,C.Orange.b,addon:GetDifficultyColors(bestChance))
 				end
 			end
 		end

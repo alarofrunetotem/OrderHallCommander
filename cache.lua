@@ -185,7 +185,7 @@ function module:GetFollower(key)
 		key="0x" .. ("0000000000000000" ..key:sub(3)):sub(-16)
 		return self:GetFollowerData(key)
 	end
-	for _,data in pairs(getCachedFollowers) do
+	for _,data in pairs(getCachedFollowers()) do
 		if data.name:find(key)==1 then
 			return data
 		end
@@ -431,6 +431,9 @@ function addon:GetMissionData(...)
 end
 function addon:GetFollowerData(...)
 	return module:GetFollowerData(...)
+end
+function addon:GetFollower(...)
+	return module:GetFollower(...)
 end
 function addon:GetAllChampions(table)
 	for _,follower in pairs(getCachedFollowers()) do

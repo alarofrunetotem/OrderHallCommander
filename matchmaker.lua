@@ -277,7 +277,7 @@ local function GetSelectedParty(self)
 		end
 	end
 	--@debug@
-	pp("XPKey,Bestkey,Lastkey",self.missionID,xpkey,bestkey,lastkey)
+	self:AddDebug("XPKey,Bestkey,Lastkey",self.missionID,xpkey,bestkey,lastkey)
 	--@end-debug@
 	if xpkey then 
 		return self.candidates[xpkey],xpkey
@@ -378,6 +378,9 @@ function partyManager:Build(...)
 			local followerID=follower.followerID
 			local rc,res = pcall(G.AddFollowerToMission,self.missionID,followerID)
 			if not rc or not res then
+--@debug@
+				pp("Unable to add ",G.GetFollowerName(followerID),"to",G.GetMissionName(self.missionID))
+--@end-debug@			
 				self:Remove(followers)
 				del(followers)
 				return
@@ -520,6 +523,9 @@ function addon:ReleaseEvents()
 end
 function addon:GetSelectedParty(missionID,key)
 	return self:GetParties(missionID):GetSelectedParty(key)
+end
+function addon:ResetParties()
+	return module:ResetParties()
 end
 function addon:GetParties(missionID)
 	if not parties[missionID] then

@@ -242,10 +242,11 @@ function MixinFollowerIcon:SetFollower(followerID)
 	local info=addon:GetFollowerData(followerID)
 	self.followerID=followerID
 	self:SetupPortrait(info)
-	if info.isMaxLevel then
+	local status=(followerID and not OHFMissions.showInProgress) and G.GetFollowerStatus(followerID) or nil
+	if not status and info.isMaxLevel then
 		self:SetILevel(info.iLevel)
 	else
-		self:SetLevel(info.level)
+		self:SetLevel(status and CHAT_FLAG_DND or info.level)
 	end
 end
 function MixinFollowerIcon:SetEmpty()
@@ -256,7 +257,9 @@ function MixinFollowerIcon:SetEmpty()
 end
 function MixinFollowerIcon:ShowTooltip()
 	if not self.followerID then
+--@debug@
 		return self:Dump()
+--@end-debug@	
 	end
 	local link = C_Garrison.GetFollowerLink(self.followerID);
 	if link then
@@ -266,6 +269,19 @@ function MixinFollowerIcon:ShowTooltip()
 		GarrisonFollowerTooltip:SetPoint("BOTTOM", self, "TOP")
 		local _, garrisonFollowerID, quality, level, itemLevel, ability1, ability2, ability3, ability4, trait1, trait2, trait3, trait4, spec1 = strsplit(":", link)
 		GarrisonFollowerTooltip_Show(tonumber(garrisonFollowerID), true, tonumber(quality), tonumber(level), xp,levelXP,  tonumber(itemLevel), tonumber(spec1), tonumber(ability1), tonumber(ability2), tonumber(ability3), tonumber(ability4), tonumber(trait1), tonumber(trait2), tonumber(trait3), tonumber(trait4))
+		if not GarrisonFollowerTooltip.Status then 		
+			GarrisonFollowerTooltip.Status=GarrisonFollowerTooltip:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+			GarrisonFollowerTooltip.Status:SetPoint("BOTTOM",0,5)
+		end
+		local status=G.GetFollowerStatus(self.followerID)
+		if status then
+			GarrisonFollowerTooltip.Status:SetText(TOKEN_MARKET_PRICE_NOT_AVAILABLE.. ': ' .. status)
+			GarrisonFollowerTooltip.Status:SetTextColor(C:Orange())
+			GarrisonFollowerTooltip.Status:Show()
+			GarrisonFollowerTooltip:SetHeight(GarrisonFollowerTooltip:GetHeight()+10)
+		else
+			GarrisonFollowerTooltip.Status:Hide()
+		end
 	end
 end
 function MixinFollowerIcon:HideTooltip()
@@ -283,6 +299,7 @@ function Mixin:MembersOnLoad()
 		self.Champions[i]:Show()
 		self.Champions[i]:SetEmpty()
 	end
+	self:SetWidth(self.Champions[1]:GetWidth()*3+10)
 end
 function MixinMenu:OnLoad()
 	self.Top:SetAtlas("_StoneFrameTile-Top", true);
