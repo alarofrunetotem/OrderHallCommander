@@ -163,6 +163,7 @@
 			</OnLoad>
 		</Scripts>
 	</Frame>
+	<Frame name="OHCAlertFrameTemplate" inherits="GarrisonStandardFollowerAlertFrameTemplate" virtual="true"/>
 <!--@debug@-->	
 	<Frame name="OHCDebug" mixin="OrderHallCommanderMixin" visible="true" enableMouse="true" movable="true">
 		<Size x="240" y="160"/>
@@ -252,7 +253,6 @@
 			<OnDragStop method="DragStop"/>
 		</Scripts>
 	</Frame>
-	<Frame name="OHCAlertFrameTemplate" inherits="GarrisonStandardFollowerAlertFrameTemplate" virtual="true"/>
 <!--@end-debug@-->	
 	<!--
 	GarrisonFollowerXPGainTemplate
