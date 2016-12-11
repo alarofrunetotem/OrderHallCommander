@@ -259,7 +259,10 @@ function MixinFollowerIcon:ShowTooltip()
 	if not self.followerID then
 --@debug@
 		return self:Dump()
---@end-debug@	
+--@end-debug@
+--[===[@non-debug@
+		return
+--@end-non-debug@]===]	
 	end
 	local link = C_Garrison.GetFollowerLink(self.followerID);
 	if link then
