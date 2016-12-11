@@ -244,6 +244,13 @@ local function CloseMenu()
 	menu:Hide()		
 end
 function module:InitialSetup(this)
+	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
+	if GetAddOnEnableState(UnitName("player"),"GarrisonCommander") > 0 then
+		if addon.db.global.warn01_seen  < 3 then
+			addon.db.global.warn01_seen=addon.db.global.warn01_seen+1
+			addon:Popup(L["OrderHallCommander overrides GarrisonCommander for Order Hall Management.\n You can revert to GarrisonCommander simpy disabling OrderhallCommander"],20)
+		end
+	end 
 	local previous
 	menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
 	menu.Title:SetText(me .. ' ' .. addon.version)
