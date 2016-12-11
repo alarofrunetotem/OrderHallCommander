@@ -316,6 +316,7 @@ end
 local OrderHallCommanderAlertSystem=AlertFrame:AddSimpleAlertFrameSubSystem("OHCAlertFrameTemplate", alertSetup)
 local shownAlerts={}
 function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
+	if not addon:GetBoolean('TROOPALERT') then return end
 	local followerShipments = C_Garrison.GetFollowerShipments(garrisonType);
 	for i = 1, #followerShipments do
 	   local name, texture, shipmentCapacity, shipmentsReady, shipmentsTotal, creationTime, duration, timeleftString, _, _, _, _, followerID = C_Garrison.GetLandingPageShipmentInfoByContainerID(followerShipments[i]);
