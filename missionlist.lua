@@ -558,8 +558,8 @@ function module:AdjustMissionTooltip(this,...)
 --@debug@
 		tip:AddLine("-----------------------------------------------")
 		OrderHallCommanderMixin.DumpData(tip,addon:GetParties(this.info.missionID):GetSelectedParty(key))
-	end
 --@end-debug@	
+	end
 	tip:Show()
 	
 end
