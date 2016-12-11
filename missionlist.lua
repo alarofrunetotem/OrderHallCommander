@@ -1,4 +1,5 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+local echo=print
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -44,7 +45,7 @@ LoadAddOn("LibDebug")
 
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
-
+local print=print
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
@@ -91,6 +92,12 @@ local sorters={
 			return a.missionSort>b.missionSort
 		end,
 }
+--@debug@
+local function Garrison_SortMissions_PostHook()
+   print("Riordino le missioni")
+   table.sort(OrderHallMissionFrame.MissionTab.MissionList.availableMissions,function(a,b) return a.name < b.name end)
+end
+--@end-debug@
 function module:OnInitialized()
 -- Dunno why but every attempt of changing sort starts a memory leak
 	local sorters={
@@ -111,7 +118,7 @@ function module:OnInitialized()
 	--@debug@
 	pp("Current sorter",Current_Sorter)
 	--@end-debug@
-	--hooksecurefunc("Garrison_SortMissions",print)--function(missions) module:SortMissions(missions) end)
+	--hooksecurefunc("Garrison_SortMissions",Garrison_SortMissions_PostHook)--function(missions) module:SortMissions(missions) end)
 	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
 	--function(missions) module:SortMissions(missions) end)
 end
@@ -155,7 +162,7 @@ function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
 		addon:ResetParties()
 --@debug@
-		pp("OnUpdateMissions")
+		print("OnUpdateMissions")
 --@end-debug@	
 		--self:SortMissions()
 		--OHFMissions:Update()
@@ -178,7 +185,9 @@ function module:SortMissions()
 		if OHFMissions.inProgress then
 			table.sort(OHFMissions.inProgressMissions,sortfunc1)
 		else
+--@debug@
 			print("Using secure call",Current_Sorter)
+--@end-debug@		
 			local prova=OHFMissions.availableMissions
 			securecall(table.sort,OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
 			OHFMissions:Update()
@@ -237,6 +246,8 @@ end
 function module:InitialSetup(this)
 	local previous
 	menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
+	menu.Title:SetText(me .. ' ' .. addon.version)
+	menu.Title:SetTextColor(C:Yellow())
 	close=menu.CloseButton
 	button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
@@ -254,7 +265,7 @@ function module:InitialSetup(this)
 			if previous then 
 				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-15)
 			else
-				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-25)
+				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
 			end
 			previous=f
 		end

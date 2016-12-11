@@ -114,15 +114,26 @@
 	</Button>
 
 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="GarrisonUITemplate" virtual="true">
-		<Size x="200" y="30"/>
+		<Size x="220" y="30"/>
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
-			<KeyValue key="DefaultWidth" value="200" type="number"/>
+			<KeyValue key="DefaultWidth" value="220" type="number"/>
 		</KeyValues>		
 		<Anchors>
 			<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="0"/>
 			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
 		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Title" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightSmallOutline" text="OrderHallCommander">
+					<Size x="95" y="30"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="-5"/>
+						<Anchor point="TOPRIGHT" x="-32" y="-5"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>		
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 			<OnLeave>GameTooltip:Hide()</OnLeave>
