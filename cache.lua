@@ -367,7 +367,10 @@ function module:Refresh(event,...)
 			if data then 
 				data.lastUpdate=0
 				self:refreshFollower(data)
+--@debug@
 				addon:PushEvent("CURRENT_FOLLOWER_XP",4,followerID,0,data.xp,data.level,data.quality)
+--@end-debug@
+
 			end
 		end
 	elseif event=="GARRISON_FOLLOWER_UPGRADED"then

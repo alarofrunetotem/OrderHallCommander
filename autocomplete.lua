@@ -174,7 +174,10 @@ end
 function module:MissionComplete(this,button,skiprescheck)
 	missions=G.GetCompleteMissions(followerType)
 	fillMyStatus(mebefore)	
+--@debug@
 	addon:PushEvent("Starting autocomplete")
+--@end-debug@
+
 	if (missions and #missions > 0) then
 		this:SetEnabled(false)
 		OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(false) -- Disabling standard Blizzard Completion
@@ -345,24 +348,27 @@ function module:MissionAutoComplete(event,...)
 				report:AddMissionButton(currentMission,currentMission.followers,currentMission.successChance,"report")
 			end
 			if (step==0) then
-				--@debug@
+--@debug@
 				print("Fired MarkMissionCompleter",currentMission.missionID)
-				--@end-debug@
 				addon:PushEvent("MarkMissionComplete",currentMission.missionID)
+--@end-debug@
+
 				G.MarkMissionComplete(currentMission.missionID)
 				startTimer(2)
 			elseif (step==1) then
-				--@debug@
+--@debug@
 				print("Fired MissionBonusRoll",currentMission.missionID)
-				--@end-debug@
 				addon:PushEvent("MissionBonusRoll",currentMission.missionID)
+--@end-debug@
+
 				G.MissionBonusRoll(currentMission.missionID)
 				startTimer(2)
 			elseif (step>=2) then
-				--@debug@
+--@debug@
 				print("Advanced to next mission  last:",currentMission.missionID,step)
-				--@end-debug@
 				addon:PushEvent("Next mission last:",currentMission.missionID)
+--@end-debug@
+
 				self:GetMissionResults(step,currentMission)
 				--addon:RefreshFollowerStatus()
 				--shipyard:RefreshFollowerStatus()
@@ -373,7 +379,10 @@ function module:MissionAutoComplete(event,...)
 			end
 			currentMission.state=step
 		else
+--@debug@
 			addon:PushEvent("Building final report")
+--@end-debug@
+
 			report:AddButton(L["Building Final report"])
 			startTimer(1,"LOOT")
 		end
