@@ -431,7 +431,7 @@ function partyManager:Match()
 	self.missionSort=addon:Reward2Class(mission)
 	self.missionClass=mission.missionClass
 	self.missionValue=mission.missionValue
-	self.baseXP=mission.baseXP
+	self.baseXP=mission.baseXP or 0
 	self.rewardXP=(self.missionClass=="FollowerXP" and self.missionValue) or 0
 	self.totalXP=self.baseXP+self.rewardXP
 	local t=addon:GetTroopTypes()
