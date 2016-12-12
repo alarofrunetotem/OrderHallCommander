@@ -86,16 +86,17 @@ function m:SetMission(mission,followers,perc,source)
 	end
 	frame:EnableMouse(true)
 	frame.Title:SetText(mission.name)
-	local rc,message =pcall(GarrisonMissionButton_SetRewards,frame,mission.rewards)
+	local nrewards=type(mission.rewards)=="table" and #mission.rewards or 0
+	local rc,message =pcall(GarrisonMissionButton_SetRewards,frame,mission.rewards,nrewards)
 	addon:GetMissionlistModule():AdjustMissionButton(frame,mission.rewards)
 --	if #frame.Rewards > 0 then
 --		local Reward=frame.Rewards[1]
 --		Reward:ClearAllPoints()
 --		Reward:SetPoint("RIGHT")
 --	end
+	--@debug@
 	if not rc then frame.Title:SetText(message) end
-	 
-	
+	--@end-debug@
 end
 function m._Constructor()
 	local frame=CreateFrame("Button",Type..AceGUI:GetNextWidgetNum(Type),nil,"OHCMissionButton")
