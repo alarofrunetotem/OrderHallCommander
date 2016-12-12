@@ -416,11 +416,13 @@ function module:AddMembers(frame)
 	end
 	threats:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-5)
 	local enemies=addon:GetMissionData(missionID,'enemies')
-	if type(enemies)~="table" then print("No enemies loaded") return end
+	if type(enemies)~="table" then 
+		enemies=select(8,G.GetMissionInfo(missionID))
+	end
 	local mechanics=new()
 	local counters=new()
 	for _,enemy in pairs(enemies) do
-		if type(enemy.mechanis)=="table" then
+		if type(enemy.mechanics)=="table" then
 		   for mechanicID,mechanic in pairs(enemy.mechanics) do
 	   	-- icon=enemy.mechanics[id].icon
 	   		mechanic.id=mechanicID
