@@ -420,11 +420,13 @@ function module:AddMembers(frame)
 	local mechanics=new()
 	local counters=new()
 	for _,enemy in pairs(enemies) do
-	   for mechanicID,mechanic in pairs(enemy.mechanics) do
-   	-- icon=enemy.mechanics[id].icon
-   		mechanic.id=mechanicID
-   		mechanic.bias=-1
-			tinsert(mechanics,mechanic)
+		if type(enemy.mechanis)=="table" then
+		   for mechanicID,mechanic in pairs(enemy.mechanics) do
+	   	-- icon=enemy.mechanics[id].icon
+	   		mechanic.id=mechanicID
+	   		mechanic.bias=-1
+				tinsert(mechanics,mechanic)
+	   	end
    	end
    end
    for _,followerID in party:IterateFollowers() do
