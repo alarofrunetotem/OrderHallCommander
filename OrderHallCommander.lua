@@ -241,6 +241,9 @@ end
 
 function MixinFollowerIcon:SetFollower(followerID)
 	local info=addon:GetFollowerData(followerID)
+	if not info or not info.followerID then
+		return self:SetEmpty(LFG_LIST_APP_TIMED_OUT)
+	end
 	self.followerID=followerID
 	self:SetupPortrait(info)
 	local status=(followerID and not OHFMissions.showInProgress) and G.GetFollowerStatus(followerID) or nil
@@ -250,9 +253,9 @@ function MixinFollowerIcon:SetFollower(followerID)
 		self:SetLevel(status and CHAT_FLAG_DND or info.level)
 	end
 end
-function MixinFollowerIcon:SetEmpty()
+function MixinFollowerIcon:SetEmpty(message)
 	self.followerID=false
-	self:SetLevel(MISSING)
+	self:SetLevel(message or MISSING)
 	self:SetPortraitIcon()
 	self:SetQuality(1)
 end
