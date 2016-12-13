@@ -241,8 +241,12 @@ end
 
 function MixinFollowerIcon:SetFollower(followerID)
 	local info=addon:GetFollowerData(followerID)
-	if not info or not info.followerID then
-		return self:SetEmpty(LFG_LIST_APP_TIMED_OUT)
+	if not info then
+		local rc
+		rc,info=pcall(G.GetFollowerInfo,followerID)
+		if not rc or not info then 	
+			return self:SetEmpty(LFG_LIST_APP_TIMED_OUT)
+		end
 	end
 	self.followerID=followerID
 	self:SetupPortrait(info)
