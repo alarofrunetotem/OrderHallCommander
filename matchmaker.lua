@@ -478,7 +478,7 @@ function partyManager:GenerateIndex()
 	table.sort(self.candidatesIndex)
 end	
 function module:OnInitialized()
-	addon:AddLabel(L["Missions"],L["COnfiguration for mission party builder"])
+	addon:AddLabel(L["Missions"],L["Configuration for mission party builder"])
 	addon:AddBoolean("SAVETROOPS",false,L["Dont kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
 	addon:AddBoolean("SPARE",false,L["Keep cost low"],L["Always counter increased resource cost"])
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
