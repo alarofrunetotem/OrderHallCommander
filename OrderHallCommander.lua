@@ -241,7 +241,7 @@ end
 
 function MixinFollowerIcon:SetFollower(followerID)
 	local info=addon:GetFollowerData(followerID)
-	if not info then
+	if not info or not info.followerID then
 		local rc
 		rc,info=pcall(G.GetFollowerInfo,followerID)
 		if not rc or not info then 	
