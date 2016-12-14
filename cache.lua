@@ -161,7 +161,7 @@ function module:BuildFollower(followerID)
 	end
 end
 function module:refreshMission(data)
-	local runtime,runtimesec,inProgress,duration,dureationsec,bool1,string1=G.GetMissionTimes(data.missionID)
+	local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
 	data.missionSort=addon:Reward2Class(data)
 end
 function module:refreshFollower(data)
