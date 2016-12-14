@@ -90,6 +90,16 @@ local emptyTable={}
 local methods={available='GetAvailableMissions',inProgress='GetInProgressMissions',completed='GetCompleteMissions'}
 local catPool={}
 local troopTypes={}
+local function fillCachedMission(mission,time)
+	if not time then time=GetTime() end
+	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
+	mission.exhausting=exhausting
+	mission.baseXP=baseXP
+	mission.enemies=enemies
+	mission.lastUpdate=time
+	mission.available=not mission.inProgress
+	addon:Reward2Class(mission)
+end
 local function getCachedMissions()
 	if not next(cachedMissions) then
 --@debug@
@@ -100,11 +110,7 @@ local function getCachedMissions()
 			local missions=G[method](followerType)
 			for _,mission in ipairs(missions) do
 				mission[property]=true
-				local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
-				mission.exhausting=exhausting
-				mission.baseXP=baseXP
-				mission.enemies=enemies
-				mission.lastUpdate=time
+				fillCachedMission(mission,time)
 				cachedMissions[mission.missionID]=mission
 			end
 		end
@@ -160,9 +166,20 @@ function module:BuildFollower(followerID)
 		end
 	end
 end
+function module:BuildMission(missionIDfollowerID)
+	local rc,data=pcall(G.GetFollowerInfo,followerID)
+	if rc then
+		if data and data.isCollected then
+			data.lastUpdate=GetTime()
+			data.busyUntil=volatile.followers.busyUntil(data.followerID)
+			cachedFollowers[followerID]=data
+		elseif data then
+			del(data,true)
+		end
+	end
+end
 function module:refreshMission(data)
 	local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
-	data.missionSort=addon:Reward2Class(data)
 end
 function module:refreshFollower(data)
 	if data.lastUpdate < followersRefresh then
@@ -226,18 +243,26 @@ function module:GetMissionData(...)
 	if not id then
 		return f
 	end
-	local data=f[id] 
+	local data=f[id]
+	if not data then
+		local rc,data=pcall(G.GetMissionBasicInfo,id)
+		if rc and data then 
+			self:refreshMission(data)
+			fillCachedMission(data,GetTime(time))			
+			f[id]=data
+		else
+			if select('#',...) > 2 then
+				return defaultvalue
+			else
+				return emptyTable
+			end
+		end
+	end
 	if data then
 		if key then
 			return self:GetKey(data,key,defaultvalue)
 		else
 			return data
-		end
-	else
-		if select('#',...) > 2 then
-			return defaultvalue
-		else
-			return emptyTable
 		end
 	end
 end
@@ -262,6 +287,7 @@ function module:GetKey(data,key,defaultvalue)
 end
 function module:Clear()
 	wipe(cachedFollowers)
+	wipe(cachedMissions)
 end
 local function alertSetup(frame,name,...)
 	GarrisonFollowerAlertFrame_SetUp(frame,FAKE_FOLLOWERID,...)

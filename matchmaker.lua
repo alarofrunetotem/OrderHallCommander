@@ -259,9 +259,12 @@ local function GetSelectedParty(self)
 			self:AddDebug(key,"Filled",f1,f2,f3)
 			--@end-debug@
 			lastkey=key
-			if self:SatisfyCondition(candidate,1) and
-				self:SatisfyCondition(candidate,2) and
-				self:SatisfyCondition(candidate,3) then
+			local got=true
+			for i=1,self.numFollowers do
+				got = got and self:SatisfyCondition(candidate,1)
+				if not got then break end
+			end
+			if got then
 				if not bestkey then bestkey=key end
 				if addon:GetBoolean("MAXIMIZEXP") then
 					if candidate.perc >= 100 and candidate.xpGainers >xpgainers then
@@ -465,6 +468,11 @@ function partyManager:Match()
 			coroutine.yield()
 		end
 	end
+	if self.numFollowers == 1 then
+		for i,champ in ipairs(champs) do
+			self:Build(champ)
+		end
+	end 
 	self:Build()
 	if not async then releaseEvents() end
 	del(champs)

@@ -202,6 +202,7 @@ local function tContains(table, item)
 	end
 	return nil;
 end
+local emptyTable={}
 local function Reward2Class(self,mission)
 	local overReward=mission.overmaxRewards
 	if not overReward then overReward=mission.OverRewards end
@@ -212,6 +213,8 @@ local function Reward2Class(self,mission)
 	end
 	overReward=overReward[1]
 	reward=reward[1]
+	if not reward then return "Generic",0 end
+	if not overReward then overReward = emptyTable end
 	if reward.currencyID then
 		local name=GetCurrencyInfo(reward.currencyID)
 		if name=="" then name = MONEY end

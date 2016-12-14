@@ -391,13 +391,19 @@ function module:AddMembers(frame)
 	local members=missionmembers[frame]
 	local stats=missionstats[frame]
 	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
-	for i=1,3 do
+	for i=1,mission.numFollowers do
 		if party:Follower(i) then
 			members.Champions[i]:SetFollower(party:Follower(i))
 		else
 			members.Champions[i]:SetEmpty()
 		end
+		members.Champions[i]:Show()
 	end
+	for i=mission.numFollowers+1,3 do
+			members.Champions[i]:Hide()
+		
+	end
+		
 	local perc=party.perc or 0
 	if perc==0 then
 		stats.Chance:SetText("N/A")
