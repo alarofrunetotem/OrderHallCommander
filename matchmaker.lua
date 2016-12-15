@@ -383,7 +383,8 @@ function partyManager:Build(...)
 			local rc,res = pcall(G.AddFollowerToMission,self.missionID,followerID)
 			if not rc or not res then
 --@debug@
-				pp("Unable to add ",G.GetFollowerName(followerID),"to",G.GetMissionName(self.missionID))
+				local rc,name=pcall(G.GetFollowerName(followerID))
+				pp("Unable to add ",name,"to",G.GetMissionName(self.missionID))
 --@end-debug@			
 				self:Remove(followers)
 				del(followers)
