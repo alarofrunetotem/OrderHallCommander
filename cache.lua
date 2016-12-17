@@ -152,7 +152,9 @@ function module:GetAverageLevels(cached)
 	return avgLevel,avgIlevel
 end
 function module:DeleteFollower(followerID)
-	del(cachedFollowers[followerID])
+	if followerID and cachedFollowers[followerID] then
+		del(cachedFollowers[followerID])
+	end
 end
 function module:BuildFollower(followerID)
 	local rc,data=pcall(G.GetFollowerInfo,followerID)
