@@ -450,8 +450,8 @@ function module:AddMembers(frame)
       for _,ability in pairs(abilities) do
          for counter,info in pairs(ability.counters) do
          	for _,mechanic in pairs(mechanics) do
-         		if mechanic.id==counter and not mechanic.countered then
-         			mechanic.countered=true
+         		if mechanic.id==counter and not mechanic.defeated then
+         			mechanic.defeated=true
          			mechanic.bias=tonumber(bias)
          			break
          		end
