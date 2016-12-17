@@ -14,7 +14,13 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
-self:RelNotes(1,0,0,[[
+self:RelNotes(0,1,1,[[
+Fix: Checks we actually cached a follower before removing it from cache
+Fix: one follower missions where not supported
+Fix: Countered spells are now always marked
+Feature: new options for party selection
+]])
+self:RelNotes(0,1,0,[[
 Feature: First release
 ]])
 end
