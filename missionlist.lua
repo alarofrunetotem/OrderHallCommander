@@ -427,6 +427,7 @@ function module:AddMembers(frame)
 	end
 	local mechanics=new()
 	local counters=new()
+	local biases=new()
 	for _,enemy in pairs(enemies) do
 		if type(enemy.mechanics)=="table" then
 		   for mechanicID,mechanic in pairs(enemy.mechanics) do
@@ -445,14 +446,13 @@ function module:AddMembers(frame)
    end
    table.sort(counters)
    for _,data in pairs(counters) do
-   	local bias,followerID=strsplit(",",data)
+   	local _,followerID,_,bias=strsplit(",",data)
       local abilities=G.GetFollowerAbilities(followerID)
       for _,ability in pairs(abilities) do
          for counter,info in pairs(ability.counters) do
          	for _,mechanic in pairs(mechanics) do
-         		if mechanic.id==counter and not mechanic.defeated then
-         			mechanic.defeated=true
-         			mechanic.bias=tonumber(bias)
+         		if mechanic.id==counter and not biases[mechanic] then
+         			biases[mechanic]=tonumber(bias)
          			break
          		end
          	end
@@ -469,11 +469,12 @@ function module:AddMembers(frame)
 	if frame.IsCustom or OHFMissions.showInProgress then
 		cost=-1
 	end
-   if not threats:AddIconsAndCost(mechanics,cost,color,cost > addon:GetResources()) then
+   if not threats:AddIconsAndCost(mechanics,biases,cost,color,cost > addon:GetResources()) then
    	addon:RefreshMissions()
    end
    del(mechanics)
    del(counters)
+   del(biases)
 end
 function module:MissionTip(this)
 	local tip=GameTooltip

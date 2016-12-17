@@ -184,7 +184,7 @@ function Mixin:ThreatsOnLoad()
 	self.usedPool={}
 end
 
-function MixinThreats:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
+function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResources)
 	local icons=OHF.abilityCountersForMechanicTypes
 	if not icons then
 		--@debug@
@@ -215,7 +215,7 @@ function MixinThreats:AddIconsAndCost(mechanics,cost,color,notEnoughResources)
 			th:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
 			previous=th
 		end
-		th.Border:SetVertexColor(addon:ColorFromBias(mechanic.bias))
+		th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
 		th:Show()
 	end
 	if cost >=0 then
