@@ -228,6 +228,7 @@ function partyManager:SatisfyCondition(candidate,key,table)
 	if addon:GetBoolean("SPARE") and candidate.cost > candidate.baseCost then return self:Fail("SPARE",addon:GetBoolean("SPARE"),candidate.cost , candidate.baseCost) end
 	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
+	if addon:GetBoolean("BONUS") and candidate.hasBonusLootNegativeEffect then return self:Fail("BONUS") end
 	local ready=addon:GetFollowerData(followerID,"busyUntil")
 	if not ready then return self:Fail("No ready data") end
 	if ready > GetTime() then
@@ -501,12 +502,13 @@ end
 function module:OnInitialized()
 	addon:AddLabel(L["Missions"],L["Configuration for mission party builder"])
 	addon:AddBoolean("SAVETROOPS",false,L["Dont kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
+	addon:AddBoolean("BONUS",true,L["Keep extra bonus"],L["Always counter no bonus loot threat"])
 	addon:AddBoolean("SPARE",false,L["Keep cost low"],L["Always counter increased resource cost"])
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
 	addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Commbat ally is proposed for missions so you can consider unassigning him"])
-	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'USEALLY')
+	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'USEALLY')
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
@@ -534,6 +536,9 @@ function addon:ApplyMAKEITQUICK(value)
 	return addon:RefreshMissions()
 end
 function addon:ApplyUSEALLY(value)
+	return addon:RefreshMissions()
+end
+function addon:ApplyBONUS(value)
 	return addon:RefreshMissions()
 end
 function addon:ApplyMAKEITVERYQUICK(value)
