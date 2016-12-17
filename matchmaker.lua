@@ -150,7 +150,7 @@ function partyManager:Fail(...)
 --@debug@
 	local rc,name=false,''
 	if self.lastChecked then rc,name =pcall(G.GetFollowerName,self.lastChecked) end 
-	self:AddDebug(name,...)
+	self:AddDebug('fail',name,...)
 --@end-debug@
 	return false
 end	 
@@ -233,8 +233,15 @@ function partyManager:SatisfyCondition(candidate,key,table)
 	if ready > GetTime() then
 		return self:Fail("BUSY",ready - GetTime())
 	else
-		return true 
+		local status=G.GetFollowerStatus(followerID)
+		if status then 
+			if addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY then
+				return true
+			end
+			return self:Fail("BUSY",status)
+		end 
 	end
+	return true
 end
 function partyManager:IterateIndex()
 	self:GenerateIndex()
@@ -261,7 +268,7 @@ local function GetSelectedParty(self)
 			lastkey=key
 			local got=true
 			for i=1,self.numFollowers do
-				got = got and self:SatisfyCondition(candidate,1)
+				got = got and self:SatisfyCondition(candidate,i)
 				if not got then break end
 			end
 			if got then
@@ -374,6 +381,7 @@ function partyManager:GetEffects()
 
 end
 function partyManager:Build(...)
+	self:AddDebug("Build",self.numFollowers,...)
 	local followers=new()
 	if select('#',...)>0 then
 		for i=1,self.numFollowers or 3 do
@@ -383,7 +391,8 @@ function partyManager:Build(...)
 			local rc,res = pcall(G.AddFollowerToMission,self.missionID,followerID)
 			if not rc or not res then
 --@debug@
-				local rc,name=pcall(G.GetFollowerName(followerID))
+				local rc,name=pcall(G.GetFollowerName,followerID)
+				self:AddDebug("Unable to add",followerID,name)
 				pp("Unable to add ",name,"to",G.GetMissionName(self.missionID))
 --@end-debug@			
 				self:Remove(followers)
@@ -422,14 +431,16 @@ function partyManager:AddDebug(...)
 	tinsert(debug[self.missionID],strjoin(' ',tostringall(...)))
 end
 function partyManager:Match()
---@debug@
-	OHCDebug:Bump("Parties")
---@end-debug@
+
 	local champs=new()
 	wipe(self.candidates)
 	addon:GetAllChampions(champs)
 	local totChamps=#champs
 	local mission=addon:GetMissionData(self.missionID)
+--@debug@
+	OHCDebug:Bump("Parties")
+	print("Match started for mission",mission.name)
+--@end-debug@
 	self.unique=0
 	self.numFollowers=mission.numFollowers
 	self.missionSort=addon:Reward2Class(mission)
@@ -443,6 +454,7 @@ function partyManager:Match()
 	local t2_1,t2_2=addon:GetTroop(t[2],2)
 	local async=coroutine.running()
 	if not async then holdEvents() end
+	self:AddDebug("TotChamp",#champs)
 	for i,champ in ipairs(champs) do
 		if async then holdEvents() end
 		for n=i+1,totChamps do
@@ -493,7 +505,8 @@ function module:OnInitialized()
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
 	addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
-	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP")
+	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Commbat ally is proposed for missions so you can consider unassigning him"])
+	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'USEALLY')
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
@@ -518,6 +531,9 @@ function addon:ApplySPARE(value)
 	return addon:RefreshMissions()
 end
 function addon:ApplyMAKEITQUICK(value)
+	return addon:RefreshMissions()
+end
+function addon:ApplyUSEALLY(value)
 	return addon:RefreshMissions()
 end
 function addon:ApplyMAKEITVERYQUICK(value)
