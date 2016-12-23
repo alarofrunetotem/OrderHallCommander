@@ -118,6 +118,7 @@ local function getCachedMissions()
 	return cachedMissions
 end	
 local function getCachedFollowers()
+	
 	if not next(cachedFollowers) then
 --@debug@
 		OHCDebug:Bump("Followers")
@@ -157,6 +158,11 @@ function module:DeleteFollower(followerID)
 	end
 end
 function module:BuildFollower(followerID)
+	local f=getCachedFollowers()
+	if f[followerID] then 
+		f[followerID].busyUntil=volatile.followers.busyUntil(followerID)
+		return 
+	end
 	local rc,data=pcall(G.GetFollowerInfo,followerID)
 	if rc then
 		if data and data.isCollected then
@@ -347,6 +353,10 @@ local shownAlerts={}
 function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 	if not addon:GetBoolean('TROOPALERT') then return end
 	local followerShipments = C_Garrison.GetFollowerShipments(garrisonType);
+	for _,t in pairs(shipmentInfo) do
+		t[1]=0
+		t[2]=0
+	end		
 	for i = 1, #followerShipments do
 	   local name, texture, shipmentCapacity, shipmentsReady, shipmentsTotal, creationTime, duration, timeleftString, _, _, _, _, followerID = C_Garrison.GetLandingPageShipmentInfoByContainerID(followerShipments[i]);
 	   if name and shipmentCapacity > 0 then
@@ -468,12 +478,24 @@ end
 function addon:GetFollower(...)
 	return module:GetFollower(...)
 end
+function addon:GetFollowerCounts()
+	local t,c=0,0
+	for _,follower in pairs(getCachedFollowers()) do
+		if follower.isTroop then
+			t=t+1
+		else
+			c=c+1
+		end
+	end
+	return c,t
+end
 function addon:GetAllChampions(table)
 	for _,follower in pairs(getCachedFollowers()) do
 		if not follower.isTroop then
 			tinsert(table,follower)
 		end
 	end
+	return table
 end
 function addon:GetAllTroops(table)
 	for _,follower in pairs(getCachedFollowers()) do
@@ -481,6 +503,7 @@ function addon:GetAllTroops(table)
 			tinsert(table,follower)
 		end
 	end
+	return table
 end
 local function isInParty(followerID)
 	return G.GetFollowerStatus(followerID)==GARRISON_FOLLOWER_IN_PARTY
