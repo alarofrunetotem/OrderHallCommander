@@ -150,7 +150,7 @@ function partyManager:Fail(...)
 --@debug@
 	local rc,name=false,''
 	if self.lastChecked then rc,name =pcall(G.GetFollowerName,self.lastChecked) end 
-	self:AddDebug('fail',name,...)
+	print('fail',name,...)
 --@end-debug@
 	return false
 end	 
@@ -263,8 +263,8 @@ local function GetSelectedParty(self)
 			local rc,f1=pcall(G.GetFollowerName,candidate[1])
 			local rc,f2=pcall(G.GetFollowerName,candidate[2])
 			local rc,f3=pcall(G.GetFollowerName,candidate[3])
-			self:AddDebug(key,"Examining",candidate.f1,candidate.f2,candidate.f3)
-			self:AddDebug(key,"Filled",f1,f2,f3)
+			print(key,"Examining",candidate.f1,candidate.f2,candidate.f3)
+			print(key,"Filled",f1,f2,f3)
 			--@end-debug@
 			lastkey=key
 			local got=true
@@ -289,7 +289,7 @@ local function GetSelectedParty(self)
 		end
 	end
 	--@debug@
-	self:AddDebug("XPKey,Bestkey,Lastkey",self.missionID,xpkey,bestkey,lastkey)
+	print("XPKey,Bestkey,Lastkey",self.missionID,xpkey,bestkey,lastkey)
 	--@end-debug@
 	if xpkey then 
 		return self.candidates[xpkey],xpkey
@@ -308,7 +308,7 @@ function partyManager:GetSelectedParty(mission)
 	wipe(debug[self.missionID])
 	if type(mission)=="table" and mission.inProgress then
 --@debug@
-		self:AddDebug("inProgress")
+		print("inProgress")
 --@end-debug@
 		if not self.candidates or not self.candidates.progress then
 			local candidate=self:GetEffects()
@@ -324,13 +324,13 @@ function partyManager:GetSelectedParty(mission)
 	end
 	if type(mission)=="string" and self.candidates[mission] then
 --@debug@
-		self:AddDebug("Returning explicity set key ",mission)
+		print("Returning explicity set key ",mission)
 --@end-debug@
 		return self.candidates[mission],mission
 	end
 	if not self.ready then
 --@debug@
-		self:AddDebug("Rebuilding list")
+		print("Rebuilding list")
 --@end-debug@		
 		self:Match()
 		self.ready=true
@@ -347,12 +347,22 @@ function partyManager:Remove(...)
 		for _,id in ipairs(tbl) do
 			if type(id)=="table" then id=id.followerID end
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,id)
-			if not rc then	print("Remove failed",message,self.missionID,...) end
+			if not rc then	
+				--@debug@
+print("Remove failed",message,self.missionID,...) 
+--@end-debug@
+
+			end
 		end
 	else
 		for i=1,select('#',...) do
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,(select(i,...)))
-			if not rc then	print("Remove failed",message,self.missionID,...) end
+			if not rc then	
+				--@debug@
+print("Remove failed",message,self.missionID,...) 
+--@end-debug@
+
+			end
 		end
 	end	
 end
@@ -382,7 +392,10 @@ function partyManager:GetEffects()
 
 end
 function partyManager:Build(...)
-	self:AddDebug("Build",self.numFollowers,...)
+	--@debug@
+print("Build",self.numFollowers,...)
+--@end-debug@
+
 	local followers=new()
 	if select('#',...)>0 then
 		for i=1,self.numFollowers or 3 do
@@ -393,7 +406,7 @@ function partyManager:Build(...)
 			if not rc or not res then
 --@debug@
 				local rc,name=pcall(G.GetFollowerName,followerID)
-				self:AddDebug("Unable to add",followerID,name)
+				print("Unable to add",followerID,name)
 				pp("Unable to add ",name,"to",G.GetMissionName(self.missionID))
 --@end-debug@			
 				self:Remove(followers)
@@ -428,9 +441,7 @@ function partyManager:Build(...)
 	self:Remove(followers)
 
 end	
-function partyManager:AddDebug(...)
-	tinsert(debug[self.missionID],strjoin(' ',tostringall(...)))
-end
+
 function partyManager:Match()
 
 	local champs=new()
@@ -455,7 +466,10 @@ function partyManager:Match()
 	local t2_1,t2_2=addon:GetTroop(t[2],2)
 	local async=coroutine.running()
 	if not async then holdEvents() end
-	self:AddDebug("TotChamp",#champs)
+--@debug@
+	print("TotChamp",#champs)
+--@end-debug@
+
 	for i,champ in ipairs(champs) do
 		if async then holdEvents() end
 		for n=i+1,totChamps do
