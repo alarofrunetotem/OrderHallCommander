@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
+self:RelNOtes(0,2,0,[[
+Fix: sometimes cache was not refresh after completing missions,leaving al missions unpopulated
+]])
 self:RelNotes(0,1,1,[[
 Fix: Checks we actually cached a follower before removing it from cache
 Fix: one follower missions where not supported
