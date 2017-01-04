@@ -252,6 +252,10 @@ function module:GetMissionData(...)
 		return f
 	end
 	local data=f[id]
+	if data and not data.numFollowers then
+		del(data)
+		data=nil
+	end
 	if not data then
 		local rc,data=pcall(G.GetMissionBasicInfo,id)
 		if rc and data then 
