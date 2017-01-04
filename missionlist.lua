@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 11/12/2016 23:26:42
+-- Generated on 04/01/2017 22:31:44
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -109,8 +109,8 @@ function module:OnInitialized()
 		Garrison_SortMissions_Duration=L["Duration Time"],
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
-	--addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
-	--addon:RegisterForMenu("mission","SORTMISSION")
+	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
+	addon:RegisterForMenu("mission","SORTMISSION")
 	self:LoadButtons()
 	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 	Current_Sorter=addon:GetString("SORTMISSION")
@@ -121,6 +121,8 @@ function module:OnInitialized()
 	--hooksecurefunc("Garrison_SortMissions",Garrison_SortMissions_PostHook)--function(missions) module:SortMissions(missions) end)
 	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
 	--function(missions) module:SortMissions(missions) end)
+	self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","SortMissions")
+	self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","SortMissions")
 end
 function module:Print(...)
 	print(...)
@@ -185,22 +187,16 @@ function module:SortMissions()
 		if OHFMissions.inProgress then
 			table.sort(OHFMissions.inProgressMissions,sortfunc1)
 		else
---@debug@
-			print("Using secure call",Current_Sorter)
---@end-debug@		
-			local prova=OHFMissions.availableMissions
-			securecall(table.sort,OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
-			OHFMissions:Update()
+			table.sort(OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
 			--Garrison_SortMissions(OHFMissions.availableMissions)
 			--Garrison_SortMissions(prova)
 		end
+		OHFMissions:Update()
 	end
 end
 function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
 	module:SortMissions()
-	OHFMissions:Update()
-	--self:RefreshMissions()
 end
 local timer
 function addon:RefreshMissions()
@@ -289,8 +285,8 @@ function module:MainOnShow()
 	self:SecureHook(OHFMissions,"Update","OnUpdate")
 	self:Hook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission",function() pp("Called inside updatemissions") pp("\n",debugstack(1)) end)
-	--self:SortMissions()
 	self:OnUpdate()
+	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 end
 function module:MainOnHide()
 	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
