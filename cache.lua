@@ -257,7 +257,7 @@ function module:GetMissionData(...)
 		data=nil
 	end
 	if not data then
-		local rc,data=pcall(G.GetMissionBasicInfo,id)
+		local rc,data=pcall(G.GetBasicMissionInfo,id)
 		if rc and data then 
 			self:refreshMission(data)
 			fillCachedMission(data,GetTime(time))			
