@@ -268,6 +268,9 @@ local function GetSelectedParty(self)
 			--@end-debug@
 			lastkey=key
 			local got=true
+			if type(self.numFollowers) ~= "number" then
+				
+			end
 			for i=1,self.numFollowers do
 				got = got and self:SatisfyCondition(candidate,i)
 				if not got then break end
@@ -333,7 +336,6 @@ function partyManager:GetSelectedParty(mission)
 		print("Rebuilding list")
 --@end-debug@		
 		self:Match()
-		self.ready=true
 	end
 	local candidate=GetSelectedParty(self)
 	self.bestChance=candidate.perc or 0
@@ -347,22 +349,20 @@ function partyManager:Remove(...)
 		for _,id in ipairs(tbl) do
 			if type(id)=="table" then id=id.followerID end
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,id)
+--@debug@
 			if not rc then	
-				--@debug@
-print("Remove failed",message,self.missionID,...) 
---@end-debug@
-
+				print("Remove failed",message,self.missionID,...) 
 			end
+--@end-debug@
 		end
 	else
 		for i=1,select('#',...) do
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,(select(i,...)))
+--@debug@
 			if not rc then	
-				--@debug@
-print("Remove failed",message,self.missionID,...) 
---@end-debug@
-
+				print("Remove failed",message,self.missionID,...) 
 			end
+--@end-debug@
 		end
 	end	
 end
@@ -392,8 +392,8 @@ function partyManager:GetEffects()
 
 end
 function partyManager:Build(...)
-	--@debug@
-print("Build",self.numFollowers,...)
+--@debug@
+	print("Build",self.numFollowers,...)
 --@end-debug@
 
 	local followers=new()
@@ -449,6 +449,7 @@ function partyManager:Match()
 	addon:GetAllChampions(champs)
 	local totChamps=#champs
 	local mission=addon:GetMissionData(self.missionID)
+	if not mission then return false end
 --@debug@
 	OHCDebug:Bump("Parties")
 	print("Match started for mission",mission.name)
@@ -504,7 +505,8 @@ function partyManager:Match()
 	self:Build()
 	if not async then releaseEvents() end
 	del(champs)
-	return self
+	self.ready=true
+	return true
 end
 function partyManager:GenerateIndex()
 	if not self.candidatesIndex then self.candidatesIndex=new() else wipe(self.candidatesIndex) end
