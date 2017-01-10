@@ -14,7 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
-self:RelNOtes(0,2,0,[[
+self:RelNotes(0,2,4,[[
+Fix: lua errors in matchmaker.lua
+]])
+self:RelNotes(0,2,0,[[
 Fix: sometimes cache was not refresh after completing missions,leaving al missions unpopulated
 ]])
 self:RelNotes(0,1,1,[[
