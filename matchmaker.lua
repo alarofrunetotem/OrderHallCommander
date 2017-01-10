@@ -449,6 +449,10 @@ function partyManager:Match()
 	addon:GetAllChampions(champs)
 	local totChamps=#champs
 	local mission=addon:GetMissionData(self.missionID)
+	if not mission then
+	 	addon:RebuildMissionCache()
+	 	mission=addon:GetMissionData(self.missionID)
+	 end
 	if not mission then return false end
 --@debug@
 	OHCDebug:Bump("Parties")

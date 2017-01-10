@@ -34,7 +34,7 @@ local MAXLEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
-
+local unpack=unpack
 local dprint=print
 local ddump
 --@debug@
@@ -532,6 +532,11 @@ function addon:GetTroop(troopType,qt,skipBusy)
 end
 function addon:GetTroopTypes()
 	return troopTypes
+end
+
+function addon:RebuildMissionCache()
+	wipe(cachedMissions)
+	getCachedMissions()
 end
 
 function addon:GetAverageLevels(...)
