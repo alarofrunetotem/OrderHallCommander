@@ -110,7 +110,8 @@ function module:OnInitialized()
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
-	addon:RegisterForMenu("mission","SORTMISSION")
+	addon:AddPrivateAction("RefreshMissions","Recalculate",L["Recalculate all parties"])
+	addon:RegisterForMenu("mission","SORTMISSION","RefreshMissions")
 	self:LoadButtons()
 	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 	Current_Sorter=addon:GetString("SORTMISSION")
@@ -262,11 +263,11 @@ function module:InitialSetup(this)
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
 		local flag,icon=strsplit(',',v)
-		--local f=addon:CreateOption(flag,menu)
 		local f=factory:Option(addon,menu,flag)
+		pp(flag,f)
 		if type(f)=="table" and f.GetObjectType then
 			if previous then 
-				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-15)
+				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-10)
 			else
 				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
 			end
