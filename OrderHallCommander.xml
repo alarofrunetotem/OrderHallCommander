@@ -31,7 +31,9 @@
 			</Layer>
 		</Layers>	
 		<Scripts>
+<!--@debug@-->				
 			<OnEnter method="Dump"/>
+<!--@end-debug@-->				
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
