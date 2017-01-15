@@ -89,7 +89,7 @@ local sorters={
 		Garrison_SortMissions_Class=function(a,b)
 			local a=addon:GetMissionData(a.missionID) 
 			local b=addon:GetMissionData(b.missionID)
-			return a.missionSort>b.missionSort
+			return (a.missionSort or 0)>(b.missionSort or 0)
 		end,
 }
 --@debug@
