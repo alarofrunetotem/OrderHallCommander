@@ -110,8 +110,8 @@ function module:OnInitialized()
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
-	addon:AddPrivateAction("RefreshMissions","Recalculate",L["Recalculate all parties"])
-	addon:RegisterForMenu("mission","SORTMISSION","RefreshMissions")
+	addon:AddPrivateAction("HardRefreshMissions","Recalculate",L["Recalculate all parties"])
+	addon:RegisterForMenu("mission","SORTMISSION","HardRefreshMissions")
 	self:LoadButtons()
 	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 	Current_Sorter=addon:GetString("SORTMISSION")
@@ -164,9 +164,6 @@ end
 function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
 		addon:ResetParties()
---@debug@
-		print("OnUpdateMissions")
---@end-debug@	
 		--self:SortMissions()
 		--OHFMissions:Update()
 		--for _,frame in pairs(buttonlist) do
@@ -199,18 +196,21 @@ function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
 	module:SortMissions()
 end
+function addon:HardRefreshMissions()
+	self:RebuildAllCaches()
+	collectgarbage()
+	self:RefreshMissions()
+end
 local timer
 function addon:RefreshMissions()
 	if OHFMissionPage:IsVisible() then
 		module:PostMissionClick(OHFMissionPage)
 	else	
 		if timer then self:CancelTimer(timer) end 
-		print("Scheduling refresh in",0.1)
 		timer=self:ScheduleTimer("EffectiveRefresh",0.1)
 	end
 end
 function addon:EffectiveRefresh()
-	print("Effective refresh in",0.1)
 	timer=nil
 	wipe(parties)
 	wipe(missionIDS)
@@ -240,6 +240,24 @@ local function CloseMenu()
 	button:Show()
 	menu:Hide()		
 end
+function module:Menu()
+	local previous
+	local factory=addon:GetFactory()
+	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
+		local flag,icon=strsplit(',',v)
+		local f=factory:Option(addon,menu,flag)
+		if type(f)=="table" and f.GetObjectType then
+			if flag=="MAXCHAMP" then f:SetStep(1) end
+			if previous then 
+				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-10)
+			else
+				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
+			end
+			previous=f
+		end
+	end 
+end
+
 function module:InitialSetup(this)
 	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
 	if GetAddOnEnableState(UnitName("player"),"GarrisonCommander") > 0 then
@@ -248,7 +266,6 @@ function module:InitialSetup(this)
 			addon:Popup(L["OrderHallCommander overrides GarrisonCommander for Order Hall Management.\n You can revert to GarrisonCommander simply disabling OrderhallCommander.\nIf instead you like OrderHallCommander remember to add it to Curse client and keep it updated"],20)
 		end
 	end 
-	local previous
 	menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
 	menu.Title:SetText(me .. ' ' .. addon.version)
 	menu.Title:SetTextColor(C:Yellow())
@@ -259,21 +276,8 @@ function module:InitialSetup(this)
 	button:SetScript("OnClick",OpenMenu)
 	button:GetNormalTexture():SetRotation(math.rad(270))
 	button:GetHighlightTexture():SetRotation(math.rad(270))
+	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
-	local factory=addon:GetFactory()
-	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
-		local flag,icon=strsplit(',',v)
-		local f=factory:Option(addon,menu,flag)
-		pp(flag,f)
-		if type(f)=="table" and f.GetObjectType then
-			if previous then 
-				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-10)
-			else
-				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
-			end
-			previous=f
-		end
-	end 
 	addon.MAXLEVEL=OHF.followerMaxLevel
 	addon.MAXQUALITY=OHF.followerMaxQuality
 	addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
@@ -371,7 +375,7 @@ function module:AddMembers(frame)
 	local nrewards=#mission.rewards
 	local missionID=mission and mission.missionID
 	local followers=mission.followers
-	local key=parties[missionID]
+	local key
 	local party
 	if not key then
 		party,key=addon:GetSelectedParty(missionID,mission)

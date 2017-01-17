@@ -313,19 +313,39 @@ function module:RefreshTroopTypes(categoryInfo)
 		tinsert(troopTypes,index)
 	end
 end
+local TroopsHeader
+function module:GetTroopsFrame()
+	if not TroopsHeader then
+		local frame=CreateFrame("Frame","OHTEST",OrderHallMissionFrame,"TooltipBorderedFrameTemplate")
+		frame.Background:Hide()
+		frame.Top=frame:CreateTexture(nil,"BACKGROUND",nil,-1)
+		frame.Top:SetPoint("TOPLEFT")
+		frame.Top:SetPoint("BOTTOMRIGHT")
+		frame.Top:SetAtlas("_StoneFrameTile-Top")
+		frame:SetHeight(35)
+		frame:ClearAllPoints()
+		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,0)
+		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",0,0)
+		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
+		frame:Show()
+		TroopsHeader=frame
+	end
+	return TroopsHeader
+end
+
 function module:ParseFollowers()
-	if (not G.IsPlayerInGarrison(garrisonType)) then return end
 	categoryInfo = C_Garrison.GetClassSpecCategoryInfo(followerType)
 	self:RefreshTroopTypes(categoryInfo)
 	G.RequestLandingPageShipmentInfo();
 	if not OHF:IsVisible() then return end
+	local main=self:GetTroopsFrame()
 	local numCategories = #categoryInfo;
 	local prevCategory, firstCategory;
 	local xSpacing = 20;	-- space between categories
 	for i, category in ipairs(categoryInfo) do
 		local index=category.classSpec
 		if not catPool[index] then
-			catPool[index]=CreateFrame("Frame","FollowerIcon",OHF,"OrderHallClassSpecCategoryTemplate")
+			catPool[index]=CreateFrame("Frame","FollowerIcon",main,"OrderHallClassSpecCategoryTemplate")
 		end
 		local categoryInfoFrame = catPool[index];
 		if not shipmentInfo[category.icon] then
@@ -343,12 +363,9 @@ function module:ParseFollowers()
 			category.count, category.limit,unpack(shipmentInfo[category.icon]));
 		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)			
 		categoryInfoFrame:ClearAllPoints();
-		categoryInfoFrame:SetWidth(35 + categoryInfoFrame.Count:GetWidth())
-		if i==1 then
-			categoryInfoFrame:SetPoint("TOPLEFT",75, 2);
-		else
-			categoryInfoFrame:SetPoint("TOPRIGHT",-40, 2);
-		end
+		local w=35 + categoryInfoFrame.Count:GetWidth()
+		categoryInfoFrame:SetWidth(w)
+		categoryInfoFrame:SetPoint("TOPLEFT",60 +(w+10) *(i-1), 0);
 		categoryInfoFrame:Show();
 	end
 end
@@ -356,6 +373,7 @@ local OrderHallCommanderAlertSystem=AlertFrame:AddSimpleAlertFrameSubSystem("OHC
 local shownAlerts={}
 function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 	if not addon:GetBoolean('TROOPALERT') then return end
+	if (not G.IsPlayerInGarrison(garrisonType)) then return end
 	local followerShipments = C_Garrison.GetFollowerShipments(garrisonType);
 	for _,t in pairs(shipmentInfo) do
 		t[1]=0
@@ -528,7 +546,6 @@ function addon:GetTroop(troopType,qt,skipBusy)
 		end
 	end
 	return unpack(troops)
-	
 end
 function addon:GetTroopTypes()
 	return troopTypes
@@ -537,6 +554,14 @@ end
 function addon:RebuildMissionCache()
 	wipe(cachedMissions)
 	getCachedMissions()
+end
+function addon:RebuildFollowerCache()
+	wipe(cachedFollowers)
+	getCachedFollowers()
+end
+function addon:RebuildAllCaches()
+	self:RebuildFollowerCache()
+	self:RebuildMissionCache()
 end
 
 function addon:GetAverageLevels(...)

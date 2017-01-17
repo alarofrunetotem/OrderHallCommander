@@ -255,9 +255,11 @@ local function GetSelectedParty(self)
 	local xpperc=0
 	local xpgainers=0
 	self:GenerateIndex()
+	local minChamps=addon:GetNumber("MAXIMIZEMISSIONS")
+	local maxChamps=addon:GetNumber("MAXCHAMP")
 	for i,key in ipairs(self.candidatesIndex) do
 		local candidate=self.candidates[key]
-		if candidate then
+		if candidate and candidate.champions <=maxChamps  then
 			self:FillRealFollowers(candidate)
 			--@debug@
 			local rc,f1=pcall(G.GetFollowerName,candidate[1])
@@ -395,7 +397,6 @@ function partyManager:Build(...)
 --@debug@
 	print("Build",self.numFollowers,...)
 --@end-debug@
-
 	local followers=new()
 	if select('#',...)>0 then
 		for i=1,self.numFollowers or 3 do
@@ -407,7 +408,7 @@ function partyManager:Build(...)
 --@debug@
 				local rc,name=pcall(G.GetFollowerName,followerID)
 				print("Unable to add",followerID,name)
-				pp("Unable to add ",name,"to",G.GetMissionName(self.missionID))
+				pp("Unable to add ",name,"to",G.GetMissionName(self.missionID),'slot',i)
 --@end-debug@			
 				self:Remove(followers)
 				del(followers)
@@ -469,12 +470,12 @@ function partyManager:Match()
 	local t=addon:GetTroopTypes()
 	local t1_1,t1_2=addon:GetTroop(t[1],2)
 	local t2_1,t2_2=addon:GetTroop(t[2],2)
+	local t3_1,t3_2=addon:GetTroop(t[2],2)
 	local async=coroutine.running()
 	if not async then holdEvents() end
 --@debug@
 	print("TotChamp",#champs)
 --@end-debug@
-
 	for i,champ in ipairs(champs) do
 		if async then holdEvents() end
 		for n=i+1,totChamps do
@@ -485,16 +486,14 @@ function partyManager:Match()
 			if f2 then
 				if t1_1 then self:Build(f1,f2,t1_1) end
 				if t2_1 then self:Build(f1,f2,t2_1) end
+				if t3_1 then self:Build(f1,f2,t2_1) end
 			end
-		end
-		if t1_1 and t2_1 then
-			self:Build(champ,t1_1,t2_1)
-		end
-		if t1_1 and t1_2 then
-			self:Build(champ,t1_1,t1_2)
-		end
-		if t2_1 and t2_2 then
-			self:Build(champ,t2_1,t2_2)
+			if t1_1 and t1_2 then self:Build(f1,t1_1,t1_2) end -- 2
+			if t1_1 and t2_1 then self:Build(f1,t1_1,t2_1) end -- 1 1
+			if t1_1 and t3_1 then self:Build(f1,t1_1,t3_1) end -- 1   1
+			if t2_1 and t2_2 then self:Build(f1,t2_1,t2_2) end --   2
+			if t2_1 and t3_1 then self:Build(f1,t2_1,t3_1) end --   1 1
+			if t3_1 and t3_2 then self:Build(f1,t3_1,t3_2) end --     2
 		end
 		if async then
 			releaseEvents()
@@ -527,8 +526,10 @@ function module:OnInitialized()
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
 	addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
+	--addon:AddBoolean("MAXIMIZEMISSIONS",false,L["Maximize filled missions"],L["Attempts to use less champions for missions, in order to fill more missions"])
+	addon:AddRange("MAXCHAMP",2,1,3,L["Max champs"],L["Use at most this many champions"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
-	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'USEALLY')
+	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'MAXIMIZEMISSIONS','USEALLY','MAXCHAMP')
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
@@ -538,6 +539,7 @@ function module:OnInitialized()
 end
 function module:Refresh(event)
 	self:ResetParties()
+	addon:GetMissionlistModule():SortMissions()
 	return addon:RefreshMissions()
 end
 function module:ResetParties()
@@ -556,6 +558,12 @@ function addon:ApplyMAKEITQUICK(value)
 	return addon:RefreshMissions()
 end
 function addon:ApplyUSEALLY(value)
+	return addon:RefreshMissions()
+end
+function addon:ApplyMAXIMIZEMISSIONS(value)
+	return addon:RefreshMissions()
+end
+function addon:ApplyMAXCHAMP(value)
 	return addon:RefreshMissions()
 end
 function addon:ApplyBONUS(value)
