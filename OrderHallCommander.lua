@@ -68,6 +68,10 @@ local print=function() end
 --*BEGIN
 local MISSING=ITEM_MISSING:format('|cff'..C.Red.c)..'|r'
 local ctr=0
+-- Sometimes matchmakimng starts before these are defined, so I put here a sensible default (actually, this values are constans)
+addon.MAXLEVEL=110
+addon.MAXQUALITY=4
+addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
 function addon.resolve(frame) 
 	local name
 	if type(frame)=="table" and frame.GetName then
