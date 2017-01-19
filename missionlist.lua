@@ -163,6 +163,7 @@ end
 -- called when needed a full upodate (reload mission data)
 function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
+		pp("OnUpdateMissions Begin")
 		addon:ResetParties()
 		--self:SortMissions()
 		--OHFMissions:Update()
@@ -171,6 +172,7 @@ function module:OnUpdateMissions(...)
 		--		self:AdjustMissionButton(frame,frame.info.rewards)
 		--	end
 		--end
+		pp("OnUpdateMissions End")
 	end
 end
 local function sortfunc1(a,b)
@@ -284,6 +286,9 @@ function module:InitialSetup(this)
 	self:Unhook(this,"OnShow")
 	self:SecureHookScript(this,"OnShow","MainOnShow")	
 	self:SecureHookScript(this,"OnHide","MainOnHide")	
+	OHF.FollowerStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
+	OHF.FollowerStatusInfo:SetPoint("TOPRIGHT",-45,-5)
+	OHF.FollowerStatusInfo:SetText("Prova")
 	self:MainOnShow()
 end
 function module:MainOnShow()
@@ -292,6 +297,7 @@ function module:MainOnShow()
 	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission",function() pp("Called inside updatemissions") pp("\n",debugstack(1)) end)
 	self:OnUpdate()
 	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
+	addon:RefreshFollowerStatus()
 end
 function module:MainOnHide()
 	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
@@ -596,5 +602,41 @@ end
 function module:PostMissionClick(this,...)
 	local mission=this.info or this.missionInfo -- callable also from mission page
 	addon:GetMissionpageModule():FillMissionPage(mission,parties[mission.missionID])
+end
+do
+	local s=setmetatable({},{__index=function(t,k) return 0 end})
+	local FOLLOWER_STATUS_FORMAT= L["Followers status "] ..
+								C(AVAILABLE..':%d ','green') ..
+								C(GARRISON_FOLLOWER_COMBAT_ALLY .. ":%d ",'cyan') ..
+								C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') ..
+								C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
+	function addon:RefreshFollowerStatus()
+		if not OHF:IsVisible() then return end
+		wipe(s)
+		for followerID,_ in pairs(addon:GetFollowerData()) do
+			local status=G.GetFollowerStatus(followerID) or AVAILABLE
+			s[status]=s[status]+1
+		end
+		DevTools_Dump(s)
+		if (OHF.FollowerStatusInfo) then
+			OHF.FollowerStatusInfo:SetWidth(0)
+			OHF.FollowerStatusInfo:SetFormattedText(
+				FOLLOWER_STATUS_FORMAT,
+				s[AVAILABLE],
+				s[GARRISON_FOLLOWER_COMBAT_ALLY],
+				s[GARRISON_FOLLOWER_ON_MISSION],
+				s[GARRISON_FOLLOWER_INACTIVE]
+				)
+		end
+	end
+	function addon:GetTotFollowers(status)
+		if not status then
+			return s[AVAILABLE]+
+				s[GARRISON_FOLLOWER_WORKING]+
+				s[GARRISON_FOLLOWER_ON_MISSION]
+		else
+			return s[status] or 0
+		end
+	end
 end
 

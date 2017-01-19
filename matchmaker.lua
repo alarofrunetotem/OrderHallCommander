@@ -261,13 +261,6 @@ local function GetSelectedParty(self)
 		local candidate=self.candidates[key]
 		if candidate and candidate.champions <=maxChamps  then
 			self:FillRealFollowers(candidate)
-			--@debug@
-			local rc,f1=pcall(G.GetFollowerName,candidate[1])
-			local rc,f2=pcall(G.GetFollowerName,candidate[2])
-			local rc,f3=pcall(G.GetFollowerName,candidate[3])
-			print(key,"Examining",candidate.f1,candidate.f2,candidate.f3)
-			print(key,"Filled",f1,f2,f3)
-			--@end-debug@
 			lastkey=key
 			local got=true
 			if type(self.numFollowers) ~= "number" then

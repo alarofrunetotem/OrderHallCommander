@@ -190,7 +190,7 @@ function module:refreshMission(data)
 	local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
 end
 function module:refreshFollower(data)
-	if data.lastUpdate < followersRefresh then
+	if (data.lastUpdate or 0) < followersRefresh then
 		-- stale data, refresh volatile fields
 		local id=data.followerID
 		local rc,name=pcall(G.GetFollowerName,id)
@@ -306,11 +306,16 @@ local function alertSetup(frame,name,...)
 	frame.Title:SetText(name)
 	return frame
 end
-function module:RefreshTroopTypes(categoryInfo)
+function module:RefreshTroopTypes()
 	wipe(troopTypes)
-	for i, category in ipairs(categoryInfo) do
-		local index=category.classSpec
-		tinsert(troopTypes,index)
+	local t=new()
+	for i,v in pairs(getCachedFollowers()) do
+		if v.isTroop then
+			t[v.classSpec]=true
+		end
+	end
+	for i,_ in pairs(t) do
+		tinsert(troopTypes,i)
 	end
 end
 local TroopsHeader
@@ -324,8 +329,8 @@ function module:GetTroopsFrame()
 		frame.Top:SetAtlas("_StoneFrameTile-Top")
 		frame:SetHeight(35)
 		frame:ClearAllPoints()
-		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,0)
-		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",0,0)
+		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,-2)
+		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",2,-2)
 		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
 		frame:Show()
 		TroopsHeader=frame
@@ -404,6 +409,7 @@ function module:Refresh(event,...)
 --@debug@
 	OHCDebug.CacheRefresh:SetText(event:sub(10))
 --@end-debug@
+	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
 		resources = select(2,GetCurrencyInfo(currency))		
 		return
@@ -485,6 +491,8 @@ function module:OnInitialized()
 	addon.resourceFormat=COSTS_LABEL .." %d " .. currencyName
 	self:ParseFollowers()
 	self:ScheduleRepeatingTimer("ParseFollowers",5)
+	self:GetTroopsFrame()
+	
 end
 ---- Public Interface
 -- 
@@ -558,6 +566,7 @@ end
 function addon:RebuildFollowerCache()
 	wipe(cachedFollowers)
 	getCachedFollowers()
+	module:RefreshTroopTypes()
 end
 function addon:RebuildAllCaches()
 	self:RebuildFollowerCache()
