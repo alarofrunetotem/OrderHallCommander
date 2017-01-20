@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 11/12/2016 23:26:42
+-- Generated on 20/01/2017 08:15:04
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -19,6 +19,7 @@ local L=addon:GetLocale()
 local new=addon.NewTable
 local del=addon.DelTable
 local kpairs=addon:GetKpairs()
+local empty=addon:GetEmpty()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -34,7 +35,7 @@ local MAXLEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
-local unpack=unpack
+
 local dprint=print
 local ddump
 --@debug@
@@ -321,7 +322,7 @@ end
 local TroopsHeader
 function module:GetTroopsFrame()
 	if not TroopsHeader then
-		local frame=CreateFrame("Frame","OHTEST",OrderHallMissionFrame,"TooltipBorderedFrameTemplate")
+		local frame=CreateFrame("Frame",nil,OrderHallMissionFrame,"TooltipBorderedFrameTemplate")
 		frame.Background:Hide()
 		frame.Top=frame:CreateTexture(nil,"BACKGROUND",nil,-1)
 		frame.Top:SetPoint("TOPLEFT")
@@ -339,8 +340,13 @@ function module:GetTroopsFrame()
 end
 
 function module:ParseFollowers()
-	categoryInfo = C_Garrison.GetClassSpecCategoryInfo(followerType)
-	self:RefreshTroopTypes(categoryInfo)
+	self:RefreshTroopTypes()
+	categoryInfo = G.GetClassSpecCategoryInfo(followerType)
+	if empty(categoryInfo) then
+		G.RequestClassSpecCategoryInfo(followerType)
+		self:ScheduleTimer("ParseFollowers",1)
+		return
+	end
 	G.RequestLandingPageShipmentInfo();
 	if not OHF:IsVisible() then return end
 	local main=self:GetTroopsFrame()
@@ -373,6 +379,9 @@ function module:ParseFollowers()
 		categoryInfoFrame:SetPoint("TOPLEFT",60 +(w+10) *(i-1), 0);
 		categoryInfoFrame:Show();
 	end
+end
+function addon:ParseFollowers()
+	return module:ParseFollowers()
 end
 local OrderHallCommanderAlertSystem=AlertFrame:AddSimpleAlertFrameSubSystem("OHCAlertFrameTemplate", alertSetup)
 local shownAlerts={}
@@ -490,8 +499,6 @@ function module:OnInitialized()
 	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
 	addon.resourceFormat=COSTS_LABEL .." %d " .. currencyName
 	self:ParseFollowers()
-	self:ScheduleRepeatingTimer("ParseFollowers",5)
-	self:GetTroopsFrame()
 	
 end
 ---- Public Interface
