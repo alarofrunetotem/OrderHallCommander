@@ -68,11 +68,28 @@
 	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin" virtual="true" enableMouse="false">
 		<Size x="1" y="70"/>
 		<Frames>
+			<Frame parentKey="NotReady" strata="HIGH">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-5" y="0"/>
+					<Anchor point="BOTTOMRIGHT" x="5" y="0"/>
+				</Anchors>					
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="Text" justifyV="TOP" justifyH="CENTER" inherits="GameFontNormalOutline" text="GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="5" y="0"/>
+								<Anchor point="BOTTOMRIGHT" x="-5" y="0"/>
+							</Anchors>					
+						</FontString>
+					</Layer>
+				</Layers> 		
+			</Frame>				
 			<Frame parentArray="Champions" inherits="OHCFollowerIcon" />
 		</Frames>
 		<Scripts>
 			<OnLoad method="MembersOnLoad"/>
 			<OnLeave method="HideTT"/>
+			<OnShow methot="MembersOnShow"/>
 		</Scripts>
 	</Frame>
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >

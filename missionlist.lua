@@ -135,6 +135,7 @@ function module:LoadButtons(...)
 		local b=buttonlist[i]	
 		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
 		self:SecureHookScript(b,"OnClick","PostMissionClick")
+		b:RegisterForClicks("AnyDown")
 		local scale=0.8
 		local f,h,s=b.Title:GetFont()
 		b.Title:SetFont(f,h*scale,s)
@@ -164,7 +165,6 @@ end
 -- called when needed a full upodate (reload mission data)
 function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
-		pp("OnUpdateMissions Begin")
 		addon:ResetParties()
 		--self:SortMissions()
 		--OHFMissions:Update()
@@ -173,7 +173,6 @@ function module:OnUpdateMissions(...)
 		--		self:AdjustMissionButton(frame,frame.info.rewards)
 		--	end
 		--end
-		pp("OnUpdateMissions End")
 	end
 end
 local function sortfunc1(a,b)
@@ -362,6 +361,7 @@ function module:AdjustMissionButton(frame)
 	if mission.inProgress then
 		stats:SetPoint("LEFT",48,14)
 		stats.Expire:Hide()
+		addon:GetCacheModule():SetMissionStatus(missionID,'inProgress')
 	else
 		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining)
 		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))		
@@ -398,11 +398,12 @@ function module:AddMembers(frame)
 		party=addon:GetSelectedParty(missionID,key)
 	end
 	local members=missionmembers[frame]
+	members:SetNotReady()
 	local stats=missionstats[frame]
 	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
-			members.Champions[i]:SetFollower(party:Follower(i))
+			members.Champions[i]:SetFollower(party:Follower(i),not mission.inProgress)
 		else
 			members.Champions[i]:SetEmpty()
 		end
@@ -601,8 +602,13 @@ function module:AdjustMissionTooltip(this,...)
 	tip:Show()
 	
 end
-function module:PostMissionClick(this,...)
+function module:PostMissionClick(this,button)
+	addon:Print(button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
+	if button=="MiddleButton" then
+		addon:TestParty(mission.missionID)
+		return
+	end
 	addon:GetMissionpageModule():FillMissionPage(mission,parties[mission.missionID])
 end
 do

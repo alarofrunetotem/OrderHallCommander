@@ -153,18 +153,19 @@ function addon:ActivateButton(button,OnClick,Tooltiptext,persistent)
 end
 --- Helpers
 -- 
-function addon:SetBackdrop(frame,r,g,b)
+function addon:SetBackdrop(frame,r,g,b,a)
 	r=r or 1
 	g=g or 0
 	b=b or 0
+	a=a or 1
    frame:SetBackdrop({
          bgFile = "Interface/Tooltips/UI-Tooltip-Background", 
-         edgeFile = "Interface/Tooltips/UI-Tooltip-Border", 
+         xedgeFile = "Interface/Tooltips/UI-Tooltip-Border", 
          tile = true, tileSize = 16, edgeSize = 16, 
          insets = { left = 4, right = 4, top = 4, bottom =   4}
       }
    )	
-   frame:SetBackdropColor(r,g,b,1)
+   frame:SetBackdropColor(r,g,b,a)
 end
 function addon:GetDifficultyColors(...)
 	local q=self:GetDifficultyColor(...)

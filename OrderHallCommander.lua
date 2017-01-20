@@ -19,7 +19,7 @@ local L=addon:GetLocale()
 local new=addon.NewTable
 local del=addon.DelTable
 local kpairs=addon:GetKpairs()
-local empty=addon:GetEmpty()
+--local empty=addon:GetEmpty()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -244,7 +244,7 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 	return true
 end
 
-function MixinFollowerIcon:SetFollower(followerID)
+function MixinFollowerIcon:SetFollower(followerID,checkStatus)
 	local info=addon:GetFollowerData(followerID)
 	if not info or not info.followerID then
 		local rc
@@ -255,11 +255,20 @@ function MixinFollowerIcon:SetFollower(followerID)
 	end
 	self.followerID=followerID
 	self:SetupPortrait(info)
-	local status=(followerID and not OHFMissions.showInProgress) and G.GetFollowerStatus(followerID) or nil
-	if not status and info.isMaxLevel then
-		self:SetILevel(info.iLevel)
+	local status=(followerID and checkStatus) and G.GetFollowerStatus(followerID) or nil
+	if status then 
+		self:SetILevel(0) --CHAT_FLAG_DND
+		self.Level:SetText(status);		
+		self.Portrait:SetDesaturated(true)
+		self:SetQuality(1)
+		self:GetParent():SetNotReady(true)
 	else
-		self:SetLevel(status and CHAT_FLAG_DND or info.level)
+		self.Portrait:SetDesaturated(false)
+		if info.isMaxLevel then
+			self:SetILevel(info.iLevel)
+		else
+			self:SetLevel(info.level)
+		end
 	end
 end
 function MixinFollowerIcon:SetEmpty(message)
@@ -267,6 +276,7 @@ function MixinFollowerIcon:SetEmpty(message)
 	self:SetLevel(message or MISSING)
 	self:SetPortraitIcon()
 	self:SetQuality(1)
+	self:GetParent():SetNotReady(true)
 end
 function MixinFollowerIcon:ShowTooltip()
 	if not self.followerID then
@@ -309,13 +319,25 @@ function Mixin:MembersOnLoad()
 			self.Champions[1]:SetPoint("RIGHT")
 		else
 			self.Champions[i]=CreateFrame("Frame",nil,self,"OHCFollowerIcon")
-			self.Champions[i]:SetPoint("RIGHT",self.Champions[i-1],"LEFT",-5,0)
+			self.Champions[i]:SetPoint("RIGHT",self.Champions[i-1],"LEFT",-15,0)
 		end
-		self.Champions[i]:SetFrameLevel(self:GetFrameLevel()+10)
+		self.Champions[i]:SetFrameLevel(self:GetFrameLevel()+1)
 		self.Champions[i]:Show()
 		self.Champions[i]:SetEmpty()
 	end
-	self:SetWidth(self.Champions[1]:GetWidth()*3+10)
+	self:SetWidth(self.Champions[1]:GetWidth()*3+30)
+	self.NotReady.Text:SetFormattedText(RAID_MEMBER_NOT_READY,STATUS_TEXT_PARTY)
+	self.NotReady.Text:SetTextColor(C.Orange())
+end
+function Mixin:MembersOnShow()
+	self:SetNotReady()
+end
+function Mixin:SetNotReady(show)
+	if show then
+		self.NotReady:Show()
+	else
+		self.NotReady:Hide()
+	end
 end
 function MixinMenu:OnLoad()
 	self.Top:SetAtlas("_StoneFrameTile-Top", true);
@@ -341,7 +363,7 @@ if not addon.GetEmpty then -- Will be moved into LibInit
 		elseif t=="bool" then
 			return true
 		elseif t=="string" then
-			return obj==''
+			return obj=='' or obj==tostring(nil)
 		elseif t=="table" then
 			return not next(obj)
 		end

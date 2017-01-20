@@ -88,6 +88,11 @@ local cachedMissions={}
 local categoryInfo
 local shipmentInfo={}
 local emptyTable={}
+local permutations={
+	{},
+	{},
+	{}
+}
 local methods={available='GetAvailableMissions',inProgress='GetInProgressMissions',completed='GetCompleteMissions'}
 local catPool={}
 local troopTypes={}
@@ -120,7 +125,7 @@ local function getCachedMissions()
 end	
 local function getCachedFollowers()
 	
-	if not next(cachedFollowers) then
+	if empty(cachedFollowers) then
 --@debug@
 		OHCDebug:Bump("Followers")
 --@end-debug@	
@@ -137,7 +142,7 @@ local function getCachedFollowers()
 		end
 	end
 	return cachedFollowers 
-end 
+end
 function module:GetAverageLevels(cached)
 	if avgLevel==0 or not cached then
 		local level,ilevel,tot=0,0,0
@@ -152,6 +157,31 @@ function module:GetAverageLevels(cached)
 		avgLevel,avgIlevel=math.floor(level/tot),math.floor(ilevel/tot)
 	end
 	return avgLevel,avgIlevel
+end
+function addon:GetPermutations()
+	local champs=new()
+	addon:GetAllChampions(champs)
+	local k=#champs
+	local refresh=false
+	for i=1,k do
+		if permutations[1][i]~=champs[i] then refresh=true end
+	end
+	if refresh then
+		wipe(permutations[1])
+		wipe(permutations[2])
+		wipe(permutations[3])
+		for i=1,k do
+			tinsert(permutations[1],champs[i].followerID)
+			for j=i+1,k do
+				tinsert(permutations[2],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID)))
+				for z=j+1,k do
+					tinsert(permutations[3],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID,champs[z].followerID)))
+				end
+			end
+		end
+	end
+	del(champs)
+	return permutations
 end
 function module:DeleteFollower(followerID)
 	if followerID and cachedFollowers[followerID] then
@@ -188,7 +218,7 @@ function module:BuildMission(missionIDfollowerID)
 	end
 end
 function module:refreshMission(data)
-	local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
+	--local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
 end
 function module:refreshFollower(data)
 	if (data.lastUpdate or 0) < followersRefresh then
@@ -245,6 +275,15 @@ function module:GetFollowerData(...)
 			return emptyTable
 		end
 	end
+end
+function module:SetMissionStatus(missionID,status)
+	local mission=getCachedMissions()[missionID]
+	if mission then
+		mission.inProgress=nil
+		mission.available=nil
+		mission.completed=nil
+	end
+	mission[status]=true
 end
 function module:GetMissionData(...)
 	local id,key,defaultvalue=...
