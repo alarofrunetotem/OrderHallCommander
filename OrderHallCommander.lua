@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 11/12/2016 23:26:42
+-- Generated on 20/01/2017 08:15:04
 local me,ns=...
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
@@ -19,6 +19,7 @@ local L=addon:GetLocale()
 local new=addon.NewTable
 local del=addon.DelTable
 local kpairs=addon:GetKpairs()
+local empty=addon:GetEmpty()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -327,5 +328,27 @@ function MixinMenu:OnLoad()
 	self.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end	
-
+if not addon.GetEmpty then -- Will be moved into LibInit
+--@debug@
+	print("Used internal GetEmpty")
+--@end-debug@
+	local type=type
+	local function empty(obj)
+		if not obj then return true end -- Simplest case, obj evaluates to false in boolean context
+		local t=type(obj)
+		if t=="number" then
+			return obj==0
+		elseif t=="bool" then
+			return true
+		elseif t=="string" then
+			return obj==''
+		elseif t=="table" then
+			return not next(obj)
+		end
+		return false -- Userdata and threads can never be empty
+	end
+	function addon:GetEmpty()
+		return empty
+	end
+end
 

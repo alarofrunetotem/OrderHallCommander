@@ -6,6 +6,7 @@ local L=addon:GetLocale()
 local new=addon.NewTable
 local del=addon.DelTable
 local kpairs=addon:GetKpairs()
+local empty=addon:GetEmpty()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing

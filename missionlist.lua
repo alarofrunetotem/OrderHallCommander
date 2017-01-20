@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/01/2017 22:31:44
+-- Generated on 20/01/2017 08:15:04
 local me,ns=...
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
@@ -19,6 +19,7 @@ local L=addon:GetLocale()
 local new=addon.NewTable
 local del=addon.DelTable
 local kpairs=addon:GetKpairs()
+local empty=addon:GetEmpty()
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -288,7 +289,7 @@ function module:InitialSetup(this)
 	self:SecureHookScript(this,"OnHide","MainOnHide")	
 	OHF.FollowerStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.FollowerStatusInfo:SetPoint("TOPRIGHT",-45,-5)
-	OHF.FollowerStatusInfo:SetText("Prova")
+	OHF.FollowerStatusInfo:SetText("")
 	self:MainOnShow()
 end
 function module:MainOnShow()
@@ -298,6 +299,7 @@ function module:MainOnShow()
 	self:OnUpdate()
 	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 	addon:RefreshFollowerStatus()
+	addon:ParseFollowers()
 end
 function module:MainOnHide()
 	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
@@ -612,12 +614,12 @@ do
 								C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
 	function addon:RefreshFollowerStatus()
 		if not OHF:IsVisible() then return end
+		if empty(addon:GetFollowerData()) then return end
 		wipe(s)
 		for followerID,_ in pairs(addon:GetFollowerData()) do
 			local status=G.GetFollowerStatus(followerID) or AVAILABLE
 			s[status]=s[status]+1
 		end
-		DevTools_Dump(s)
 		if (OHF.FollowerStatusInfo) then
 			OHF.FollowerStatusInfo:SetWidth(0)
 			OHF.FollowerStatusInfo:SetFormattedText(
