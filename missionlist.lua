@@ -617,8 +617,11 @@ do
 		if empty(addon:GetFollowerData()) then return end
 		wipe(s)
 		for followerID,_ in pairs(addon:GetFollowerData()) do
-			local status=G.GetFollowerStatus(followerID) or AVAILABLE
-			s[status]=s[status]+1
+			local rc,status=pcall(G.GetFollowerStatus,followerID) -- Follower could have been exhasted and still present in cache
+			if rc then
+				status=status or AVAILABLE
+				s[status]=s[status]+1
+			end
 		end
 		if (OHF.FollowerStatusInfo) then
 			OHF.FollowerStatusInfo:SetWidth(0)
