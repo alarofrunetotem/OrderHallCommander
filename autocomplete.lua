@@ -491,7 +491,7 @@ function module:MissionsPrintResults(success)
 		followers=true
 		if v~=0 then
 			if v>0 then
-				local b=addon:GetFollowerData(k,'qLevel',0)
+				local b=addon:GetFollowerData(k,'qLevel',0) or 0
 				local c=rewards.followerQLevel[k] or 0
 				report:AddFollower(k,v, b>c,rewards.followerPortrait[k],	rewards.followerName[k])
 			else
