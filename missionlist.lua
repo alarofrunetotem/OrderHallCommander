@@ -603,12 +603,14 @@ function module:AdjustMissionTooltip(this,...)
 	
 end
 function module:PostMissionClick(this,button)
-	addon:Print(button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
+--@debug@
+	addon:Print(button)
 	if button=="MiddleButton" then
 		addon:TestParty(mission.missionID)
 		return
 	end
+--@end-debug@
 	addon:GetMissionpageModule():FillMissionPage(mission,parties[mission.missionID])
 end
 do
