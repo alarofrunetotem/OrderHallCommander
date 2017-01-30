@@ -149,15 +149,15 @@ function module:OnUpdate()
 --@debug@
 	print("OnUpdate")
 --@end-debug@	
-	for _,frame in pairs(buttonlist) do
-		if frame:IsVisible() then
-			self:AdjustPosition(frame)
-			if frame.info.missionID ~= missionIDS[frame] then
-				self:AdjustMissionButton(frame)
-				missionIDS[frame]=frame.info.missionID
-			end
-		end
-	end
+--	for _,frame in pairs(buttonlist) do
+--		if frame:IsVisible() then
+--			self:AdjustPosition(frame)
+--			if frame.info.missionID ~= missionIDS[frame] then
+--				self:AdjustMissionButton(frame)
+--				missionIDS[frame]=frame.info.missionID
+--			end
+--		end
+--	end
 end
 function module:OnSingleUpdate(frame)
 --@debug@
@@ -174,7 +174,7 @@ end
 -- called when needed a full upodate (reload mission data)
 function module:OnUpdateMissions(...)
 	if OHFMissions:IsVisible() then
-		addon:ResetParties()
+		addon:HardRefreshMissions()
 		--self:SortMissions()
 		--OHFMissions:Update()
 		--for _,frame in pairs(buttonlist) do
@@ -194,9 +194,9 @@ local prova={
 function module:SortMissions()
 	if OHFMissions:IsVisible() then
 		if OHFMissions.inProgress then
-			table.sort(OHFMissions.inProgressMissions,sortfunc1)
+			pcall(table.sort,OHFMissions.inProgressMissions,sortfunc1)
 		else
-			table.sort(OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
+			pcall(table.sort,OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
 			--Garrison_SortMissions(OHFMissions.availableMissions)
 			--Garrison_SortMissions(prova)
 		end
@@ -212,9 +212,10 @@ function addon:HardRefreshMissions()
 	print("Called hard refresh")
 --@end-debug@
 	wipe(missionIDS)
+	wipe(parties)
 	self:RebuildAllCaches()
+	self:ResetPartis()
 	collectgarbage()
-	self:RefreshMissions()
 end
 local timer
 function addon:RefreshMissions()
