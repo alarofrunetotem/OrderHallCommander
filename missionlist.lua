@@ -214,7 +214,7 @@ function addon:HardRefreshMissions()
 	wipe(missionIDS)
 	wipe(parties)
 	self:RebuildAllCaches()
-	self:ResetPartis()
+	self:ResetParties()
 	collectgarbage()
 end
 local timer
