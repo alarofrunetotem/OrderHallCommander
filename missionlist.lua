@@ -146,19 +146,28 @@ end
 -- This method is called also when overing on tooltips
 -- keeps a reference to the mission currently bound to this button
 function module:OnUpdate()
-	local tipOwner=GameTooltip:GetOwner()
-	tipOwner=tipOwner and tipOwner:GetName() or "none"
-	local skipDataRefresh=tipOwner:find("OrderHallMissionFrameMissionsListScrollFrameButto")==1
 --@debug@
 	print("OnUpdate")
 --@end-debug@	
 	for _,frame in pairs(buttonlist) do
 		if frame:IsVisible() then
 			self:AdjustPosition(frame)
-			if not skipDataRefresh  and frame.info.missionID ~= missionIDS[frame] then
+			if frame.info.missionID ~= missionIDS[frame] then
 				self:AdjustMissionButton(frame)
 				missionIDS[frame]=frame.info.missionID
 			end
+		end
+	end
+end
+function module:OnSingleUpdate(frame)
+--@debug@
+	addon:Print("OnSingleUpdate",frame and frame.info and frame.info.missionID,missionIDS[frame])
+--@end-debug@
+	if frame:IsVisible() then
+		self:AdjustPosition(frame)
+		if frame.info.missionID ~= missionIDS[frame] then
+			self:AdjustMissionButton(frame)
+			missionIDS[frame]=frame.info.missionID
 		end
 	end
 end
@@ -202,6 +211,7 @@ function addon:HardRefreshMissions()
 --@debug@
 	print("Called hard refresh")
 --@end-debug@
+	wipe(missionIDS)
 	self:RebuildAllCaches()
 	collectgarbage()
 	self:RefreshMissions()
@@ -219,7 +229,7 @@ function addon:EffectiveRefresh()
 	timer=nil
 	wipe(parties)
 	wipe(missionIDS)
-	module:OnUpdate()
+	OHFMissions:Update()
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
@@ -296,8 +306,9 @@ function module:InitialSetup(this)
 	self:MainOnShow()
 end
 function module:MainOnShow()
-	self:SecureHook(OHFMissions,"Update","OnUpdate")
+	self:Hook(OHFMissions,"Update","OnUpdate",true)
 	self:Hook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
+	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
 	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission",function() pp("Called inside updatemissions") pp("\n",debugstack(1)) end)
 	self:OnUpdate()
 	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
@@ -308,6 +319,7 @@ function module:MainOnHide()
 	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
 	self:Unhook(OHFMissions,"UpdateMissions")
 	self:Unhook(OHFMissions,"Update")
+	self:Unhook("GarrisonMissionButton_SetRewards")	
 	self:Unhook(OHFMissions,"OnUpdate")
 end
 function module:AdjustPosition(frame)
@@ -316,7 +328,7 @@ function module:AdjustPosition(frame)
 	if  mission.isResult then
 		frame.Title:SetPoint("TOPLEFT",165,15)
 	elseif  mission.inProgress then
-		--frame.Title:SetPoint("TOPLEFT",165,-10)
+		frame.Title:SetPoint("TOPLEFT",165,-10)
 	else
 		frame.Title:SetPoint("TOPLEFT",165,-7)
 	end
@@ -528,16 +540,16 @@ local increasedcost=G.GetFollowerAbilityDescription(472)
 local increasedduration=G.GetFollowerAbilityDescription(428)
 local killtroops=G.GetFollowerAbilityDescription(437)
 function module:AdjustMissionTooltip(this,...)
-	if this.info.inProgress or this.info.completed then return end
-	local missionID=this.info.missionID
 	local tip=GameTooltip
+	local missionID=this.info.missionID
+--@debug@
+	tip:AddDoubleLine("MissionID",missionID)
+--@end-debug@	
+	if this.info.inProgress or this.info.completed then return end
 	if not this.info.isRare then
 		GameTooltip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		GameTooltip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
---@debug@
-	tip:AddDoubleLine("MissionID",missionID)
---@end-debug@	
 	local party=addon:GetParties(missionID)
 	local key=parties[missionID]
 	if party then
