@@ -3,7 +3,9 @@ enable-nolib-creation: no
 
 externals:
 	libs/LibInit:
-		url: git://git.curseforge.net/wow/libinit/mainline.git/LibInit
+#		url: git://git.curseforge.net/wow/libinit/mainline.git/LibInit
+#		url: https://github.com/alarofrunetotem/LibInit.git
+		url: git@github.com:alarofrunetotem/LibInit.git
 		tag: latest
 
 	libs/Ace3/AceBucket-3.0:
@@ -30,7 +32,9 @@ ignore:
 - .buildpath
 - .project
 - .gitignore
+- .settings
 - Debug.lua
 - info.txt
-- wowhead.sh
 - OrderHallCommander.template.lua
+- tree.json
+- *.sh
