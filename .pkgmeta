@@ -37,4 +37,4 @@ ignore:
 - info.txt
 - OrderHallCommander.template.lua
 - tree.json
-- *.sh
+- wohead.sh
