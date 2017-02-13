@@ -4,7 +4,7 @@ enable-nolib-creation: no
 externals:
 	libs/LibInit:
 #		url: git://git.curseforge.net/wow/libinit/mainline.git/LibInit
-		url: https://github.com/alarofrunetotem/LibInit.git
+		url: https://github.com/alarofrunetotem/LibInit.git/LibInit
 #		url: git@github.com:alarofrunetotem/LibInit.git
 		tag: latest
 
