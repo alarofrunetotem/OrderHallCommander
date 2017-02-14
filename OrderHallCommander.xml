@@ -56,7 +56,7 @@
 			</Layer>
 		</Layers> 		
 		<Scripts>
-			<OnLoad method="ThreatsOnLoad"/>
+			<OnLoad method="OnLoad"/>
 <!--@debug@-->				
 			<OnEnter>
 				self:Dump(self:GetParent())
@@ -65,7 +65,7 @@
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
-	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin" virtual="true" enableMouse="false">
+	<Frame name="OHCMembers" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMembers" virtual="true" enableMouse="false">
 		<Size x="1" y="70"/>
 		<Frames>
 			<Frame parentKey="NotReady" strata="HIGH">
@@ -87,9 +87,9 @@
 			<Frame parentArray="Champions" inherits="OHCFollowerIcon" />
 		</Frames>
 		<Scripts>
-			<OnLoad method="MembersOnLoad"/>
+			<OnLoad method="OnLoad"/>
 			<OnLeave method="HideTT"/>
-			<OnShow methot="MembersOnShow"/>
+			<OnShow methot="OnShow"/>
 		</Scripts>
 	</Frame>
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
