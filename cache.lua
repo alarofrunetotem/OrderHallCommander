@@ -543,7 +543,7 @@ end
 ---- Public Interface
 -- 
 function addon:GetResources()
-	return resources,currencyName
+	return resources,currencyName,currencyTexture
 end
 function addon:GetMissionData(...)
 	return module:GetMissionData(...)
