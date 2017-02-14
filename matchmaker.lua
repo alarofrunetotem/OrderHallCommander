@@ -124,7 +124,7 @@ end
 -- Party management
 local partyManager={} --#PartyManager
 local function newParty()
-	return setmetatable(new(),
+	return setmetatable({},
 		{__index=partyManager,
 		__call=function(table)  end
 		})
