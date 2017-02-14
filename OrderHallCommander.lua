@@ -8,7 +8,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 local me,ns=...
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
-assert(minor>=35,me ..': Need at least Libinit version 35')
+assert(minor>=40,me ..': Need at least Libinit version 35')
 local addon=LibInit:NewAddon(ns,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --#Addon
 -- Template
 local G=C_Garrison
@@ -114,10 +114,12 @@ _G.OrderHallCommanderMixin={}
 _G.OrderHallCommanderMixinThreats={}
 _G.OrderHallCommanderMixinFollowerIcon={} 
 _G.OrderHallCommanderMixinMenu={}
+_G.OrderHallCommanderMixinMembers={}
 local Mixin=OrderHallCommanderMixin --#Mixin
 local MixinThreats=OrderHallCommanderMixinThreats --#MixinThreats
 local MixinMenu=OrderHallCommanderMixinMenu --#MixinMenu
 local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
+local MixinMembers=OrderHallCommanderMixinMembers
 
 function Mixin:CounterTooltip()
 	local tip=self:AnchorTT()
@@ -183,9 +185,8 @@ function Mixin.DumpData(tip,data)
 		tip:AddDoubleLine(k,v,colors("Orange",color))
 	end
 end
-local threatPool
-function Mixin:ThreatsOnLoad()
-	if not threatPool then threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
+function MixinThreats:OnLoad()
+	if not self.threatPool then self.threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
 	self.usedPool={}
 end
 
@@ -198,18 +199,24 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 		return false 
 	end
 	for i=1,#self.usedPool do
-		threatPool:Release(self.usedPool[i])
+		self.threatPool:Release(self.usedPool[i])
 	end
 	self.mechanics=mechanics
 	wipe(self.usedPool)
 	local previous
 	for index,mechanic in pairs(mechanics) do
-		local th=threatPool:Acquire()
+		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
-		th.Icon:SetTexture(icons[mechanic.id].icon)
-		th.Name=mechanic.name
-		th.Description=mechanic.description
-		th.Ability=mechanic.ability.name
+		if mechanic then
+			th.Icon:SetTexture(mechanic.icon or icons[mechanic.id].icon)
+			th.Name=mechanic.name
+			th.Description=mechanic.description
+			th.Ability=mechanic.ability and mechanic.ability.name or mechanic.name
+			th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
+			th:Show()
+		else
+			th:Hide()
+		end
 		th:SetParent(self)
 		th:SetFrameStrata(self:GetFrameStrata())
 		th:SetFrameLevel(self:GetFrameLevel()+1)
@@ -220,8 +227,6 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 			th:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
 			previous=th
 		end
-		th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
-		th:Show()
 	end
 	if cost >=0 then
 		self.Cost:Show()
@@ -313,7 +318,7 @@ end
 function MixinFollowerIcon:HideTooltip()
 	GarrisonFollowerTooltip:Hide()
 end
-function Mixin:MembersOnLoad()
+function MixinMembers:OnLoad()
 	for i=1,3 do
 		if self.Champions[i] then
 			self.Champions[1]:SetPoint("RIGHT")
@@ -329,10 +334,10 @@ function Mixin:MembersOnLoad()
 	self.NotReady.Text:SetFormattedText(RAID_MEMBER_NOT_READY,STATUS_TEXT_PARTY)
 	self.NotReady.Text:SetTextColor(C.Orange())
 end
-function Mixin:MembersOnShow()
+function MixinMembers:OnShow()
 	self:SetNotReady()
 end
-function Mixin:SetNotReady(show)
+function MixinMembers:SetNotReady(show)
 	if show then
 		self.NotReady:Show()
 	else
@@ -352,7 +357,7 @@ function MixinMenu:OnLoad()
 end	
 if not addon.GetEmpty then -- Will be moved into LibInit
 --@debug@
-	print("Used internal GetEmpty")
+	addon:Print("Used internal GetEmpty")
 --@end-debug@
 	local type=type
 	local function empty(obj)
@@ -372,5 +377,9 @@ if not addon.GetEmpty then -- Will be moved into LibInit
 	function addon:GetEmpty()
 		return empty
 	end
+else
+--@debug@
+	addon:Print("Used libinit GetEmpty")
+--@end-debug@
 end
 
