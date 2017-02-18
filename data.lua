@@ -2,8 +2,9 @@ local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG profile=true,enhancedProfile=true
--- Generated on 20/01/2017 08:15:04
+-- Generated on 18/02/2017 23:38:33
 local me,ns=...
+if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
 local module=addon:NewSubModule('Data')  --#Module
@@ -14,10 +15,10 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=addon.NewTable
-local del=addon.DelTable
-local kpairs=addon:GetKpairs()
-local empty=addon:GetEmpty()
+local new=addon:Wrap("NewTable")
+local del=addon:Wrap("DelTable")
+local kpairs=addon:Wrap("Kpairs")
+local empty=addon:Wrap("Empty")
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing

@@ -1,4 +1,5 @@
 local me,addon=...
+if addon.die then return end
 local C=addon:GetColorTable()
 local module=addon:GetWidgetsModule()
 local Type,Version,unique="OHCMissionsList",1,0
