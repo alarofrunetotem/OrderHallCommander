@@ -350,7 +350,6 @@ end
 function module:RefreshTroopTypes()
 	wipe(troopTypes)
 	local t=new()
-	print(t,LibStub("LibInit"))
 	for i,v in pairs(getCachedFollowers()) do
 		if v.isTroop then
 			t[v.classSpec]=true
@@ -374,6 +373,11 @@ function module:GetTroopsFrame()
 		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,-2)
 		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",2,-2)
 		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
+		frame:EnableMouse(true)
+		frame:SetMovable(true)
+		frame:RegisterForDrag("LeftButton")
+		frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
+		frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)		
 		frame:Show()
 		TroopsHeader=frame
 	end
