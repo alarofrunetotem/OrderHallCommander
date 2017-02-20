@@ -1,4 +1,5 @@
 local me,ns=...
+if ns.die then return end
 local hlp=LibStub("LibInit"):GetAddon(me)
 local L=hlp:GetLocale()
 function hlp:loadHelp()

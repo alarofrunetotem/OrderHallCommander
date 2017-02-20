@@ -4,13 +4,13 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 41
--- Generated on 18/02/2017 23:38:33
+-- Generated on 20/02/2017 09:45:18
 local me,ns=...
+ns.die=true
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
-if not LibInit then ns.die=true end
-assert(minor>=41,me ..': Need at least Libinit version 41')
-if minor < 41 then ns.die=true end
+local requiredVersion=41
+assert(minor>=requiredVersion,me ..': Need at least Libinit version ' .. requiredVersion)
 ns.die=false
 local addon=LibInit:NewAddon(ns,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --#Addon
 -- Template

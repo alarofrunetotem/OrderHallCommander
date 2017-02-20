@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 18/02/2017 23:38:33
+-- Generated on 20/02/2017 09:45:18
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -487,9 +487,11 @@ function module:AddMembers(frame)
          end
 		end
    end
+--@debug@
    tinsert(mechanics,false) -- separator
    local r,n,i=addon:GetResources()
    tinsert(mechanics,new({icon=i,bias=party.baseCost-party.cost,name=n,description=format("%d,%d",party.cost,party.baseCost)}))
+--@end-debug@
    local color="Yellow"
    local baseCost, cost = party.baseCost ,party.cost
 	if cost<baseCost then
