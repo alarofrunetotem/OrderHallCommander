@@ -354,13 +354,14 @@ function module:SetMissionStatus(missionID,status)
 end
 --	local list=inProgress and m.inProgressMissions or m.availableMissions
 -- OHF.MissionTab.MissionList
+local emptyMissions={}
 local missionCache
 local missionCacheIndex={}
 local function scanList(map,id)
 	if map=="completedMissions" then
 	end
 	local list=OHFMissions[map]
-	print(map,list)
+	if type(list)~="table" then return end
 	for i=1,#list do
 		local key=format("%d,%s",i,map)
 		missionCacheIndex[id]=key
@@ -374,15 +375,12 @@ local function getMissionFromBlizzardData(cache,missionID)
 	if key then
 		local index,map=strsplit(',',key)
 		local t=OHFMissions[map]
-		print("Obtained key",key,t)
 		index=tonumber(index)
-		print("Obtained key",index,map,t,t[index],missionID)
 		if t[index] and t[index].missionID==missionID then
 			return t[index]
 		end
 	end
-	print("Scanning list")
-	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) 
+	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) or emptyMissions 
 end
 --- Retrieves mission data.
 -- Uses tables already loaded by Blizzard and works on both inProgress and availableMissions
@@ -426,7 +424,6 @@ function module:GetMissionData(missionID,field,defaultValue)
 	end
 	if not missionID then return OHFMissions.availableMissions end
 	local mission=missionCache[missionID]
-	print(field,mission)
 	if not field then return mission end
 	if field and mission[field] then
 		return mission[field]
