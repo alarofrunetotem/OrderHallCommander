@@ -109,6 +109,9 @@ local function Garrison_SortMissions_PostHook()
    table.sort(OrderHallMissionFrame.MissionTab.MissionList.availableMissions,function(a,b) return a.name < b.name end)
 end
 --@end-debug@
+local function InProgress(mission,frame)
+	return (mission and mission.inProgress) or OHFMissions.showInProgress or (frame and frame.IsCustom)
+end
 function module:OnInitialized()
 -- Dunno why but every attempt of changing sort starts a memory leak
 	local sorters={
@@ -429,6 +432,23 @@ function module:AddMembers(frame)
 	local nrewards=#mission.rewards
 	local missionID=mission and mission.missionID
 	local followers=mission.followers
+	local members=missionmembers[frame]
+	local stats=missionstats[frame]
+	local threats=missionthreats[frame]
+	members:SetNotReady()
+	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
+	if InProgress(frame.info,frame) then
+		for i,followerID in ipairs(frame.info.followers) do
+			members.Champions[i]:SetFollower(followerID,false)
+		end
+		frame.Overlay:SetFrameLevel(20)
+		threats:Hide()
+		local perc=select(4,G.GetPartyMissionInfo(missionID))
+		stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
+		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
+		return
+	end
+		
 	local key
 	local party
 	if not key then
@@ -443,10 +463,6 @@ function module:AddMembers(frame)
 		print(key,"Party retrieved",party)
 --@end-debug@		
 	end
-	local members=missionmembers[frame]
-	members:SetNotReady()
-	local stats=missionstats[frame]
-	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
 			members.Champions[i]:SetFollower(party:Follower(i),not mission.inProgress)
@@ -462,14 +478,7 @@ function module:AddMembers(frame)
 	local perc=party.perc or 0
 	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
-	local threats=missionthreats[frame]
-	if frame.info.inProgress or OHFMissions.inProgress or frame.IsCustom then
-		frame.Overlay:SetFrameLevel(20)
-		threats:Hide()
-		return
-	else
-		return self:AddThreats(frame,threats,party,missionID)
-	end
+	return self:AddThreats(frame,threats,party,missionID)
 end	
 local function goodColor(good,bad)
 	if type(bad)=="nil" then bad=not good end
