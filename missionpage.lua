@@ -94,7 +94,7 @@ function module:FillParty(missionID,key)
 	--addon:HoldEvents()
 	local main=OHF
 	main:ClearParty()
-	local party=addon:GetParties(missionID):GetSelectedParty(key)
+	local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
 	local missionPage=main:GetMissionPage()
 	for i=1,#party do
 		local followerID=party:Follower(i)

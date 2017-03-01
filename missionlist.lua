@@ -29,6 +29,7 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -46,7 +47,6 @@ LoadAddOn("LibDebug")
 
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
-
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
@@ -56,7 +56,16 @@ local print=function() end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
--- Additonal frames
+
+local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
+local RESURRECT=RESURRECT
+local LOOT=LOOT
+local nobonusloot=G.GetFollowerAbilityDescription(471)
+local increasedcost=G.GetFollowerAbilityDescription(472)
+local increasedduration=G.GetFollowerAbilityDescription(428)
+local killtroops=G.GetFollowerAbilityDescription(437)
+local debugprofilestop=debugprofilestop
+
 local GARRISON_MISSION_AVAILABILITY2=GARRISON_MISSION_AVAILABILITY .. " %s"
 local GARRISON_MISSION_ID="MissionID: %d"
 local missionstats=setmetatable({}, {__mode = "v"})
@@ -72,20 +81,20 @@ local Current_Sorter
 local sorters={
 		Garrison_SortMissions_Original=nop,
 		Garrison_SortMissions_Chance=function(a,b) 
-			local aparty=addon:GetParties(a.missionID) 
-			local bparty=addon:GetParties(b.missionID)
+			local aparty=addon:GetMissionParties(a.missionID) 
+			local bparty=addon:GetMissionParties(b.missionID)
 			return aparty.bestChance>bparty.bestChance 
 		end,
 		Garrison_SortMissions_Level=function(a,b) return a.level==b.level and a.iLevel>b.iLevel or a.level >b.level end,
 		Garrison_SortMissions_Age=function(a,b) return (a.offerEndTime or 0) < (b.offerEndTime or 0) end,
 		Garrison_SortMissions_Xp=function(a,b) 
-			local aparty=addon:GetParties(a.missionID) 
-			local bparty=addon:GetParties(b.missionID)
+			local aparty=addon:GetMissionParties(a.missionID) 
+			local bparty=addon:GetMissionParties(b.missionID)
 			return aparty.totalXP>bparty.totalXP 
 		end,
 		Garrison_SortMissions_Duration=function(a,b) 
-			local aparty=addon:GetParties(a.missionID) 
-			local bparty=addon:GetParties(b.missionID)
+			local aparty=addon:GetMissionParties(a.missionID) 
+			local bparty=addon:GetMissionParties(b.missionID)
 			return aparty.bestTimeseconds<bparty.bestTimeseconds 
 		end,
 		Garrison_SortMissions_Class=function(a,b)
@@ -144,46 +153,57 @@ function module:LoadButtons(...)
 		b.Summary:SetFont(f,h*scale,s)		
 	end
 end
--- This method is called also when overing on tooltips
--- keeps a reference to the mission currently bound to this button
+local UpdateShow=true
+--- Paints scollframe buttons
+-- uses in progress or available missions based on .showInProgress flag
+-- DO NOT Sort missions
+-- Only paints visible buttons
 function module:OnUpdate()
 --@debug@
-	print("OnUpdate")
+	local start=debugprofilestop()
+	addon:Print("OnUpdate",OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
+--@end-debug@
+	UpdateShow = OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible()	
+	self.hooks[OHFMissions].Update(OHFMissions)
+	UpdateShow=true	
+--@debug@
+	addon:Print("OnPostUpdate",debugprofilestop()-start)
 --@end-debug@	
---	for _,frame in pairs(buttonlist) do
---		if frame:IsVisible() then
---			self:AdjustPosition(frame)
---			if frame.info.missionID ~= missionIDS[frame] then
---				self:AdjustMissionButton(frame)
---				missionIDS[frame]=frame.info.missionID
---			end
---		end
---	end
 end
+
+--- Full mission panel refresh.
+-- Reloads cached mission inProgressMissions and availableMissions.
+-- Updates combat ally data
+-- Sorts missions
+-- Updates top tabs (available/in progress)
+-- calls Update
+function module:OnUpdateMissions(frame)
+
+--@debug@
+	local start=debugprofilestop()
+	addon:Print("OnUpdateMissions",OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
+--@end-debug@	
+	self.hooks[OHFMissions].UpdateMissions(frame)
+--@debug@
+	addon:Print("OnPostUpdateMissions",debugprofilestop()-start)
+--@end-debug@	
+end
+
 function module:OnSingleUpdate(frame)
 --@debug@
-	addon:Print("OnSingleUpdate",frame and frame.info and frame.info.missionID,missionIDS[frame])
+	local start=debugprofilestop()
 --@end-debug@
-	if frame:IsVisible() then
+	if UpdateShow then
 		self:AdjustPosition(frame)
 		if frame.info.missionID ~= missionIDS[frame] then
+			
 			self:AdjustMissionButton(frame)
 			missionIDS[frame]=frame.info.missionID
 		end
 	end
-end
--- called when needed a full upodate (reload mission data)
-function module:OnUpdateMissions(...)
-	if OHFMissions:IsVisible() then
-		addon:HardRefreshMissions()
-		--self:SortMissions()
-		--OHFMissions:Update()
-		--for _,frame in pairs(buttonlist) do
-		--	if frame:IsVisible() then
-		--		self:AdjustMissionButton(frame,frame.info.rewards)
-		--	end
-		--end
-	end
+--@debug@
+	addon:Print("OnSingleUpdate",debugprofilestop()-start,frame and frame.info and frame.info.missionID,missionIDS[frame])
+--@end-debug@
 end
 local function sortfunc1(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
@@ -220,14 +240,20 @@ function addon:HardRefreshMissions()
 end
 local timer
 function addon:RefreshMissions()
+--@debug@
+	addon:Print("RefreshMissions",debugprofilestop())
+--@end-debug@	
 	if OHFMissionPage:IsVisible() then
 		module:PostMissionClick(OHFMissionPage)
 	else	
 		if timer then self:CancelTimer(timer) end 
-		timer=self:ScheduleTimer("EffectiveRefresh",0.1)
+		timer=self:ScheduleTimer("EffectiveRefresh",0)
 	end
 end
 function addon:EffectiveRefresh()
+--@debug@
+	addon:Print("EffectiveRefresh",debugprofilestop())
+--@end-debug@	
 	timer=nil
 	wipe(parties)
 	wipe(missionIDS)
@@ -308,8 +334,8 @@ function module:InitialSetup(this)
 	self:MainOnShow()
 end
 function module:MainOnShow()
-	self:Hook(OHFMissions,"Update","OnUpdate",true)
-	self:Hook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
+	self:RawHook(OHFMissions,"Update","OnUpdate",true)
+	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
 	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission",function() pp("Called inside updatemissions") pp("\n",debugstack(1)) end)
 	self:OnUpdate()
@@ -354,6 +380,7 @@ function module:AdjustPosition(frame)
 	end
 	local missionID=mission.missionID
 end
+
 function module:AdjustMissionButton(frame)
 	if not OHF:IsVisible() then return end
 	local mission=frame.info
@@ -410,10 +437,10 @@ function module:AddMembers(frame)
 		print("Party recalculated",party)
 --@end-debug@		
 	else
+		party=addon:GetSelectedParty(missionID,key)
 --@debug@
 		print(key,"Party retrieved",party)
 --@end-debug@		
-		party=addon:GetSelectedParty(missionID,key)
 	end
 	local members=missionmembers[frame]
 	members:SetNotReady()
@@ -429,25 +456,32 @@ function module:AddMembers(frame)
 	end
 	for i=mission.numFollowers+1,3 do
 			members.Champions[i]:Hide()
-		
 	end
 		
 	local perc=party.perc or 0
-	if perc==0 then
-		stats.Chance:SetText("N/A")
-	else
-		stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
-	end		
+	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
-
 	local threats=missionthreats[frame]
-	if frame.info.inProgress then
+	if frame.info.inProgress or OHFMissions.inProgress or frame.IsCustom then
 		frame.Overlay:SetFrameLevel(20)
 		threats:Hide()
 		return
 	else
-		threats:Show()
+		return self:AddThreats(frame,threats,party,missionID)
 	end
+end	
+local function goodColor(good,bad)
+	if type(bad)=="nil" then bad=not good end
+	if good then return "green" 
+	elseif bad then return "red" else
+	return "tear" end
+	
+end
+local timeIcon="Interface/ICONS/INV_Misc_PocketWatch_01"
+local killIcon="Interface/TARGETINGFRAME/UI-RaidTargetingIcon_8"
+local lootIcon="Interface/TARGETINGFRAME/UI-RaidTargetingIcon_7"
+local resurrectIcon="Interface/ICONS/Spell_Holy_GuardianSpirit"
+function module:AddThreats(frame,threats,party,missionID)
 	threats:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-5)
 	local enemies=addon:GetMissionData(missionID,'enemies')
 	if type(enemies)~="table" then 
@@ -466,6 +500,9 @@ function module:AddMembers(frame)
 	   	end
    	end
    end
+   --@debug@
+   ViragDevTool_AddData(party,"Party for " .. missionID .. ' ' .. addon:GetMissionData(missionID,'name',''))
+   --@end-debug@
    for _,followerID in party:IterateFollowers() do
    	if not G.GetFollowerIsTroop(followerID) then
 		   local followerBias = G.GetFollowerBiasForMission(missionID,followerID)
@@ -490,21 +527,45 @@ function module:AddMembers(frame)
 --@debug@
    tinsert(mechanics,false) -- separator
    local r,n,i=addon:GetResources()
-   tinsert(mechanics,new({icon=i,bias=party.baseCost-party.cost,name=n,description=format("%d,%d",party.cost,party.baseCost)}))
---@end-debug@
-   local color="Yellow"
-   local baseCost, cost = party.baseCost ,party.cost
-	if cost<baseCost then
-		color="Green"
-	elseif cost>baseCost then
-		color="Red"
-	end
-	if frame.IsCustom or OHFMissions.showInProgress then
-		cost=-1
-	end
-   if not threats:AddIconsAndCost(mechanics,biases,cost,color,cost > addon:GetResources()) then
-   	addon:RefreshMissions()
+   local baseCost, cost = party.baseCost or 0 ,party.cost or 0
+   -- nobonusloot
+	-- increasedcost
+	-- increasedduration
+	-- killtroops
+	if cost>baseCost then
+   	tinsert(mechanics,new({icon=i,color="red",name=n,description=increasedcost}))
    end
+	if cost<baseCost then
+   	tinsert(mechanics,new({icon=i,color="green",name=n,description=L["Cost reduced"]}))
+   end
+   if party.timeImproved then
+   	tinsert(mechanics,new({icon=timeIcon,color="green",name="Time",description=L["Mission duration reduced"]}))
+  	end
+  	if party.hasMissionTimeNegativeEffect then
+   	tinsert(mechanics,new({icon=timeIcon,color="red",name="Time",description=increasedduration}))
+   end
+   if party.hasKillTroopsEffect then
+   	tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
+   end
+   if party.hasResurrectTroopsEffect then
+   	tinsert(mechanics,new({icon=resurrectIcon,color="green",name=RESURRECT,description=L["Resurrect troops effect"]}))
+   end
+   if party.hasBonusLootNegativeEffect then
+   	tinsert(mechanics,new({icon=lootIcon,color="red",name=LOOT,description=nobonusloot}))
+   end
+--@end-debug@
+	threats:AddIcons(mechanics,biases)
+	threats.Cost:Show()
+	threats.Cost:SetFormattedText(addon.resourceFormat,cost)
+   local color=goodColor(cost>=r)
+	if cost>r then
+		threats.Cost:SetTextColor(C:Red())
+	else
+		threats.Cost:SetTextColor(C:Green())
+	end
+	threats.Cost:ClearAllPoints()
+	threats.Cost:SetPoint("LEFT",frame.Summary,"RIGHT",5,0)
+	threats.HighCost:Hide()
    del(mechanics)
    del(counters)
    del(biases)
@@ -542,10 +603,6 @@ function module:MissionTip(this)
 end
 local bestTimes={}
 local bestTimesIndex={}
-local nobonusloot=G.GetFollowerAbilityDescription(471)
-local increasedcost=G.GetFollowerAbilityDescription(472)
-local increasedduration=G.GetFollowerAbilityDescription(428)
-local killtroops=G.GetFollowerAbilityDescription(437)
 function module:AdjustMissionTooltip(this,...)
 	local tip=GameTooltip
 	local missionID=this.info.missionID
@@ -557,9 +614,12 @@ function module:AdjustMissionTooltip(this,...)
 		GameTooltip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		GameTooltip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
-	local party=addon:GetParties(missionID)
+	local party=addon:GetMissionParties(missionID)
 	local key=parties[missionID]
 	if party then
+--@debug@
+		print(party)
+--@end-debug@	
 		local candidate =party:GetSelectedParty(key)
 		if candidate then
 			if candidate.hasBonusLootNegativeEffect then
@@ -580,6 +640,10 @@ function module:AdjustMissionTooltip(this,...)
 			if candidate.timeImproved then
 				GameTooltip:AddLine(L["Duration reduced"],C:Green())
 			end
+		   local r,n,i=addon:GetResources()
+			if candidate.cost > r then
+				GameTooltip:AddLine(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,C:Red())
+			end			
 			-- Not important enough to be specifically shown
 			-- hasSuccessChanceNegativeEffect
 			-- hasUncounterableSuccessChanceNegativeEffect
@@ -619,7 +683,7 @@ function module:AdjustMissionTooltip(this,...)
 		end
 --@debug@
 		tip:AddLine("-----------------------------------------------")
-		OrderHallCommanderMixin.DumpData(tip,addon:GetParties(this.info.missionID):GetSelectedParty(key))
+		OrderHallCommanderMixin.DumpData(tip,addon:GetMissionParties(this.info.missionID):GetSelectedParty(key))
 --@end-debug@
 	end
 	tip:Show()

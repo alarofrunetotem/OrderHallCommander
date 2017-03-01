@@ -536,3 +536,8 @@ end
 function addon:CloseMissionComplete()
 	return module:CloseReport()
 end
+function addon:GetCompletedMissionData(key)
+	if missions and next(missions) then
+		return missions[key]
+	end
+end

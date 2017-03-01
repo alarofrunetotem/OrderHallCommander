@@ -193,7 +193,7 @@ function MixinThreats:OnLoad()
 	self.usedPool={}
 end
 
-function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResources)
+function MixinThreats:AddIcons(mechanics,biases)
 	local icons=OHF.abilityCountersForMechanicTypes
 	if not icons then
 		--@debug@
@@ -215,7 +215,11 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 			th.Name=mechanic.name
 			th.Description=mechanic.description
 			th.Ability=mechanic.ability and mechanic.ability.name or mechanic.name
-			th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
+			if mechanic.color then
+				th.Border:SetVertexColor(C[mechanic.color]())
+			else
+				th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
+			end
 			th:Show()
 		else
 			th:Hide()
@@ -231,25 +235,7 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 			previous=th
 		end
 	end
-	if cost >=0 then
-		self.Cost:Show()
-		self.Cost:SetFormattedText(addon.resourceFormat,cost)
-		self.Cost:SetTextColor(C[color]())
-		self.Cost:ClearAllPoints()
-		self.Cost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
-		self.HighCost:SetTextColor(C.Orange())
-		self.HighCost:ClearAllPoints()
-		self.HighCost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
-		if notEnoughResources then
-			self.HighCost:Show()
-		else
-			self.HighCost:Hide()
-		end
-	else
-		self.Cost:Hide()
-		self.HighCost:Hide()
-	end
-	return true
+	return previous
 end
 
 function MixinFollowerIcon:SetFollower(followerID,checkStatus)

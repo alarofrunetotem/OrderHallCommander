@@ -206,7 +206,26 @@ local function tContains(table, item)
 	return nil;
 end
 local emptyTable={}
-local function Reward2Class(self,mission)
+local cachedClassSortInfo=CreateObjectPool(
+	function(obj) return {class="none",classWeight=0,value=0} end,
+	function(obj,tbl) tbl.class="none" tbl.classWeight=0 tbl.value=0 end
+)
+local classSort={
+	[MONEY]=11,
+	Artifact=12,
+	Equipment=13,
+	Quest=14,
+	Upgrades=15,
+	Reputation=16,
+	PlayerXP=17,
+	FollowerXP=18,
+	Generic=19
+}
+function addon:Reward2Class(mission)
+	if type(mission)=="number" then
+		mission=self:GetMissionData(mission)
+	end
+	if not mission then return "Generic",0,0 end
 	local overReward=mission.overmaxRewards
 	if not overReward then overReward=mission.OverRewards end
 	local reward=mission.rewards
@@ -247,24 +266,6 @@ local function Reward2Class(self,mission)
 	end
 	return "Generic",reward.quantity or 1
 end
-local classSort={
-	[MONEY]=11,
-	Artifact=12,
-	Equipment=13,
-	Quest=14,
-	Upgrades=15,
-	Reputation=16,
-	PlayerXP=17,
-	FollowerXP=18,
-	Generic=19
-}
-function addon:Reward2Class(mission)
-	if not mission.missionClass then
-		mission.missionClass,mission.missionValue=Reward2Class(self,mission)
-		mission.missionSort=classSort[mission.missionClass]
-	end
-	return mission.missionSort
-end
 --@debug@
 local events={}
 function addon:Trace(frame, method)
@@ -281,27 +282,30 @@ function addon:Trace(frame, method)
 		)
 	end
 end
-local lastevent=""
+local index=0
 function addon:ShowGarrisonEvents(this,event,...)
 	if event:find("GARRISON") then
-		if event=="GARRISON_MISSION_LIST_UPDATE" and event==lastevent then
-			return
-		end
 		if event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
 			local _,_,_,followers=...
 			if type(followers)=="table" then
 				tinsert(dbOHCperChar,followers)			
 			end
 		end
-		lastevent=event
-		tinsert(events,{event,...})
-		return self:PushEvent(event,...)
+		index=index+1
+		local key=format("%05d.%s",index,event)
+		events[key]={...}
+		return self:PushEvent("BLIZ"..event,...)
 	end
 end
 function addon:PushEvent(event,...)
 	if not AlarLog then AlarLog={} end
+	if not AlarLog.indexes then AlarLog.indexes={} end
+	if type(AlarLog.indexes[me])~="number" then
+		AlarLog.indexes[me]=0
+	end
+	AlarLog.indexes[me]=AlarLog.indexes[me]+1
 	if not AlarLog[me] then AlarLog[me]={} end
-	tinsert(AlarLog[me],event.. " : '" .. strjoin(tostringall("' '",...)) .. "'")
+	AlarLog[me][format("%06d(%07d/%07d)",AlarLog.indexes[me],GetTime()*1000,debugprofilestop())]=event.. " : '" .. strjoin(tostringall("' '",...)) .. "'"
 end
 function addon:DumpEvents()
 	return events
