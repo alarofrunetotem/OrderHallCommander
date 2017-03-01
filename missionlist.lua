@@ -177,7 +177,8 @@ end
 -- Sorts missions
 -- Updates top tabs (available/in progress)
 -- calls Update
-function module:OnUpdateMissions(frame)
+function module:OnUpdateMissions()
+	if true then return self.hooks[OHFMissions].UpdateMissions(OHFMissions) end
 
 --@debug@
 	local start=debugprofilestop()
