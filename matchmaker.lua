@@ -56,6 +56,7 @@ local print=function() end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
+addon.lastChange=GetTime()
 local matchtimer={time=0,count=0}
 local lethalMechanicEffectID = 437;
 local cursedMechanicEffectID = 471;
@@ -92,6 +93,7 @@ function addon:GetDebug()
 	return debug
 end
 function addon:PushDebug(missionID,text,...)
+	if not addon.kDebug then return end
 	if text==nil then
 		wipe(debug[missionID])
 		return
@@ -202,7 +204,7 @@ local function GetSelectedParty(self,dbg)
 	local xpgainers=0
 	local maxChamps=addon:GetNumber("MAXCHAMP")
 --@debug@
-		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name"))
+		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name","none"))
 --@end-debug@				
 
 	for i,key in ipairs(self.candidatesIndex) do
@@ -397,6 +399,7 @@ function partyManager:Build(...)
 end	
 
 function partyManager:Match()
+	if self.ready and self.updated > addon.lastChange then return end
 	local missionID=self.missionID
 	if not missionID then print("Missing missionID",self) return false end
 	local name=addon:GetMissionData(missionID,'name')
@@ -467,6 +470,7 @@ function partyManager:Match()
 	addon:PushDebug(missionID,"Parties built",self.candidates,self.candidatesIndex)
 	if not async then releaseEvents() end
 	self.ready=true
+	self.updated=GetTime()
 	return true
 end
 function partyManager:GenerateIndex()
