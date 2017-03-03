@@ -1,5 +1,6 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
+local function px(...) return print(...) end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
@@ -93,9 +94,11 @@ function addon:OnInitialized()
   _G.dbOHCperChar=_G.dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
+--[[
 	local f=menu
 	f:RegisterAllEvents()
 	self:RawHookScript(f,"OnEvent","ShowGarrisonEvents")
+]]--
 --@end-debug@
 	self:AddLabel(L["General"])
 	self:AddBoolean("MOVEPANEL",true,L["Make Order Hall Mission Panel movable"],L["Position is not saved on logout"])
@@ -115,7 +118,16 @@ end
 function addon:RegisterForMenu(menu,...)
 	for i=1,select('#',...) do
 		local value=(select(i,...))
-		if not tContains(menuOptions[menu],value) then
+		if type(value)=="table" then
+			if type(value.arg)=="string" then
+				value=value.arg
+			elseif type(value['function'])=="string" then
+				value=value['function']
+			else
+				value=false
+			end
+		end
+		if value and not tContains(menuOptions[menu],value) then
 			tinsert(menuOptions[menu],value)
 		end
 	end
@@ -311,5 +323,29 @@ function addon:DumpEvents()
 	return events
 end
 addon:PushEvent("ADDON_LOADED")
+local gamu=GetAddOnMemoryUsage
+local uamu=UpdateAddOnMemoryUsage
+local redpattern="c|FFFF0000%dM|r"
+local greenpattern="%dM"
+local function wrap(obj,func)
+	pp("Hook func",func)
+	local old=obj[func]
+	obj[func] = function(...)
+		local r1,r2,r3,r4,r5,r6,r7,r8,r9=old(...)
+		local m2=gamu(me)
+		px("Called",func,format(greenpattern,m2/1024))
+		return r1,r2,r3,r4,r5,r6,r7,r8,r9
+	end
+end
+function addon:HighDebug()
+	for _,module in self:IterateModules() do
+		for name,func in pairs(module) do
+			if type(func)=="function" then wrap(module,name) end
+		end
+	end
+	for name,func in pairs(addon) do
+		if type(func)=="function" then wrap(addon,name) end
+	end
+end	
 _G.OHC=addon
 --@end-debug@
