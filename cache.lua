@@ -159,7 +159,9 @@ function module:GetAverageLevels(cached)
 	end
 	return avgLevel,avgIlevel
 end
+local permutationsUpdate=0
 function addon:GetPermutations()
+	if next(permutations) and self.lastChange <permutationsUpdate then permutationsUpdate=self.lastChange return permutations end
 	local champs=new()
 	addon:GetAllChampions(champs)
 	local k=#champs
@@ -647,6 +649,7 @@ function addon:GetFollowerName(id)
 	return strconcat(tostringall(id,'(',error,')')) 
 end
 function addon:GetAllChampions(table)
+	if not table then table=new() end
 	for _,follower in pairs(self:GetFollowerData()) do
 		if not follower.isTroop and follower.isCollected then
 			tinsert(table,follower)
@@ -656,7 +659,7 @@ function addon:GetAllChampions(table)
 end
 function addon:GetAllTroops(table)
 	for _,follower in pairs(self:GetFollowerData()) do
-		if follower.isTroop then
+		if follower.isTroop and follower.isCollected then
 			tinsert(table,follower)
 		end
 	end
