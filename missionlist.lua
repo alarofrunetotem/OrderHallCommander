@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 20/02/2017 09:45:18
+-- Generated on 04/03/2017 00:49:24
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -17,8 +17,10 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=addon:Wrap("NewTable")
-local del=addon:Wrap("DelTable")
+--local new=addon:Wrap("NewTable")
+--local del=addon:Wrap("DelTable")
+local function new() return {} end
+local function del() end
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
 local OHF=OrderHallMissionFrame
@@ -33,7 +35,7 @@ local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -47,6 +49,7 @@ LoadAddOn("LibDebug")
 
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
+
 --@end-debug@
 --[===[@non-debug@
 dprint=function() end
@@ -330,14 +333,17 @@ function module:InitialSetup(this)
 	addon.MAXQUALITY=OHF.followerMaxQuality
 	addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
 	self:Unhook(this,"OnShow")
-	self:SecureHookScript(this,"OnShow","MainOnShow")	
-	self:SecureHookScript(this,"OnHide","MainOnHide")	
+	local main=IsLeftShiftKeyDown() and this or this.MissionTab
+	self:SecureHookScript(main,"OnShow","MainOnShow")	
+	self:SecureHookScript(main,"OnHide","MainOnHide")
+	addon:Print("Triggers on ",main:GetName())
 	OHF.FollowerStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.FollowerStatusInfo:SetPoint("TOPRIGHT",-45,-5)
 	OHF.FollowerStatusInfo:SetText("")
 	self:MainOnShow()
 end
 function module:MainOnShow()
+	addon:Print("onshow")
 	self:RawHook(OHFMissions,"Update","OnUpdate",true)
 	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
@@ -348,6 +354,7 @@ function module:MainOnShow()
 	addon:ParseFollowers()
 end
 function module:MainOnHide()
+	addon:Print("OnHide")
 	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
 	self:Unhook(OHFMissions,"UpdateMissions")
 	self:Unhook(OHFMissions,"Update")

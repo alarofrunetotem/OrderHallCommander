@@ -4,7 +4,7 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceSerializer-3.0","AceConsole-3.0"
 --*MINOR 35
--- Generated on 20/02/2017 09:45:18
+-- Generated on 04/03/2017 00:49:24
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -17,8 +17,10 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=addon:Wrap("NewTable")
-local del=addon:Wrap("DelTable")
+--local new=addon:Wrap("NewTable")
+--local del=addon:Wrap("DelTable")
+local function new() return {} end
+local function del() end
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
 local OHF=OrderHallMissionFrame
@@ -29,10 +31,11 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT

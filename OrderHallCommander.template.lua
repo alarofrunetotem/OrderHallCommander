@@ -3,8 +3,10 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=addon:Wrap("NewTable")
-local del=addon:Wrap("DelTable")
+--local new=addon:Wrap("NewTable")
+--local del=addon:Wrap("DelTable")
+local function new() return {} end
+local function del() end
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
 local OHF=OrderHallMissionFrame
@@ -15,10 +17,11 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 --*if-non-addon*
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
