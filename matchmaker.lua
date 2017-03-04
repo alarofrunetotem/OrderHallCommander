@@ -148,7 +148,7 @@ end
 local partyManager={} --#PartyManager
 local missionParties={}
 local partiesPool=CreateObjectPool(
-	function(self) print("Created new partypool",self) return setmetatable({},{__index=partyManager}) end,
+	function(self) return setmetatable({},{__index=partyManager}) end,
 	function(self,obj)
 		local c=obj.candidates
 		local ci=obj.candidatesIndex
@@ -293,9 +293,6 @@ function partyManager:GetSelectedParty(key)
 		return emptyTable,"progress"
 	end
 	if type(key)=="string" and self.candidates[key] then
---@debug@
-		print("Returning explicity set key ",key)
---@end-debug@
 		return self.candidates[key],key
 	end
 	self:Match() -- Caching and optimization to be added in match
