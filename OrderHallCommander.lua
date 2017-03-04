@@ -214,6 +214,9 @@ function MixinThreats:AddIcons(mechanics,biases)
 		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
 		if mechanic then
+			if not mechanic.icon or not mechanic.id then
+				dprint("Mecha",mechanic)
+			end
 			th.Icon:SetTexture(mechanic.icon or icons[mechanic.id].icon)
 			th.Name=mechanic.name
 			th.Description=mechanic.description
