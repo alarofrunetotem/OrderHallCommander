@@ -1,10 +1,13 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+--@debug@
+print('Loaded',__FILE__)
+--@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 04/03/2017 00:49:24
+-- Auto Generated
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -17,8 +20,10 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
-local new=addon:Wrap("NewTable")
-local del=addon:Wrap("DelTable")
+--local new=addon:Wrap("NewTable")
+--local del=addon:Wrap("DelTable")
+local function new() return {} end
+local function del() end
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
 local OHF=OrderHallMissionFrame
