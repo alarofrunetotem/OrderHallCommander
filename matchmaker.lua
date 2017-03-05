@@ -90,13 +90,18 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local emptyTable={}
 local holdEvents
 local releaseEvents
-local debug={}
 local events={stacklevel=0,frames={}} --#events
-
+--@debug@
+local viragdone
+local debug={}
 function addon:GetDebug()
 	return debug
 end
 function addon:PushDebug(missionID,text,...)
+	if not viragdone and ViragDevTool_AddData then
+		ViragDevTool_AddData(debug,"OHC Debug")
+		viragdone=true
+	end
 	if not addon.kDebug then return end
 	if text==nil then
 		wipe(debug[missionID])
@@ -112,6 +117,7 @@ function addon:PushDebug(missionID,text,...)
 		debug[missionID][key .. '_data']={...}
 	end
 end
+--@end-debug@
 function events.hold() --#eventsholdEvents
 	if events.stacklevel==0 then
 		events.frames={GetFramesRegisteredForEvent('GARRISON_FOLLOWER_LIST_UPDATE')}
@@ -499,9 +505,6 @@ function module:OnInitialized()
 	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")	
 	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")	
---@debug@
-	ViragDevTool_AddData(debug,"OHC Debug")
---@end-debug@	
 end
 function module:Refresh(event)
 	self:ResetParties()
