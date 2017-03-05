@@ -672,26 +672,6 @@ end
 local function isInParty(followerID)
 	return G.GetFollowerStatus(followerID)==GARRISON_FOLLOWER_IN_PARTY
 end
-local troops={}
-function addon:GetTroop(troopType,qt,skipBusy)
-	if type(qt)=="boolean" then skipBusy=qt qt=1 end
-	qt=self:tonumber(qt,1)
-	local found=0
-	wipe(troops)
-	for _,follower in pairs(getCachedFollowers()) do
-		if follower.isTroop and follower.classSpec==troopType and (not skipBusy or not follower.status) then
-			tinsert(troops,follower)
-			found=found+1
-			if found>=qt then
-				break
-			end
-		end
-	end
-	return unpack(troops)
-end
-function addon:GetTroopTypes()
-	return troopTypes
-end
 
 function addon:RebuildMissionCache()
 	wipe(cachedMissions)
