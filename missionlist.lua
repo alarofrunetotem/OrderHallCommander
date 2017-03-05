@@ -515,9 +515,6 @@ function module:AddThreats(frame,threats,party,missionID)
 	   	end
    	end
    end
-   --@debug@
-   ViragDevTool_AddData(party,"Party for " .. missionID .. ' ' .. addon:GetMissionData(missionID,'name',''))
-   --@end-debug@
    for _,followerID in party:IterateFollowers() do
    	if not G.GetFollowerIsTroop(followerID) then
 		   local followerBias = G.GetFollowerBiasForMission(missionID,followerID)
