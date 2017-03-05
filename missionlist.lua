@@ -61,6 +61,7 @@ local print=function() end
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 local wipe=wipe
+local GetTime=GetTime
 local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
 local RESURRECT=RESURRECT
 local LOOT=LOOT
@@ -193,6 +194,7 @@ function module:OnUpdateMissions()
 	local start=debugprofilestop()
 	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
+	addon.lastChange=GetTime()
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
 --@debug@
 	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
@@ -302,14 +304,12 @@ function module:InitialSetup(this)
 	button:GetHighlightTexture():SetRotation(math.rad(270))
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
-	addon.MAXLEVEL=OHF.followerMaxLevel
-	addon.MAXQUALITY=OHF.followerMaxQuality
+	addon.MAXLEVEL=OHF.followerMaxLevel or 110
+	addon.MAXQUALITY=OHF.followerMaxQuality or 4
 	addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
 	self:Unhook(this,"OnShow")
-	local main=IsLeftShiftKeyDown() and this or this.MissionTab
-	self:SecureHookScript(main,"OnShow","MainOnShow")	
-	self:SecureHookScript(main,"OnHide","MainOnHide")
-	addon:Print("Triggers on ",main:GetName())
+	self:SecureHookScript(this,"OnShow","MainOnShow")	
+	self:SecureHookScript(this,"OnHide","MainOnHide")
 	OHF.FollowerStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.FollowerStatusInfo:SetPoint("TOPRIGHT",-45,-5)
 	OHF.FollowerStatusInfo:SetText("")
@@ -320,11 +320,10 @@ function module:MainOnShow()
 	self:RawHook(OHFMissions,"Update","OnUpdate",true)
 	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
-	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission",function() pp("Called inside updatemissions") pp("\n",debugstack(1)) end)
-	self:OnUpdate()
-	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 	addon:RefreshFollowerStatus()
 	addon:ParseFollowers()
+	addon.lastChange=GetTime()
+	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 end
 function module:MainOnHide()
 	addon:Print("OnHide")
