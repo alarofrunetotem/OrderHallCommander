@@ -214,7 +214,7 @@ local function GetSelectedParty(self,dbg)
 	local xpgainers=0
 	local maxChamps=addon:GetNumber("MAXCHAMP")
 --@debug@
-		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name","none"))
+		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name","none"),self.candidates)
 --@end-debug@				
 
 	for i,key in ipairs(self.candidatesIndex) do
@@ -514,34 +514,6 @@ end
 function module:ResetParties()
 	partiesPool:ReleaseAll()
 	wipe(missionParties)
-end
---Public interface
-function addon:ApplySAVETROOPS(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplySPARE(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyMAKEITQUICK(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyUSEALLY(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyMAXIMIZEMISSIONS(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyMAXCHAMP(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyBONUS(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyMAKEITVERYQUICK(value)
-	return addon:RefreshMissions()
-end
-function addon:ApplyMAXIMIZEXP(value)
-	return addon:RefreshMissions()
 end
 function addon:HoldEvents()
 	return holdEvents()

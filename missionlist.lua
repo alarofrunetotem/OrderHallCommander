@@ -60,7 +60,7 @@ local print=function() end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
-
+local wipe=wipe
 local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
 local RESURRECT=RESURRECT
 local LOOT=LOOT
@@ -128,8 +128,7 @@ function module:OnInitialized()
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
-	addon:AddPrivateAction("HardRefreshMissions","Recalculate",L["Recalculate all parties"])
-	addon:RegisterForMenu("mission","SORTMISSION","HardRefreshMissions")
+	addon:RegisterForMenu("mission","SORTMISSION")
 	self:LoadButtons()
 	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 	Current_Sorter=addon:GetString("SORTMISSION")
@@ -142,6 +141,9 @@ function module:OnInitialized()
 	--function(missions) module:SortMissions(missions) end)
 	self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","SortMissions")
 	self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","SortMissions")
+end
+function addon:Apply(flag,value)
+	self:RefreshMissions()
 end
 function module:Print(...)
 	print(...)
@@ -233,36 +235,9 @@ function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
 	module:SortMissions()
 end
-function addon:HardRefreshMissions()
---@debug@
-	print("Called hard refresh")
---@end-debug@
-	wipe(missionIDS)
-	wipe(parties)
-	self:RebuildAllCaches()
-	self:ResetParties()
-	collectgarbage()
-end
-local timer
 function addon:RefreshMissions()
---@debug@
-	addon:Print("RefreshMissions",debugprofilestop())
---@end-debug@	
-	if OHFMissionPage:IsVisible() then
-		module:PostMissionClick(OHFMissionPage)
-	else	
-		if timer then self:CancelTimer(timer) end 
-		timer=self:ScheduleTimer("EffectiveRefresh",0)
-	end
-end
-function addon:EffectiveRefresh()
---@debug@
-	addon:Print("EffectiveRefresh",debugprofilestop())
---@end-debug@	
-	timer=nil
-	wipe(parties)
 	wipe(missionIDS)
-	OHFMissions:Update()
+	OHFMissions:UpdateMissions()
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
