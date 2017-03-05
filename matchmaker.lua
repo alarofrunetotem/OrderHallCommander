@@ -388,7 +388,7 @@ function partyManager:Build(...)
 		if not  isTroop then
 			local qlevel=addon:GetFollowerData(followerID,'qLevel',0)
 			missionEffects.champions=missionEffects.champions+1
-			if qlevel < addon.MAXQLEVEL then
+			if qlevel < addon:MAXQLEVEL() then
 				missionEffects.xpGainers=missionEffects.xpGainers+1
 			end 
 		end

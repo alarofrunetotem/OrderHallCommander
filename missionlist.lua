@@ -304,9 +304,6 @@ function module:InitialSetup(this)
 	button:GetHighlightTexture():SetRotation(math.rad(270))
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
-	addon.MAXLEVEL=OHF.followerMaxLevel or 110
-	addon.MAXQUALITY=OHF.followerMaxQuality or 4
-	addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
 	self:Unhook(this,"OnShow")
 	self:SecureHookScript(this,"OnShow","MainOnShow")	
 	self:SecureHookScript(this,"OnHide","MainOnHide")

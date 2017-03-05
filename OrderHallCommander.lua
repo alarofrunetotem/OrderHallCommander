@@ -77,9 +77,15 @@ local print=function() end
 local MISSING=ITEM_MISSING:format('|cff'..C.Red.c)..'|r'
 local ctr=0
 -- Sometimes matchmakimng starts before these are defined, so I put here a sensible default (actually, this values are constans)
-addon.MAXLEVEL=110
-addon.MAXQUALITY=4
-addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
+function addon:MAXLEVEL()
+	return OHF.followerMaxLevel or 110
+end
+function addon:MAXQUALITY()
+	return OHF.followerMaxQuality or 4
+end
+function addon:MAXQLEVEL()
+	return addon:MAXLEVEL()+addon:MAXQUALITY()
+end
 function addon.resolve(frame) 
 	local name
 	if type(frame)=="table" and frame.GetName then
