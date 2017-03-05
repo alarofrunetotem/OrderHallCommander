@@ -191,7 +191,7 @@ function module:OnUpdateMissions()
 	local start=debugprofilestop()
 	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
-	self.hooks[OHFMissions].UpdateMissions(frame)
+	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
 --@debug@
 	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
 --@end-debug@	
