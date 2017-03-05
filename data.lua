@@ -18,10 +18,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=addon:Wrap("NewTable")
---local del=addon:Wrap("DelTable")
-local function new() return {} end
-local function del() end
+local new=addon:Wrap("NewTable")
+local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
 local OHF=OrderHallMissionFrame
