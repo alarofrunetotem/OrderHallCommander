@@ -75,7 +75,7 @@
 				</Anchors>					
 				<Layers>
 					<Layer level="OVERLAY">
-						<FontString parentKey="Text" justifyV="TOP" justifyH="CENTER" inherits="GameFontNormalOutline" text="GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS">
+						<FontString parentKey="Text" justifyV="CENTER" justifyH="CENTER" inherits="GameFontNormalOutline" text="GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS">
 							<Anchors>
 								<Anchor point="TOPLEFT" x="5" y="0"/>
 								<Anchor point="BOTTOMRIGHT" x="-5" y="0"/>
