@@ -182,22 +182,19 @@ end
 -- Updates top tabs (available/in progress)
 -- calls Update
 function module:OnUpdateMissions()
-	if true then return self.hooks[OHFMissions].UpdateMissions(OHFMissions) end
+	--if true then return self.hooks[OHFMissions].UpdateMissions(OHFMissions) end
 
 --@debug@
 	local start=debugprofilestop()
-	addon:Print("OnUpdateMissions",OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
+	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
 	self.hooks[OHFMissions].UpdateMissions(frame)
 --@debug@
-	addon:Print("OnPostUpdateMissions",debugprofilestop()-start)
+	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
 --@end-debug@	
 end
 
 function module:OnSingleUpdate(frame)
---@debug@
-	local start=debugprofilestop()
---@end-debug@
 	if UpdateShow then
 		self:AdjustPosition(frame)
 		if frame.info.missionID ~= missionIDS[frame] then
@@ -206,9 +203,6 @@ function module:OnSingleUpdate(frame)
 			missionIDS[frame]=frame.info.missionID
 		end
 	end
---@debug@
-	addon:Print("OnSingleUpdate",debugprofilestop()-start,frame and frame.info and frame.info.missionID,missionIDS[frame])
---@end-debug@
 end
 local function sortfunc1(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
@@ -217,12 +211,15 @@ local prova={
 	{followerTypeID=1},
 	{followerTypeID=2},
 }
+local pcall=pcall
+local sort=table.sort
 function module:SortMissions()
 	if OHFMissions:IsVisible() then
+		
 		if OHFMissions.inProgress then
-			pcall(table.sort,OHFMissions.inProgressMissions,sortfunc1)
+			pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
 		else
-			pcall(table.sort,OrderHallMissionFrame.MissionTab.MissionList.availableMissions,sorters[Current_Sorter])
+			pcall(sort,OHFMissions.availableMissions,sorters[Current_Sorter])
 			--Garrison_SortMissions(OHFMissions.availableMissions)
 			--Garrison_SortMissions(prova)
 		end
