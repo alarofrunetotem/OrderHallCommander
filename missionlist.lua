@@ -44,6 +44,7 @@ local HideTT=OrderHallCommanderMixin.HideTT
 local dprint=print
 local ddump
 --@debug@
+LoadAddOn("ViragDevTool")
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
