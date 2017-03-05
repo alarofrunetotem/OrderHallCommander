@@ -102,7 +102,7 @@ function module:FillParty(missionID,key)
 	local missionPage=main:GetMissionPage()
 	for i=1,#party do
 		local followerID=party:Follower(i)
-		if followerID then
+		if followerID and not G.GetFollowerStatus(followerID) then
 			missionPage:AddFollower(followerID)
 		end
 	end
