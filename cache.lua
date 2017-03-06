@@ -431,6 +431,9 @@ function module:GetMissionData(missionID,field,defaultValue)
 	if not missionID then return OHFMissions.availableMissions end
 	local mission=missionCache[missionID]
 	if not field then return mission end
+	if field then
+		if field=="class" then return addon:Reward2Class(missionID) end
+	end
 	if field and mission[field] then
 		return mission[field]
 	else
