@@ -43,8 +43,8 @@ missionlist.lua
 missionpage.lua
 widgets.xml
 RelNotes.lua
-data.lua
 wowhead.lua
+data.lua
 #@do-not-package@
 Debug.lua
 #@end-do-not-package@
