@@ -178,7 +178,10 @@ end
 
 function partyManager:SatisfyCondition(candidate,key,table)
 	local missionID=self.missionID
+--@debug@
 	addon:PushDebug(missionID,"SatisfyCondition",type(key),key,candidate[key])
+--@end-debug@
+
 	if type(candidate) ~= "table" then return self:Fail("NOTABLE") end
 	local followerID=candidate[key]
 	self.lastChecked=followerID
@@ -371,7 +374,10 @@ function partyManager:Build(...)
 			if not followerID then return self:Remove(followers) end
 			local rc,res = pcall(G.AddFollowerToMission,missionID,followerID)
 			if not rc or not res then
+--@debug@
 				addon:PushDebug(missionID,"build failed " .. tostring(res),followers)
+--@end-debug@
+
 				self:Remove(followers)
 				del(followers)
 				return
@@ -433,7 +439,9 @@ function partyManager:Match()
 	if not async then holdEvents() end
 	local n=self.numFollowers or 3
 	for i=1,n do
+--@debug@
 		addon:PushDebug(missionID,format("Outer loop %d",i),champs[i])
+--@end-debug@
 		for x,tuple in pairs(champs[i]) do
 			addon:PushDebug(missionID,format("Inner loop %d",x,tuple))
 			if async then holdEvents() end
@@ -446,19 +454,25 @@ function partyManager:Match()
 				if n-i==2 then -- needs 2 troops
 					for k=1,#troops  do
 						for j=2,#troops do
+--@debug@
 							addon:PushDebug(missionID,format("k=%d j=%d",k,j))
+--@end-debug@
 							self:Build(f1,troops[k].followerID,troops[j].followerID)
 						end
 					end
 				elseif n-i==1 then
 					if n==2 then
 						for k=1,#troops  do
+--@debug@
 							addon:PushDebug(missionID,format("k=%d",k))
+--@end-debug@
 							self:Build(f1,troops[k].followerID)
 						end
 					else
 						for k=1,#troops  do
+--@debug@
 							addon:PushDebug(missionID,format("k=%d",k))
+--@end-debug@
 							self:Build(f1,f2,troops[k].followerID)
 						end
 					end
@@ -474,7 +488,10 @@ function partyManager:Match()
 	end
 	self:Build()
 	self:GenerateIndex()
+--@debug@
 	addon:PushDebug(missionID,"Parties built",self.candidates,self.candidatesIndex)
+--@end-debug@
+
 	if not async then releaseEvents() end
 	self.ready=true
 	self.updated=GetTime()
