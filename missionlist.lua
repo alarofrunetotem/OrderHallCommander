@@ -60,6 +60,8 @@ local print=function() end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
+local Dialog = LibStub("LibDialog-1.0")
+
 local wipe=wipe
 local GetTime=GetTime
 local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
@@ -142,6 +144,25 @@ function module:OnInitialized()
 	--function(missions) module:SortMissions(missions) end)
 	self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","SortMissions")
 	self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","SortMissions")
+		Dialog:Register("OHCUrlCopy", {
+			text = L["URL Copy"],
+			width = 500,
+			editboxes = {
+				{ width = 484,
+				  on_escape_pressed = function(self, data) self:GetParent():Hide() end,
+				},
+			},
+			on_show = function(self, data) 
+				self.editboxes[1]:SetText(data.url)
+				self.editboxes[1]:HighlightText()
+				self.editboxes[1]:SetFocus()
+			end,
+			buttons = {
+				{ text = CLOSE, },
+			},
+			show_while_dead = true,
+			hide_on_escape = true,
+		})	
 end
 function addon:Apply(flag,value)
 	self:RefreshMissions()
@@ -164,10 +185,14 @@ function module:LoadButtons(...)
 		self:HookScript(b.Rewards[1],"OnMouseUp","printLink")
 	end
 end
+local tb={url=""}
 function module:printLink(frame)
-	addon:Print(frame)
 	if frame.itemID and IsShiftKeyDown() then
-		addon:Print("Wowhead link : [http://www.wowhead.com/item=" ..frame.itemID .. "]")
+		if Dialog:ActiveDialog("OHCUrlCopy") then
+			Dialog:Dismiss("OHCUrlCopy")
+		end
+		tb.url="http://www.wowhead.com/item=" ..frame.itemID
+		Dialog:Spawn("OHCUrlCopy", tb)		
 	end
 end
 local UpdateShow=true
@@ -211,6 +236,13 @@ function module:OnSingleUpdate(frame)
 			missionIDS[frame]=frame.info.missionID
 		end
 	end
+	local class,value=addon:GetMissionData(frame.info.missionID,'class')
+	if class and class=="Artifact" then
+		local rw=frame.Rewards[1]
+		rw.Quantity:SetText(value .. "*")
+		rw.Quantity:Show()
+	end
+	
 end
 local function sortfunc1(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
@@ -578,8 +610,12 @@ function module:AdjustMissionTooltip(this,...)
 --@end-debug@	
 	if this.info.inProgress or this.info.completed then return end
 	if not this.info.isRare then
-		GameTooltip:AddLine(GARRISON_MISSION_AVAILABILITY);
-		GameTooltip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
+		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
+		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
+	end
+	local class=addon:Reward2Class(this.info)
+	if class=="Artifact" then 
+		tip:AddLine(L["Artifact shown value is BEFORE knowledge multiplier"],C.Artifact())
 	end
 	local party=addon:GetMissionParties(missionID)
 	local key=parties[missionID]
@@ -590,26 +626,26 @@ function module:AdjustMissionTooltip(this,...)
 		local candidate =party:GetSelectedParty(key)
 		if candidate then
 			if candidate.hasBonusLootNegativeEffect then
-				GameTooltip:AddLine(nobonusloot,C:Red())
+				tip:AddLine(nobonusloot,C:Red())
 			end
 			if candidate.hasKillTroopsEffect then
-				GameTooltip:AddLine(killtroops,C:Red())
+				tip:AddLine(killtroops,C:Red())
 			end
 			if candidate.hasResurrectTroopsEffect then
-				GameTooltip:AddLine(L["Resurrect troops effect"],C:Green())
+				tip:AddLine(L["Resurrect troops effect"],C:Green())
 			end
 			if candidate.cost > candidate.baseCost then
-				GameTooltip:AddLine(increasedcost,C:Red())
+				tip:AddLine(increasedcost,C:Red())
 			end
 			if candidate.hasMissionTimeNegativeEffect then
-				GameTooltip:AddLine(increasedduration,C:Red())
+				tip:AddLine(increasedduration,C:Red())
 			end
 			if candidate.timeImproved then
-				GameTooltip:AddLine(L["Duration reduced"],C:Green())
+				tip:AddLine(L["Duration reduced"],C:Green())
 			end
 		   local r,n,i=addon:GetResources()
 			if candidate.cost > r then
-				GameTooltip:AddLine(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,C:Red())
+				tip:AddLine(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,C:Red())
 			end			
 			-- Not important enough to be specifically shown
 			-- hasSuccessChanceNegativeEffect
