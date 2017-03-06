@@ -93,7 +93,10 @@ function addon:ApplyMOVEPANEL(value)
 	OHF:EnableMouse(value)
 	OHF:SetMovable(value)
 end
+
 function addon:OnInitialized()
+	addon.KL=1
+	
   _G.dbOHCperChar=_G.dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
@@ -110,6 +113,7 @@ function addon:OnInitialized()
 	OHF:SetScript("OnDragStart",function(frame) if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
 	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))	
+	self:RegisterEvent("ARTIFACT_UPDATE")
 end
 function addon:ClearMenu()
 	if menu.widget then 
@@ -153,6 +157,15 @@ function addon:type(value)
 	if value~=value then return nil
 	elseif value==math.huge then return nil
 	else return type(value)
+	end
+end
+function addon:ARTIFACT_UPDATE()
+	--@debug@
+	--@end-debug@
+	local kl=C_ArtifactUI.GetArtifactKnowledgeMultiplier()
+	if kl then
+		self:Print("Updated kl",kl)
+		addon.KL=kl
 	end
 end
 
@@ -236,10 +249,11 @@ local classSort={
 	FollowerXP=18,
 	Generic=19
 }
-function addon:Reward2Class(mission)
-	if type(mission)=="number" then
-		mission=self:GetMissionData(mission)
-	end
+local rewardCache={}
+local function Reward2Class(self,mission)	
+	local GetCurrencyInfo=GetCurrencyInfo
+	local tostring=tostring
+	if type(mission)=="number" then mission=addon:GetMissionData(mission) end
 	if not mission then return "Generic",0,0 end
 	local overReward=mission.overmaxRewards
 	if not overReward then overReward=mission.OverRewards end
@@ -259,8 +273,10 @@ function addon:Reward2Class(mission)
 	elseif reward.followerXP then
 			return "FollowerXp",reward.followerXP
 	elseif type(reward.itemID) == "number" then
-		if tContains(self:GetData('ArtifactPower'),reward.itemID) then
-			return "Artifact",0
+		local stringID=tostring(reward.itemID)
+		local artifact=self.allArtifactPower[stringID]
+		if artifact then
+			return "Artifact",artifact.Power or 0
 		elseif overReward.itemID==1447868 then
 			return "PlayerXP",0
 		elseif overReward.itemID==141344 then
@@ -281,6 +297,15 @@ function addon:Reward2Class(mission)
 	end
 	return "Generic",reward.quantity or 1
 end
+function addon:Reward2Class(mission)
+	local missionID=type(mission)=="table" and mission.missionID or mission
+	local cached=rewardCache[missionID]
+	if cached then return cached.class,cached.value end
+	local class,value=Reward2Class(self,mission)
+	rewardCache[missionID]={class=class,value=value}
+	return class,value
+end	
+
 --@debug@
 local events={}
 function addon:Trace(frame, method)
