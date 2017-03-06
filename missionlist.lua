@@ -161,6 +161,13 @@ function module:LoadButtons(...)
 		b.Title:SetFont(f,h*scale,s)
 		local f,h,s=b.Summary:GetFont()
 		b.Summary:SetFont(f,h*scale,s)		
+		self:HookScript(b.Rewards[1],"OnMouseUp","printLink")
+	end
+end
+function module:printLink(frame)
+	addon:Print(frame)
+	if frame.itemID and IsShiftKeyDown() then
+		addon:Print("Wowhead link : [http://www.wowhead.com/item=" ..frame.itemID .. "]")
 	end
 end
 local UpdateShow=true
@@ -169,16 +176,8 @@ local UpdateShow=true
 -- DO NOT Sort missions
 -- Only paints visible buttons
 function module:OnUpdate()
---@debug@
-	local start=debugprofilestop()
-	addon:Print("OnUpdate",OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
---@end-debug@
 	UpdateShow = OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible()	
 	self.hooks[OHFMissions].Update(OHFMissions)
-	UpdateShow=true	
---@debug@
-	addon:Print("OnPostUpdate",debugprofilestop()-start)
---@end-debug@	
 end
 
 --- Full mission panel refresh.
@@ -195,7 +194,9 @@ function module:OnUpdateMissions()
 	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
 	addon.lastChange=GetTime()
+	--self:SecureHook("Garrison_SortMissions","SortMissions")
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
+	--self:Unhook("Garrison_SortMissions","SortMissions")
 --@debug@
 	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
 --@end-debug@	
@@ -214,10 +215,6 @@ end
 local function sortfunc1(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
 end
-local prova={
-	{followerTypeID=1},
-	{followerTypeID=2},
-}
 local pcall=pcall
 local sort=table.sort
 function module:SortMissions()
@@ -227,8 +224,6 @@ function module:SortMissions()
 			pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
 		else
 			pcall(sort,OHFMissions.availableMissions,sorters[Current_Sorter])
-			--Garrison_SortMissions(OHFMissions.availableMissions)
-			--Garrison_SortMissions(prova)
 		end
 		OHFMissions:Update()
 	end
@@ -324,11 +319,9 @@ function module:MainOnShow()
 end
 function module:MainOnHide()
 	addon:Print("OnHide")
-	self:Unhook(OHFMissions,"UpdateCombatAllyMission")
 	self:Unhook(OHFMissions,"UpdateMissions")
 	self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")	
-	self:Unhook(OHFMissions,"OnUpdate")
 end
 function module:AdjustPosition(frame)
 	local mission=frame.info
@@ -421,29 +414,23 @@ function module:AddMembers(frame)
 		threats:Hide()
 		local perc=select(4,G.GetPartyMissionInfo(missionID))
 		stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
-		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
+		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 		return
 	end
 		
-	local key
-	local party
-	if not key then
-		party,key=addon:GetSelectedParty(missionID,mission)
-		parties[missionID]=key
---@debug@
-		print("Party recalculated",party)
---@end-debug@		
-	else
-		party=addon:GetSelectedParty(missionID,key)
---@debug@
-		print(key,"Party retrieved",party)
---@end-debug@		
-	end
+	local party,key=addon:GetSelectedParty(missionID,mission)
+	local perc=party.perc or 0
+	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
+	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
+	parties[missionID]=key
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
-			members.Champions[i]:SetFollower(party:Follower(i),not mission.inProgress)
+			if members.Champions[i]:SetFollower(party:Follower(i),true) then
+				stats.Chance:SetTextColor(C.Grey())
+			end
 		else
 			members.Champions[i]:SetEmpty()
+			stats.Chance:SetTextColor(C.Grey())
 		end
 		members.Champions[i]:Show()
 	end
@@ -451,9 +438,6 @@ function module:AddMembers(frame)
 			members.Champions[i]:Hide()
 	end
 		
-	local perc=party.perc or 0
-	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
-	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc))
 	return self:AddThreats(frame,threats,party,missionID)
 end	
 local function goodColor(good,bad)
@@ -684,42 +668,6 @@ function module:PostMissionClick(this,button)
 	addon:GetMissionpageModule():FillMissionPage(mission,parties[mission.missionID])
 end
 do
-	local s=setmetatable({},{__index=function(t,k) return 0 end})
-	local FOLLOWER_STATUS_FORMAT= L["Followers status "] ..
-								C(AVAILABLE..':%d ','green') ..
-								C(GARRISON_FOLLOWER_COMBAT_ALLY .. ":%d ",'cyan') ..
-								C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') ..
-								C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
-	function addon:RefreshFollowerStatus()
-		if not OHF:IsVisible() then return end
-		if empty(addon:GetFollowerData()) then return end
-		wipe(s)
-		for followerID,_ in pairs(addon:GetFollowerData()) do
-			local rc,status=pcall(G.GetFollowerStatus,followerID) -- Follower could have been exhasted and still present in cache
-			if rc then
-				status=status or AVAILABLE
-				s[status]=s[status]+1
-			end
-		end
-		if (OHF.FollowerStatusInfo) then
-			OHF.FollowerStatusInfo:SetWidth(0)
-			OHF.FollowerStatusInfo:SetFormattedText(
-				FOLLOWER_STATUS_FORMAT,
-				s[AVAILABLE],
-				s[GARRISON_FOLLOWER_COMBAT_ALLY],
-				s[GARRISON_FOLLOWER_ON_MISSION],
-				s[GARRISON_FOLLOWER_INACTIVE]
-				)
-		end
-	end
-	function addon:GetTotFollowers(status)
-		if not status then
-			return s[AVAILABLE]+
-				s[GARRISON_FOLLOWER_WORKING]+
-				s[GARRISON_FOLLOWER_ON_MISSION]
-		else
-			return s[status] or 0
-		end
-	end
+
 end
 

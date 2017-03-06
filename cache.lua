@@ -654,9 +654,12 @@ function addon:GetFollowerName(id)
 end
 function addon:GetAllChampions(table)
 	if not table then table=new() end
+	local skipInactive=addon:GetBoolean('IGNOREINACTIVE')
 	for _,follower in pairs(self:GetFollowerData()) do
-		if not follower.isTroop and follower.isCollected then
-			tinsert(table,follower)
+		if follower.isCollected and not follower.isTroop  then
+			if not skipInactive or G.GetFollowerStatus(follower.followerID) ~= GARRISON_FOLLOWER_INACTIVE then
+				tinsert(table,follower)
+			end
 		end
 	end
 	return table
@@ -689,4 +692,41 @@ end
 
 function addon:GetAverageLevels(...)
 	return module:GetAverageLevels(...)
+end
+local s=setmetatable({},{__index=function(t,k) return 0 end})
+local FOLLOWER_STATUS_FORMAT= L["Followers status "] ..
+							C(AVAILABLE..':%d ','green') ..
+							C(GARRISON_FOLLOWER_COMBAT_ALLY .. ":%d ",'cyan') ..
+							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') ..
+							C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
+function addon:RefreshFollowerStatus()
+	if not OHF:IsVisible() then return end
+	if empty(addon:GetFollowerData()) then return end
+	wipe(s)
+	for followerID,_ in pairs(addon:GetFollowerData()) do
+		local rc,status=pcall(G.GetFollowerStatus,followerID) -- Follower could have been exhasted and still present in cache
+		if rc then
+			status=status or AVAILABLE
+			s[status]=s[status]+1
+		end
+	end
+	if (OHF.FollowerStatusInfo) then
+		OHF.FollowerStatusInfo:SetWidth(0)
+		OHF.FollowerStatusInfo:SetFormattedText(
+			FOLLOWER_STATUS_FORMAT,
+			s[AVAILABLE],
+			s[GARRISON_FOLLOWER_COMBAT_ALLY],
+			s[GARRISON_FOLLOWER_ON_MISSION],
+			s[GARRISON_FOLLOWER_INACTIVE]
+			)
+	end
+end
+function addon:GetTotFollowers(status)
+	if not status then
+		return s[AVAILABLE]+
+			s[GARRISON_FOLLOWER_COMBAT_ALLY]+
+			s[GARRISON_FOLLOWER_ON_MISSION]
+	else
+		return s[status] or 0
+	end
 end

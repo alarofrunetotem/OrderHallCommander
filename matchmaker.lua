@@ -277,7 +277,7 @@ local function GetSelectedParty(self,dbg)
 	if bestkey then 
 		return self.candidates[bestkey],bestkey
 	end
-	if absolutebestkey then 
+	if not addon:GetBoolean("IGNOREBUSY") and absolutebestkey then 
 		return self.candidates[absolutebestkey],absolutebestkey
 	end
 	if lastkey then 
@@ -498,7 +498,9 @@ function module:OnInitialized()
 	--addon:AddBoolean("MAXIMIZEMISSIONS",false,L["Maximize filled missions"],L["Attempts to use less champions for missions, in order to fill more missions"])
 	addon:AddRange("MAXCHAMP",2,1,3,L["Max champions"],L["Use at most this many champions"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
-	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'MAXCHAMP','USEALLY')
+	addon:AddBoolean("IGNOREBUSY",false,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
+	addon:AddBoolean("IGNOREINACTIVE",false,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
+	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'MAXCHAMP','USEALLY','IGNOREBUSY','IGNOREINACTIVE')
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")

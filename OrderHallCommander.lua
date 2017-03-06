@@ -132,7 +132,7 @@ local Mixin=OrderHallCommanderMixin --#Mixin
 local MixinThreats=OrderHallCommanderMixinThreats --#MixinThreats
 local MixinMenu=OrderHallCommanderMixinMenu --#MixinMenu
 local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
-local MixinMembers=OrderHallCommanderMixinMembers
+local MixinMembers=OrderHallCommanderMixinMembers --#MixinMembers
 
 function Mixin:CounterTooltip()
 	local tip=self:AnchorTT()
@@ -277,6 +277,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus)
 			self:SetLevel(info.level)
 		end
 	end
+	return status
 end
 function MixinFollowerIcon:SetEmpty(message)
 	self.followerID=false
@@ -334,7 +335,7 @@ function MixinMembers:OnLoad()
 	end
 	self:SetWidth(self.Champions[1]:GetWidth()*3+30)
 	self.NotReady.Text:SetFormattedText(RAID_MEMBER_NOT_READY,STATUS_TEXT_PARTY)
-	self.NotReady.Text:SetTextColor(C.Orange())
+	self.NotReady.Text:SetTextColor(C.Red())
 end
 function MixinMembers:OnShow()
 	self:SetNotReady()

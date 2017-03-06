@@ -199,7 +199,7 @@ function addon:GetDifficultyColor(perc,usePurple)
 	elseif(perc >20) then
 		return QuestDifficultyColors['impossible']
 	else
-		return not usePurple and C.Silver or C.Fuchsia
+		return not usePurple and C.Silver or C.Epic
 	end
 end
 function addon:GetAgeColor(age)
