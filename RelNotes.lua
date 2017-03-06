@@ -18,6 +18,7 @@ typing /ohc silent in chat will eliminate every chat message from GarrisonComman
 self:RelNotes(1,2,0,[[
 Fix: All cache error should be gone
 Feature: you can decide if show busy or even inactive followers
+Feature: shift click on reward prints wowhead link in chat
 ]])
 self:RelNotes(0,2,4,[[
 Fix: lua errors in matchmaker.lua
