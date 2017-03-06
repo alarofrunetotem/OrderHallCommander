@@ -173,25 +173,36 @@ function addon:GetData(key)
 	return data[key] or fake
 end
 function module:OnInitialized()
-	--
+	if addon.allArtifactPower then
+		wipe(data.ArtifactPower)
+	--@debug@
+	addon:Print("Updating artifact with wowhead data")
+	--@end-debug@
+		for k,_ in pairs(addon.allArtifactPower) do
+			tinsert(data.ArtifactPower,tonumber(k))
+		end
+	end
 	addon.coroutineExecute(module,0,"TickleServer")
 end
 function module:AddItem(itemID)
 
 end
 function module:TickleServer()
-	addon:Print("Precaching items")
 	local i=0
 	for _,categories in pairs(data) do
 		for _,itemid in pairs(categories) do
 			if type(itemid)=="number" then
-				pcall(GetItemInfo,itemid)
-				i=i+1
+				local rc,name=pcall(GetItemInfo,itemid)
+				if rc and name then
+					i=i+1
+				end
 				coroutine.yield()
 			end
 		end
 	end
-	addon:Print("Precached ",i," items")
+	--@debug@
+	addon:Print("Precached " .. i .. "items")
+	--@end-debug@
 end
 --@do-not-package@
 --[[
