@@ -15,7 +15,7 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
-self:RelNotes(1,2,0,[[
+self:RelNotes(1,1,0,[[
 Fix: All cache error should be gone
 Feature: you can decide if show busy or even inactive followers
 Feature: shift click on reward prints wowhead link in chat
