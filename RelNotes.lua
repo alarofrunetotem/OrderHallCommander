@@ -15,6 +15,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
+self:RelNotes(1,2,0,[[
+Fix: All cache error should be gone
+Feature: you can decide if show busy or even inactive followers
+]])
 self:RelNotes(0,2,4,[[
 Fix: lua errors in matchmaker.lua
 ]])
