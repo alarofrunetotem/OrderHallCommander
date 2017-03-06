@@ -65,6 +65,9 @@ local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRI
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug=
 		pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local AVAILABLE=AVAILABLE
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local missionsRefresh,followersRefresh=0,0
 local volatile={
 followers={
@@ -706,8 +709,8 @@ function addon:RefreshFollowerStatus()
 	if not OHF:IsVisible() then return end
 	if empty(addon:GetFollowerData()) then return end
 	wipe(s)
-	for followerID,_ in pairs(addon:GetFollowerData()) do
-		local rc,status=pcall(G.GetFollowerStatus,followerID) -- Follower could have been exhasted and still present in cache
+	for _,follower in pairs(addon:GetFollowerData()) do
+		local rc,status=pcall(G.GetFollowerStatus,follower.followerID) -- Follower could have been exhasted and still present in cache
 		if rc then
 			status=status or AVAILABLE
 			s[status]=s[status]+1
