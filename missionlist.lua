@@ -142,8 +142,8 @@ function module:OnInitialized()
 	--hooksecurefunc("Garrison_SortMissions",Garrison_SortMissions_PostHook)--function(missions) module:SortMissions(missions) end)
 	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
 	--function(missions) module:SortMissions(missions) end)
-	self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","SortMissions")
-	self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","SortMissions")
+	--self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","SortMissions")
+	--self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","SortMissions")
 		Dialog:Register("OHCUrlCopy", {
 			text = L["URL Copy"],
 			width = 500,
@@ -182,16 +182,27 @@ function module:LoadButtons(...)
 		b.Title:SetFont(f,h*scale,s)
 		local f,h,s=b.Summary:GetFont()
 		b.Summary:SetFont(f,h*scale,s)		
-		self:HookScript(b.Rewards[1],"OnMouseUp","printLink")
+		self:SecureHookScript(b.Rewards[1],"OnMouseUp","printLink")
+		self:SecureHookScript(b.Rewards[1],"OnEnter","rwWarning")
 	end
 end
 local tb={url=""}
-function module:printLink(frame)
-	if frame.itemID and IsShiftKeyDown() then
+function module:rwWarning(this)
+	if this.itemID  then
+		local tip=GameTooltip
+		if addon.allArtifactPower[tostring(this.itemID)] then
+			tip:AddLine(L["Artifact shown value is the base value without considering knowledge multiplier"],C.Artifact())
+		end
+		tip:AddLine("Shift-Click for a wowhead link popup")
+		tip:Show()
+	end
+end
+function module:printLink(this)
+	if this.itemID and IsShiftKeyDown() then
 		if Dialog:ActiveDialog("OHCUrlCopy") then
 			Dialog:Dismiss("OHCUrlCopy")
 		end
-		tb.url="http://www.wowhead.com/item=" ..frame.itemID
+		tb.url="http://www.wowhead.com/item=" ..this.itemID
 		Dialog:Spawn("OHCUrlCopy", tb)		
 	end
 end
@@ -219,9 +230,9 @@ function module:OnUpdateMissions()
 	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
 	addon.lastChange=GetTime()
-	--self:SecureHook("Garrison_SortMissions","SortMissions")
+	self:SecureHook("Garrison_SortMissions","SortMissions")
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
-	--self:Unhook("Garrison_SortMissions","SortMissions")
+	self:Unhook("Garrison_SortMissions","SortMissions")
 --@debug@
 	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
 --@end-debug@	
@@ -250,19 +261,18 @@ end
 local pcall=pcall
 local sort=table.sort
 function module:SortMissions()
-	if OHFMissions:IsVisible() then
-		
-		if OHFMissions.inProgress then
-			pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
-		else
-			pcall(sort,OHFMissions.availableMissions,sorters[Current_Sorter])
-		end
-		OHFMissions:Update()
+--@debug@
+	addon:Print(C("SortMissions","Orange"))
+--@end-debug@
+	if OHFMissions.inProgress then
+		pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
+	else
+		pcall(sort,OHFMissions.availableMissions,sorters[Current_Sorter])
 	end
 end
 function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
-	module:SortMissions()
+	OHFMissions:UpdateMissions()
 end
 function addon:RefreshMissions()
 	wipe(missionIDS)
@@ -294,6 +304,17 @@ local function CloseMenu()
 end
 function module:Menu()
 	local previous
+--@alpha@	
+	local frame=CreateFrame("Frame",nil,menu)
+	frame.label=frame:CreateFontString(nil,"ARTWORK","GameFontNormalSmall")
+	frame.label:SetAllPoints(frame)
+	frame:SetPoint("TOPLEFT",menu,32,-30)
+	frame:SetPoint("TOPRIGHT",menu,-32,-30)
+	frame.label:SetJustifyV("TOP")
+	frame.label:SetText("You are using an\r|cffff0000ALPHA VERSION|r.\n Code is NOT optimized and OHC could run REALLY slow.\n I appreciate if you test it and raise issues but if you dont like bugs please revert to a stable version :)")
+	frame:SetHeight(100)
+	previous=frame
+--@end-alpha@	
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
 		local flag,icon=strsplit(',',v)
@@ -308,6 +329,7 @@ function module:Menu()
 			previous=f
 		end
 	end 
+	self.Menu=function() addon:Print("Should not call this again") end
 end
 
 function module:InitialSetup(this)
@@ -337,11 +359,17 @@ function module:InitialSetup(this)
 	OHF.FollowerStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.FollowerStatusInfo:SetPoint("TOPRIGHT",-45,-5)
 	OHF.FollowerStatusInfo:SetText("")
+	for _,mission in pairs(addon:GetMissionData()) do
+		addon:GetSelectedParty(mission.missionID)
+	end
 	self:MainOnShow()
+	addon:UpdateStop()
 end
 function module:MainOnShow()
-	addon:Print("onshow")
-	self:RawHook(OHFMissions,"Update","OnUpdate",true)
+--@debug@
+	addon:Print("OnShow")
+--@end-debug@
+	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
 	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
 	addon:RefreshFollowerStatus()
@@ -352,7 +380,7 @@ end
 function module:MainOnHide()
 	addon:Print("OnHide")
 	self:Unhook(OHFMissions,"UpdateMissions")
-	self:Unhook(OHFMissions,"Update")
+	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")	
 end
 function module:AdjustPosition(frame)
@@ -613,10 +641,7 @@ function module:AdjustMissionTooltip(this,...)
 		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
-	local class=addon:Reward2Class(this.info)
-	if class=="Artifact" then 
-		tip:AddLine(L["Artifact shown value is BEFORE knowledge multiplier"],C.Artifact())
-	end
+
 	local party=addon:GetMissionParties(missionID)
 	local key=parties[missionID]
 	if party then
