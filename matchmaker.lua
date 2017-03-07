@@ -98,11 +98,11 @@ function addon:GetDebug()
 	return debug
 end
 function addon:PushDebug(missionID,text,...)
+	if true then return end
 	if not viragdone and ViragDevTool_AddData then
 		ViragDevTool_AddData(debug,"OHC Debug")
 		viragdone=true
 	end
-	if not addon.kDebug then return end
 	if text==nil then
 		wipe(debug[missionID])
 		return
@@ -443,10 +443,14 @@ function partyManager:Match()
 		addon:PushDebug(missionID,format("Outer loop %d",i),champs[i])
 --@end-debug@
 		for x,tuple in pairs(champs[i]) do
+--@debug@
 			addon:PushDebug(missionID,format("Inner loop %d",x,tuple))
+--@end-debug@
 			if async then holdEvents() end
 			local f1,f2,f3=strsplit(',',tuple)
+--@debug@
 			addon:PushDebug(missionID,format("Checking tuple [%d][%d] %s",i,x,tuple),f1,addon:GetFollowerName(f1),f2,addon:GetFollowerName(f2),f3,addon:GetFollowerName(f3))
+--@end-debug@
 			f1=empty(f1) and nil or f1
 			f2=empty(f2) and nil or f2
 			f3=empty(f3) and nil or f3
@@ -579,6 +583,9 @@ function addon:ReFillParties()
 	for missionID,_ in pairs(addon:GetMissionData()) do
 		self:GetMissionParties(missionID):Match()
 	end
+end
+function module:ProfileStats()
+	addon:LoadProfileData(partyManager,"Matchmaker")
 end
 --@debug@
 function addon:SetDebug(id)
