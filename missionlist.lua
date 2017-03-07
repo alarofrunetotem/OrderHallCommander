@@ -551,7 +551,6 @@ function module:AddThreats(frame,threats,party,missionID)
          end
 		end
    end
---@debug@
    tinsert(mechanics,false) -- separator
    local r,n,i=addon:GetResources()
    local baseCost, cost = party.baseCost or 0 ,party.cost or 0
@@ -580,7 +579,6 @@ function module:AddThreats(frame,threats,party,missionID)
    if party.hasBonusLootNegativeEffect then
    	tinsert(mechanics,new({icon=lootIcon,color="red",name=LOOT,description=nobonusloot}))
    end
---@end-debug@
 	threats:AddIcons(mechanics,biases)
 	threats.Cost:Show()
 	threats.Cost:SetFormattedText(addon.resourceFormat,cost)
