@@ -86,27 +86,6 @@ end
 function addon:MAXQLEVEL()
 	return addon:MAXLEVEL()+addon:MAXQUALITY()
 end
-function addon.resolve(frame) 
-	local name
-	if type(frame)=="table" and frame.GetName then
-		name=frame:GetName()
-		if not name then
-			local parent=frame:GetParent()
-			if not parent then return "UIParent" end
-			for k,v in pairs(parent) do
-				if v==frame then
-					name=resolve(parent) .. '.'..k
-					return name
-				end
-			end
-		else
-			return name
-		end
-		_G['UNK_'..ctr]=frame
-		return 'UNK_'..ctr
-	end
-	return "unk"
-end
 function addon.colors(c1,c2)
 	return C[c1].r,C[c1].g,C[c1].b,C[c2].r,C[c2].g,C[c2].b
 end

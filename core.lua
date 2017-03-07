@@ -3,6 +3,7 @@ local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line
 print('Loaded',__FILE__)
 --@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
+local px=print
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
@@ -299,6 +300,7 @@ local function Reward2Class(self,mission)
 end
 function addon:Reward2Class(mission)
 	local missionID=type(mission)=="table" and mission.missionID or mission
+	if not missionID then return "generic",0 end
 	local cached=rewardCache[missionID]
 	if cached then return cached.class,cached.value end
 	local class,value=Reward2Class(self,mission)
@@ -306,7 +308,6 @@ function addon:Reward2Class(mission)
 	return class,value
 end	
 
---@debug@
 local events={}
 function addon:Trace(frame, method)
 	if true then return end
@@ -365,15 +366,139 @@ local function wrap(obj,func)
 		return r1,r2,r3,r4,r5,r6,r7,r8,r9
 	end
 end
-function addon:HighDebug()
-	for _,module in self:IterateModules() do
-		for name,func in pairs(module) do
-			if type(func)=="function" then wrap(module,name) end
+local profile={}
+local min=5
+function addon:LoadProfileData(obj,objname)
+	for name,func in pairs(obj) do
+		if type(func)=="function" then
+			local total,times=GetFunctionCPUUsage(func,true)
+			if times >= min then
+				local average=total/(times>0 and times or 1)
+				profile[format("%06d.%s:%s",999999-average*1000,objname,name)]={total=total,times=times,average=average}
+			end
 		end
 	end
-	for name,func in pairs(addon) do
-		if type(func)=="function" then wrap(addon,name) end
+end
+function addon:ProfileStats(newmin)
+	if newmin then min = newmin end
+	wipe(profile)
+	local profiling=GetCVarBool("scriptProfile")
+	if not profiling then
+		setCVar("scriptProfile",true)
+		ReloadUI()
 	end
-end	
+	for name,module in self:IterateModules() do
+		self:LoadProfileData(module,name)
+		if module.ProfileStats then
+			module:ProfileStats()
+		end
+	end
+	self:LoadProfileData(self,"MAIN")
+	if ViragDevTool_AddData then
+		ViragDevTool_AddData(profile,"OHC_PROFILE")
+	end
+end
+function addon:Resolve(frame) 
+	local name
+	if type(frame)=="table" and frame.GetName then
+		name=frame:GetName()
+		if not name then
+			local parent=frame:GetParent()
+			if not parent then return "UIParent" end
+			for k,v in pairs(parent) do
+				if v==frame then
+					name=self:Resolve(parent) .. '.'..k
+					return name
+				end
+			end
+			return tostring(frame)
+		else
+			return name
+		end
+	end
+	return "unk"
+end
+local stopper=addon:NewModule("stopper","AceHook-3.0")
+local nop=function() end
+local function stopUpdate(frame)
+   if frame.GetScript then
+      local func=frame:GetScript("OnUpdate")
+      if func then
+      	px(addon:Resolve(frame))
+          stopper:RawHookScript(frame,"OnUpdate",nop)
+      end
+   end
+   local pool={frame:GetChildren()}
+   for i=1,#pool do
+      if stopUpdate(pool[i]) then
+         return true
+      end
+   end
+end
+local frames={
+OHF.MapTab,
+OHF.MapTab.ScrollContainer,
+OrderHallMissionFrameMissions,
+OHF.MissionTab.ZoneSupportMissionPage,
+OHF.MissionTab.MissionPage,
+OHF.MissionTab.MissionPage.Stage,
+OHF.FollowerTab.ModelCluster.Child.Model1,
+OHF.FollowerTab.ModelCluster.Child.Model2,
+OHF.FollowerTab.ModelCluster.Child.Model3,
+OHF.FollowerTab.ModelCluster.Child.Model4,
+OHF.FollowerTab.ModelCluster.Child.Model5,
+}
+local framenames={
+"OHF.MapTab",
+"OHF.MapTab.ScrollContainer",
+"OrderHallMissionFrameMissions",
+"OHF.MissionTab.ZoneSupportMissionPage",
+"OHF.MissionTab.MissionPage",
+"OHF.MissionTab.MissionPage.Stage",
+"OHF.FollowerTab.ModelCluster.Child.Model1",
+"OHF.FollowerTab.ModelCluster.Child.Model2",
+"OHF.FollowerTab.ModelCluster.Child.Model3",
+"OHF.FollowerTab.ModelCluster.Child.Model4",
+"OHF.FollowerTab.ModelCluster.Child.Model5",
+}
+
+function addon:UpdateStart()
+	stopper:UnhookAll()
+end
+local solong=0
+local collectgarbage=collectgarbage
+local function GarrisonMissionListMixin_OnUpdate(self,elapsed)
+	collectgarbage("step",100)
+	solong=solong+elapsed
+	if solong < (self.showInProgress and 0.9 or 10) then
+		return
+	end
+	solong=0
+	px("Updating")
+		
+	if (self.showInProgress) then
+		C_Garrison.GetInProgressMissions(self.inProgressMissions, self:GetMissionFrame().followerTypeID);
+		self.Tab2:SetText(WINTERGRASP_IN_PROGRESS.." - "..#self.inProgressMissions)
+		self:Update();
+	else
+		local timeNow = GetTime();
+		for i = 1, #self.availableMissions do
+			if ( self.availableMissions[i].offerEndTime and self.availableMissions[i].offerEndTime <= timeNow ) then
+				self:UpdateMissions();
+				break;
+			end
+		end
+	end
+	self:UpdateCombatAllyMission();
+end
+function addon:UpdateStop(n)
+	n=n or 3
+	--stopUpdate(OrderHallMissionFrame)
+--@debug@
+	self:Print(framenames[n],frames[n])
+--@end-debug@	
+	stopper:UnhookAll()
+	stopper:RawHookScript(frames[n],"OnUpdate",GarrisonMissionListMixin.OnUpdate)
+end
+
 _G.OHC=addon
---@end-debug@
