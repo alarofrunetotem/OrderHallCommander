@@ -135,7 +135,7 @@ local function startTimer(delay,event,...)
 end
 function module:MissionsCleanup()
 	local f=OHF
-	self:Events(false)
+	self:UnregisterAllEvents()
 	stopTimer()
 	f.MissionTab.MissionList.CompleteDialog:Hide()
 	f.MissionComplete:Hide()
@@ -165,12 +165,12 @@ function module:EventsOn()
 	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","MissionAutoComplete")		
 end
 function module:CloseReport()
-	self:UnregisterAllEvents()
 	addon:ResetParties()
 	addon:ScheduleTimer("HardRefreshMissions",0.1)
 	if report then pcall(report.Close,report) report=nil end
 	print(pcall(OHF.CloseMissionComplete(OHF)))
 end
+local UnitLevel,UnitXP,UnitXPMax=UnitLevel,UnitXP,UnitXPMax
 local function fillMyStatus(tab)
 	tab.level,tab.xp,tab.xpMax=UnitLevel("player") or 0,UnitXP('player') or 0,UnitXPMax('player') or 0
 end
@@ -180,10 +180,6 @@ end
 function module:MissionComplete(this,button,skiprescheck)
 	missions=G.GetCompleteMissions(followerType)
 	fillMyStatus(mebefore)	
---@debug@
-	addon:PushEvent("Starting autocomplete")
---@end-debug@
-
 	if (missions and #missions > 0) then
 		this:SetEnabled(false)
 		OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(false) -- Disabling standard Blizzard Completion
@@ -355,27 +351,12 @@ function module:MissionAutoComplete(event,...)
 				report:AddMissionButton(currentMission,currentMission.followers,currentMission.successChance,"report")
 			end
 			if (step==0) then
---@debug@
-				print("Fired MarkMissionCompleter",currentMission.missionID)
-				addon:PushEvent("MarkMissionComplete",currentMission.missionID)
---@end-debug@
-
 				G.MarkMissionComplete(currentMission.missionID)
 				startTimer(2)
 			elseif (step==1) then
---@debug@
-				print("Fired MissionBonusRoll",currentMission.missionID)
-				addon:PushEvent("MissionBonusRoll",currentMission.missionID)
---@end-debug@
-
 				G.MissionBonusRoll(currentMission.missionID)
 				startTimer(2)
 			elseif (step>=2) then
---@debug@
-				print("Advanced to next mission  last:",currentMission.missionID,step)
-				addon:PushEvent("Next mission last:",currentMission.missionID)
---@end-debug@
-
 				self:GetMissionResults(step,currentMission)
 				--addon:RefreshFollowerStatus()
 				--shipyard:RefreshFollowerStatus()
@@ -386,10 +367,6 @@ function module:MissionAutoComplete(event,...)
 			end
 			currentMission.state=step
 		else
---@debug@
-			addon:PushEvent("Building final report")
---@end-debug@
-
 			report:AddButton(L["Building Final report"])
 			startTimer(1,"LOOT")
 		end
