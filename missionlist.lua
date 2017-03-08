@@ -378,7 +378,9 @@ function module:MainOnShow()
 	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 end
 function module:MainOnHide()
+--@debug@
 	addon:Print("OnHide")
+--@end-debug@
 	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")	
