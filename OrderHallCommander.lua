@@ -74,7 +74,8 @@ local print=function() end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
-local MISSING=ITEM_MISSING:format('|cff'..C.Red.c)..'|r'
+local MISSING=ITEM_MISSING:format(""):gsub(' ','')
+MISSING=C(MISSING:sub(1,1):upper() .. MISSING:sub(2),"Red")
 local ctr=0
 -- Sometimes matchmakimng starts before these are defined, so I put here a sensible default (actually, this values are constans)
 function addon:MAXLEVEL()
