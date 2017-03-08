@@ -265,8 +265,6 @@ local sort=table.sort
 function module:SortMissions()
 --@debug@
 	addon:Print(C("SortMissions","Orange"))
-	addon:Print(debugstack())
-	
 --@end-debug@
 	if OHFMissions.inProgress then
 		pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
@@ -367,7 +365,10 @@ function module:InitialSetup(this)
 		addon:GetSelectedParty(mission.missionID)
 	end
 	self:MainOnShow()
-	addon:UpdateStop()
+	-- For some strange reason, we need this to avoid leaking memory
+	OrderHallMissionFrameMissions:SetScript("OnUpdate",nil)	
+	OrderHallMissionFrameMissions:SetScript("OnUpdate",GarrisonMissionListMixin.OnUpdate)	
+	--addon:UpdateStop()
 end
 function module:MainOnShow()
 --@debug@
@@ -391,10 +392,11 @@ function module:MainOnHide()
 	for _,m in addon:IterateModules() do
 		if m.EventsOff then
 			m:EventsOff()
-		else
+		elseif m.UnregisterAllEvents then
 			m:UnregisterAllEvents()
 		end
-	end	self:Unhook(OHFMissions,"UpdateMissions")
+	end	
+	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")	
 end
