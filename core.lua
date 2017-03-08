@@ -384,7 +384,7 @@ function addon:ProfileStats(newmin)
 	wipe(profile)
 	local profiling=GetCVarBool("scriptProfile")
 	if not profiling then
-		setCVar("scriptProfile",true)
+		SetCVar("scriptProfile",true)
 		ReloadUI()
 	end
 	for name,module in self:IterateModules() do

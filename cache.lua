@@ -63,7 +63,7 @@ local print=function() end
 local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
 local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug=
-		pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug
+		pairs,math,wipe,tinsert,GetTime,next,ipairs,type,_G.OHCDebug
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
@@ -84,6 +84,11 @@ busyUntil=function(followerID) return GetTime() + (G.GetFollowerMissionTimeLeftS
 missions={
 }
 }--- Caches
+local nob=setmetatable({},{__index=function() return 0 end,__call=function() end})
+if not OHCDebug then
+	OHCDebug=setmetatable({},{__index=nob}) 
+end
+
 -- 
 local currency
 local currencyName
@@ -103,7 +108,6 @@ local permutations={
 }
 local methods={available='GetAvailableMissions',inProgress='GetInProgressMissions',completed='GetCompleteMissions'}
 local catPool={}
-local troopTypes={}
 local function fillCachedMission(mission,time)
 	if not time then time=GetTime() end
 	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
@@ -471,18 +475,6 @@ local function alertSetup(frame,name,...)
 	frame.Title:SetText(name)
 	return frame
 end
-function module:RefreshTroopTypes()
-	wipe(troopTypes)
-	local t=new()
-	for i,v in pairs(getCachedFollowers()) do
-		if v.isTroop then
-			t[v.classSpec]=true
-		end
-	end
-	for i,_ in pairs(t) do
-		tinsert(troopTypes,i)
-	end
-end
 local TroopsHeader
 function module:GetTroopsFrame()
 	if not TroopsHeader then
@@ -509,7 +501,6 @@ function module:GetTroopsFrame()
 end
 
 function module:ParseFollowers()
-	self:RefreshTroopTypes()
 	categoryInfo = G.GetClassSpecCategoryInfo(followerType)
 	if empty(categoryInfo) then
 		G.RequestClassSpecCategoryInfo(followerType)
@@ -587,6 +578,7 @@ function module:Refresh(event,...)
 --@debug@
 	OHCDebug.CacheRefresh:SetText(event:sub(10))
 --@end-debug@
+	addon:Print(event,...)
 	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
 		resources = select(2,GetCurrencyInfo(currency))		
@@ -609,6 +601,12 @@ function module:Refresh(event,...)
 	end
 end
 function module:OnInitialized()
+	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
+	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
+	addon.resourceFormat=COSTS_LABEL .." %d"
+	self:ParseFollowers()
+end
+function module:Events()
 	self:RegisterEvent("CURRENCY_DISPLAY_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
@@ -622,11 +620,10 @@ function module:OnInitialized()
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")	
 	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","Refresh")	
 	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")	
-	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
-	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
-	addon.resourceFormat=COSTS_LABEL .." %d"
-	self:ParseFollowers()
-	
+end
+function module:EventsOff()
+	self:UnregisterAllEvents()
+	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")	
 end
 ---- Public Interface
 -- 
@@ -689,7 +686,6 @@ end
 function addon:RebuildFollowerCache()
 	wipe(cachedFollowers)
 	getCachedFollowers()
-	module:RefreshTroopTypes()
 end
 function addon:RebuildAllCaches()
 	self:RebuildFollowerCache()

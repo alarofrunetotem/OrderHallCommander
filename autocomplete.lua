@@ -156,19 +156,16 @@ GARRISON_MISSION_BONUS_ROLL_COMPLETE,missionID,true (standard loot)
 GARRISON_MISSION_LIST_UPDATE,4(followwertype)
 GARRISON_MISSION_BONUS_ROLL_LOOT,139611(itemid) (bonus loot)
 --]]
-function module:Events(on)
-	if (on) then
-		self:RegisterEvent("GARRISON_MISSION_BONUS_ROLL_LOOT","MissionAutoComplete")
-		self:RegisterEvent("GARRISON_MISSION_BONUS_ROLL_COMPLETE","MissionAutoComplete")
-		self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","MissionAutoComplete")
-		self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","MissionAutoComplete")
-		self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","MissionAutoComplete")
-		self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","MissionAutoComplete")		
-	else
-		self:UnregisterAllEvents()
-	end
+function module:EventsOn()
+	self:RegisterEvent("GARRISON_MISSION_BONUS_ROLL_LOOT","MissionAutoComplete")
+	self:RegisterEvent("GARRISON_MISSION_BONUS_ROLL_COMPLETE","MissionAutoComplete")
+	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","MissionAutoComplete")
+	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","MissionAutoComplete")
+	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","MissionAutoComplete")
+	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","MissionAutoComplete")		
 end
 function module:CloseReport()
+	self:UnregisterAllEvents()
 	addon:ResetParties()
 	addon:ScheduleTimer("HardRefreshMissions",0.1)
 	if report then pcall(report.Close,report) report=nil end
@@ -252,7 +249,7 @@ function module:MissionComplete(this,button,skiprescheck)
 		report=self:GenerateMissionCompleteList("Missions' results",OHF)
 		report:SetUserData('missions',missions)
 		report:SetUserData('current',1)
-		self:Events(true)
+		self:EventsOn()
 		self:MissionAutoComplete("INIT")
 		this:SetEnabled(true)
 	end

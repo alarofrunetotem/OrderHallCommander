@@ -133,7 +133,6 @@ function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:RegisterForMenu("mission","SORTMISSION")
 	self:LoadButtons()
-	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
 	--@debug@
@@ -169,6 +168,9 @@ function addon:Apply(flag,value)
 end
 function module:Print(...)
 	print(...)
+end
+function module:Events()
+	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
 end
 function module:LoadButtons(...)
 	buttonlist=OHFMissions.listScroll.buttons
@@ -232,7 +234,7 @@ function module:OnUpdateMissions()
 	addon.lastChange=GetTime()
 	self:SecureHook("Garrison_SortMissions","SortMissions")
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
-	self:Unhook("Garrison_SortMissions","SortMissions")
+	self:Unhook("Garrison_SortMissions")
 --@debug@
 	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
 --@end-debug@	
@@ -263,6 +265,8 @@ local sort=table.sort
 function module:SortMissions()
 --@debug@
 	addon:Print(C("SortMissions","Orange"))
+	addon:Print(debugstack())
+	
 --@end-debug@
 	if OHFMissions.inProgress then
 		pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
@@ -369,6 +373,9 @@ function module:MainOnShow()
 --@debug@
 	addon:Print("OnShow")
 --@end-debug@
+	for _,m in addon:IterateModules() do
+		if m.Events then m:Events() end
+	end
 	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
 	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
@@ -381,7 +388,13 @@ function module:MainOnHide()
 --@debug@
 	addon:Print("OnHide")
 --@end-debug@
-	self:Unhook(OHFMissions,"UpdateMissions")
+	for _,m in addon:IterateModules() do
+		if m.EventsOff then
+			m:EventsOff()
+		else
+			m:UnregisterAllEvents()
+		end
+	end	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")	
 end

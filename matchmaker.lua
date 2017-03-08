@@ -522,6 +522,8 @@ function module:OnInitialized()
 	addon:AddBoolean("IGNOREBUSY",false,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
 	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'MAXCHAMP','USEALLY','IGNOREBUSY','IGNOREINACTIVE')
+end
+function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
@@ -531,7 +533,7 @@ function module:OnInitialized()
 end
 function module:Refresh(event)
 	self:ResetParties()
-	addon:GetMissionlistModule():SortMissions()
+	addon.lastChanged=GetTime()
 	return addon:RefreshMissions()
 end
 function module:ResetParties()

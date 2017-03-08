@@ -77,9 +77,6 @@ function module:OnInitialized()
 	u:Show()
 	--addon:SetBackdrop(u,C:Green())
 	self:SecureHook("GarrisonMission_SetFollowerModel","RefreshUpgrades")
-	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
-	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","GARRISON_FOLLOWER_UPGRADED")
-	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","GARRISON_FOLLOWER_UPGRADED")
 	UpgradeFrame:EnableMouse(true)
 	--@debug@
 	self:RawHookScript(UpgradeFrame,"OnEnter","ShowFollowerData")
@@ -87,6 +84,11 @@ function module:OnInitialized()
 	debugInfo=u:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	debugInfo:SetPoint("TOPLEFT",70,20)
 --@end-debug@	
+end
+function module:Events()
+	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
+	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","GARRISON_FOLLOWER_UPGRADED")
+	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","GARRISON_FOLLOWER_UPGRADED")
 end
 function module:ShowFollowerData(this)
 	local tip=GameTooltip
@@ -96,6 +98,9 @@ function module:ShowFollowerData(this)
 	tip:Show()
 end
 function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
+	if followerType ~= LE_FOLLOWER_TYPE_GARRISON_7_0 then
+		return
+	end
 	if OHFFollowerTab:IsVisible() then
 		self:ScheduleTimer("RefreshUpgrades",0.3)
 	end
