@@ -102,6 +102,10 @@ local sorters={
 			local p=addon:GetSelectedParty(mission.missionID)
 			return p.totalXP or 0 
 		end,
+		Garrison_SortMissions_HourlyXp=function(mission)
+			local p=addon:GetSelectedParty(mission.missionID)
+			return (p.totalXP or 0) * 60 /  p.timeseconds or  mission.durationSeconds or 1000000
+		end,
 		Garrison_SortMissions_Duration=function(mission) 
 			local p=addon:GetSelectedParty(mission.missionID)
 			return p.timeseconds or  mission.durationSeconds or 0
@@ -127,6 +131,7 @@ function module:OnInitialized()
 		Garrison_SortMissions_Level=L["Level"],
 		Garrison_SortMissions_Age=L["Expiration Time"],
 		Garrison_SortMissions_Xp=L["Global approx. xp reward"],
+		Garrison_SortMissions_HourlyXp=L["Global approx. xp reward per hour"],
 		Garrison_SortMissions_Duration=L["Duration Time"],
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
