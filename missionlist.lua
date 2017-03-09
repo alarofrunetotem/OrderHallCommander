@@ -333,7 +333,11 @@ function module:Menu()
 	end 
 	self.Menu=function() addon:Print("Should not call this again") end
 end
-
+local stopper=addon:NewModule("stopper","AceHook-3.0")
+function addon:UpdateStop(n)
+	stopper:UnhookAll()
+	stopper:RawHookScript(OrderHallMissionFrameMissions,"OnUpdate",GarrisonMissionListMixin.OnUpdate)
+end
 function module:InitialSetup(this)
 	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
 	if type(addon.db.global.warn02_seen)~="number" then	addon.db.global.warn02_seen =0 end
@@ -366,9 +370,7 @@ function module:InitialSetup(this)
 	end
 	self:MainOnShow()
 	-- For some strange reason, we need this to avoid leaking memory
-	OrderHallMissionFrameMissions:SetScript("OnUpdate",nil)	
-	OrderHallMissionFrameMissions:SetScript("OnUpdate",GarrisonMissionListMixin.OnUpdate)	
-	--addon:UpdateStop()
+	addon:UpdateStop()
 end
 function module:MainOnShow()
 --@debug@
@@ -378,6 +380,7 @@ function module:MainOnShow()
 		if m.Events then m:Events() end
 	end
 	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
+	addon:GetResources(true)
 	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
 	addon:RefreshFollowerStatus()
