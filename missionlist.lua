@@ -83,31 +83,31 @@ local spinners=setmetatable({}, {__mode = "v"})
 local parties=setmetatable({}, {__mode = "v"})
 local buttonlist={}
 local oGarrison_SortMissions=Garrison_SortMissions
-local function nop() end
+local function nop() return 0 end
 local Current_Sorter
+local sortKeys={}
 local sorters={
 		Garrison_SortMissions_Original=nop,
-		Garrison_SortMissions_Chance=function(a,b) 
-			local aparty=addon:GetMissionParties(a.missionID) 
-			local bparty=addon:GetMissionParties(b.missionID)
-			return aparty.bestChance>bparty.bestChance 
+		Garrison_SortMissions_Chance=function(mission)
+			local p=addon:GetSelectedParty(mission.missionID)
+			return 1000 - (p.perc or 0) 
 		end,
-		Garrison_SortMissions_Level=function(a,b) return a.level==b.level and a.iLevel>b.iLevel or a.level >b.level end,
-		Garrison_SortMissions_Age=function(a,b) return (a.offerEndTime or 0) < (b.offerEndTime or 0) end,
-		Garrison_SortMissions_Xp=function(a,b) 
-			local aparty=addon:GetMissionParties(a.missionID) 
-			local bparty=addon:GetMissionParties(b.missionID)
-			return aparty.totalXP>bparty.totalXP 
+		Garrison_SortMissions_Level=function(mission) 
+			return 10000 -(mission.level * 1000 + (mission.iLevel or 0))
 		end,
-		Garrison_SortMissions_Duration=function(a,b) 
-			local aparty=addon:GetMissionParties(a.missionID) 
-			local bparty=addon:GetMissionParties(b.missionID)
-			return aparty.bestTimeseconds<bparty.bestTimeseconds 
+		Garrison_SortMissions_Age=function(mission) 
+			return mission.offerEndTime
 		end,
-		Garrison_SortMissions_Class=function(a,b)
-			local a=addon:GetMissionData(a.missionID) 
-			local b=addon:GetMissionData(b.missionID)
-			return (a.missionSort or 0)>(b.missionSort or 0)
+		Garrison_SortMissions_Xp=function(mission)
+			local p=addon:GetSelectedParty(mission.missionID)
+			return p.totalXP or 0 
+		end,
+		Garrison_SortMissions_Duration=function(mission) 
+			local p=addon:GetSelectedParty(mission.missionID)
+			return p.timeseconds or  mission.durationSeconds or 0
+		end,
+		Garrison_SortMissions_Class=function(mission)
+			return select(3,addon:Reward2Class(mission))
 		end,
 }
 --@debug@
@@ -257,19 +257,30 @@ function module:OnSingleUpdate(frame)
 	end
 	
 end
-local function sortfunc1(a,b)
+local function sortfuncProgress(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
+end
+local function sortfuncAvailable(a,b)
+	return sortKeys[a.missionID] < sortKeys[b.missionID]
 end
 local pcall=pcall
 local sort=table.sort
 function module:SortMissions()
 --@debug@
-	addon:Print(C("SortMissions","Orange"))
+	addon:Print(C("SortMissions","Orange"),Current_Sorter)
 --@end-debug@
 	if OHFMissions.inProgress then
-		pcall(sort,OHFMissions.inProgressMissions,sortfunc1)
+		pcall(sort,OHFMissions.inProgressMissions,sortfuncProgress)
 	else
-		pcall(sort,OHFMissions.availableMissions,sorters[Current_Sorter])
+		if Current_Sorter=="Garrison_SortMissions_Original" then return end
+		local f=sorters[Current_Sorter]
+		for _,mission in pairs(OHFMissions.availableMissions) do
+			local rc,result =pcall(f,mission)
+			sortKeys[mission.missionID]=rc and result or 0
+		end
+		sort(OHFMissions.availableMissions,sortfuncAvailable)
+		
+		ddump(sortKeys)
 	end
 end
 function addon:ApplySORTMISSION(value)
@@ -601,6 +612,7 @@ function module:AddThreats(frame,threats,party,missionID)
    end
 	threats:AddIcons(mechanics,biases)
 	threats.Cost:Show()
+	threats.Cost:SetWidth(0)
 	threats.Cost:SetFormattedText(addon.resourceFormat,cost)
    local color=goodColor(cost>=r)
 	if cost>r then
@@ -610,7 +622,14 @@ function module:AddThreats(frame,threats,party,missionID)
 	end
 	threats.Cost:ClearAllPoints()
 	threats.Cost:SetPoint("LEFT",frame.Summary,"RIGHT",5,0)
-	threats.HighCost:Hide()
+	if party.totalXP and party.totalXP > 0 then
+		threats.XP:SetFormattedText(XP_GAIN,party.totalXP or 0)
+		threats.XP:ClearAllPoints()
+		threats.XP:SetPoint("LEFT",threats.Cost,"RIGHT",5,0)
+		threats.XP:Show()
+	else
+		threats.XP:Hide()
+	end		
    del(mechanics)
    del(counters)
    del(biases)
