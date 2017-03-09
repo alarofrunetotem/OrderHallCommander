@@ -61,7 +61,7 @@ local print=function() end
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 local Dialog = LibStub("LibDialog-1.0")
-
+local missionNonFilled=true
 local wipe=wipe
 local GetTime=GetTime
 local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
@@ -90,21 +90,21 @@ local sorters={
 		Garrison_SortMissions_Original=nop,
 		Garrison_SortMissions_Chance=function(mission)
 			local p=addon:GetSelectedParty(mission.missionID)
-			return 1000 - (p.perc or 0) 
+			return -p.perc or 0 
 		end,
 		Garrison_SortMissions_Level=function(mission) 
-			return 10000 -(mission.level * 1000 + (mission.iLevel or 0))
+			return -mission.level * 1000 - (mission.iLevel or 0)
 		end,
 		Garrison_SortMissions_Age=function(mission) 
 			return mission.offerEndTime
 		end,
 		Garrison_SortMissions_Xp=function(mission)
 			local p=addon:GetSelectedParty(mission.missionID)
-			return p.totalXP or 0 
+			return -p.totalXP or 0 
 		end,
 		Garrison_SortMissions_HourlyXp=function(mission)
 			local p=addon:GetSelectedParty(mission.missionID)
-			return (p.totalXP or 0) * 60 /  p.timeseconds or  mission.durationSeconds or 1000000
+			return (-p.totalXP or 0) * 60 /  (p.timeseconds or  mission.durationSeconds or 36000)
 		end,
 		Garrison_SortMissions_Duration=function(mission) 
 			local p=addon:GetSelectedParty(mission.missionID)
@@ -213,15 +213,6 @@ function module:printLink(this)
 		Dialog:Spawn("OHCUrlCopy", tb)		
 	end
 end
-local UpdateShow=true
---- Paints scollframe buttons
--- uses in progress or available missions based on .showInProgress flag
--- DO NOT Sort missions
--- Only paints visible buttons
-function module:OnUpdate()
-	UpdateShow = OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible()	
-	self.hooks[OHFMissions].Update(OHFMissions)
-end
 
 --- Full mission panel refresh.
 -- Reloads cached mission inProgressMissions and availableMissions.
@@ -237,30 +228,40 @@ function module:OnUpdateMissions()
 	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
 	addon.lastChange=GetTime()
+	missionNonFilled=true
 	self:SecureHook("Garrison_SortMissions","SortMissions")
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
 	self:Unhook("Garrison_SortMissions")
+	if not OHFMissions.inProgress and missionNonFilled then
+		local totChamps,totTroops=addon:GetFollowerCounts()
+		if addon:GetNumber("MAXCHAMP") + totTroops < 3 then
+			addon:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
+		else
+			addon:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
+		end
+	else
+		addon:NoMartiniNoParty()
+	end
 --@debug@
 	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
 --@end-debug@	
 end
 
 function module:OnSingleUpdate(frame)
-	if UpdateShow then
+	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() then
 		self:AdjustPosition(frame)
 		if frame.info.missionID ~= missionIDS[frame] then
 			
 			self:AdjustMissionButton(frame)
 			missionIDS[frame]=frame.info.missionID
 		end
-	end
-	local class,value=addon:GetMissionData(frame.info.missionID,'class')
-	if class and class=="Artifact" then
-		local rw=frame.Rewards[1]
-		rw.Quantity:SetText(value .. "*")
-		rw.Quantity:Show()
-	end
-	
+		local class,value=addon:GetMissionData(frame.info.missionID,'class')
+		if class and class=="Artifact" then
+			local rw=frame.Rewards[1]
+			rw.Quantity:SetText(value .. "*")
+			rw.Quantity:Show()
+		end
+	end	
 end
 local function sortfuncProgress(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
@@ -320,6 +321,27 @@ local function CloseMenu()
 	button:Show()
 	menu:Hide()		
 end
+local warner
+function addon:NoMartiniNoParty(text)
+	if not warner then
+		warner=CreateFrame("Frame","OHCWarner",OHFMissions)
+		warner.label=warner:CreateFontString(nil,"OVERLAY","GameFontNormalHuge3Outline")
+		warner.label:SetTextColor(C:Orange())
+		warner:SetAllPoints()
+		warner.label:SetHeight(100)
+		warner.label:SetPoint("CENTER")
+		warner:SetFrameStrata("TOOLTIP")
+		addon:SetBackdrop(warner,0,0,0,0.7)
+	end
+	local label=warner.label
+	if text then
+		label:SetText(text)
+		warner:Show()
+	else
+		warner:Hide()
+	end
+end
+	
 function module:Menu()
 	local previous
 --@alpha@	
@@ -524,6 +546,8 @@ function module:AddMembers(frame)
 			if members.Champions[i]:SetFollower(party:Follower(i),true) then
 				stats.Chance:SetTextColor(C.Grey())
 			end
+			addon:Print(missionID,party:Follower(i).name)
+			missionNonFilled=false
 		else
 			members.Champions[i]:SetEmpty()
 			stats.Chance:SetTextColor(C.Grey())
