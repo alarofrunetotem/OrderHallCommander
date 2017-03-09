@@ -176,7 +176,7 @@ function partyManager:Fail(reason,...)
 	return false,reason
 end	 
 
-function partyManager:SatisfyCondition(candidate,key,table)
+function partyManager:SatisfyCondition(candidate,key)
 	local missionID=self.missionID
 --@debug@
 	addon:PushDebug(missionID,"SatisfyCondition",type(key),key,candidate[key])
