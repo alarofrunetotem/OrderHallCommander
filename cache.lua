@@ -309,7 +309,6 @@ function module:GetFollowerData(followerID,field,defaultValue)
 		return pointer[field]
 	else
 		if field=="qLevel" then
-			print(followerID,pointer)
 			return pointer.level+(pointer.level==MAX_LEVEL and pointer.quality or 0)
 		elseif field=="busyUntil" then
 			return GetTime() + (G.GetFollowerMissionTimeLeftSeconds(followerID) or 0)
