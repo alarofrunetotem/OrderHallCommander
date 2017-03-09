@@ -307,51 +307,8 @@ function addon:Reward2Class(mission)
 	rewardCache[missionID]={class=class,value=value}
 	return class,value
 end	
+--@do-not-package@
 
-local events={}
-function addon:Trace(frame, method)
-	if true then return end
-	method=method or "OnShow"
-	if type(frame)=="string" then frame=_G[frame] end
-	if not frame then return end
-	if not self:IsHooked(frame,method) and frame:GetObjectType()~="GameTooltip" then
-		self:HookScript(frame,method,function(...)
-			local name=resolve(frame)
-			tinsert(dbOHCperChar,resolve(frame:GetParent())..'/'..name)
-			print(("OHC [%s] %s:%s %s %d"):format(frame:GetObjectType(),name,method,frame:GetFrameStrata(),frame:GetFrameLevel()))
-			end
-		)
-	end
-end
-local index=0
-function addon:ShowGarrisonEvents(this,event,...)
-	if event:find("GARRISON") then
-		if event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
-			local _,_,_,followers=...
-			if type(followers)=="table" then
-				tinsert(dbOHCperChar,followers)			
-			end
-		end
-		index=index+1
-		local key=format("%05d.%s",index,event)
-		events[key]={...}
-		return self:PushEvent("BLIZ"..event,...)
-	end
-end
-function addon:PushEvent(event,...)
-	if not AlarLog then AlarLog={} end
-	if not AlarLog.indexes then AlarLog.indexes={} end
-	if type(AlarLog.indexes[me])~="number" then
-		AlarLog.indexes[me]=0
-	end
-	AlarLog.indexes[me]=AlarLog.indexes[me]+1
-	if not AlarLog[me] then AlarLog[me]={} end
-	AlarLog[me][format("%06d(%07d/%07d)",AlarLog.indexes[me],GetTime()*1000,debugprofilestop())]=event.. " : '" .. strjoin(tostringall("' '",...)) .. "'"
-end
-function addon:DumpEvents()
-	return events
-end
-addon:PushEvent("ADDON_LOADED")
 local gamu=GetAddOnMemoryUsage
 local uamu=UpdateAddOnMemoryUsage
 local redpattern="c|FFFF0000%dM|r"
@@ -418,87 +375,5 @@ function addon:Resolve(frame)
 	end
 	return "unk"
 end
-local stopper=addon:NewModule("stopper","AceHook-3.0")
-local nop=function() end
-local function stopUpdate(frame)
-   if frame.GetScript then
-      local func=frame:GetScript("OnUpdate")
-      if func then
-      	px(addon:Resolve(frame))
-          stopper:RawHookScript(frame,"OnUpdate",nop)
-      end
-   end
-   local pool={frame:GetChildren()}
-   for i=1,#pool do
-      if stopUpdate(pool[i]) then
-         return true
-      end
-   end
-end
-local frames={
-OHF.MapTab,
-OHF.MapTab.ScrollContainer,
-OrderHallMissionFrameMissions,
-OHF.MissionTab.ZoneSupportMissionPage,
-OHF.MissionTab.MissionPage,
-OHF.MissionTab.MissionPage.Stage,
-OHF.FollowerTab.ModelCluster.Child.Model1,
-OHF.FollowerTab.ModelCluster.Child.Model2,
-OHF.FollowerTab.ModelCluster.Child.Model3,
-OHF.FollowerTab.ModelCluster.Child.Model4,
-OHF.FollowerTab.ModelCluster.Child.Model5,
-}
-local framenames={
-"OHF.MapTab",
-"OHF.MapTab.ScrollContainer",
-"OrderHallMissionFrameMissions",
-"OHF.MissionTab.ZoneSupportMissionPage",
-"OHF.MissionTab.MissionPage",
-"OHF.MissionTab.MissionPage.Stage",
-"OHF.FollowerTab.ModelCluster.Child.Model1",
-"OHF.FollowerTab.ModelCluster.Child.Model2",
-"OHF.FollowerTab.ModelCluster.Child.Model3",
-"OHF.FollowerTab.ModelCluster.Child.Model4",
-"OHF.FollowerTab.ModelCluster.Child.Model5",
-}
-
-function addon:UpdateStart()
-	stopper:UnhookAll()
-end
-local solong=0
-local collectgarbage=collectgarbage
-local function GarrisonMissionListMixin_OnUpdate(self,elapsed)
-	collectgarbage("step",100)
-	solong=solong+elapsed
-	if solong < (self.showInProgress and 0.9 or 10) then
-		return
-	end
-	solong=0
-	px("Updating")
-		
-	if (self.showInProgress) then
-		C_Garrison.GetInProgressMissions(self.inProgressMissions, self:GetMissionFrame().followerTypeID);
-		self.Tab2:SetText(WINTERGRASP_IN_PROGRESS.." - "..#self.inProgressMissions)
-		self:Update();
-	else
-		local timeNow = GetTime();
-		for i = 1, #self.availableMissions do
-			if ( self.availableMissions[i].offerEndTime and self.availableMissions[i].offerEndTime <= timeNow ) then
-				self:UpdateMissions();
-				break;
-			end
-		end
-	end
-	self:UpdateCombatAllyMission();
-end
-function addon:UpdateStop(n)
-	n=n or 3
-	--stopUpdate(OrderHallMissionFrame)
---@debug@
-	self:Print(framenames[n],frames[n])
---@end-debug@	
-	stopper:UnhookAll()
-	stopper:RawHookScript(frames[n],"OnUpdate",GarrisonMissionListMixin.OnUpdate)
-end
-
+--@end-do-not-package@
 _G.OHC=addon
