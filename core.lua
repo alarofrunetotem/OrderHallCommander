@@ -302,10 +302,10 @@ function addon:Reward2Class(mission)
 	local missionID=type(mission)=="table" and mission.missionID or mission
 	if not missionID then return "generic",0 end
 	local cached=rewardCache[missionID]
-	if cached then return cached.class,cached.value end
+	if cached then return cached.class,cached.value,classSort[cached.class] or 0 end
 	local class,value=Reward2Class(self,mission)
 	rewardCache[missionID]={class=class,value=value}
-	return class,value
+	return class,value,classSort[class] or 0
 end	
 --@do-not-package@
 
