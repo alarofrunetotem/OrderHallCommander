@@ -309,7 +309,8 @@ function partyManager:GetSelectedParty(key)
 	local candidate=GetSelectedParty(self)
 	self.bestChance=candidate.perc or 0
 	self.bestTimeseconds=candidate.timeseconds or 0
-	self.totalXP=(self.baseXP+self.rewardXP+(candidate.bonusXP or 0))*(candidate.xpGainers or 0)
+	candidate.totalXP=(self.baseXP or 0) + (self.rewardXP or 0)+(candidate.bonusXP or 0)*(candidate.xpGainers or 0)
+	self.totalXP=candidate.totalXP
 	return candidate
 end
 function partyManager:Remove(...)
