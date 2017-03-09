@@ -236,6 +236,8 @@ function module:OnUpdateMissions()
 		local totChamps,totTroops=addon:GetFollowerCounts()
 		if addon:GetNumber("MAXCHAMP") + totTroops < 3 then
 			addon:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
+		elseif totTroops==0 then
+			addon:NoMartiniNoParty(L["You have no troops"])
 		else
 			addon:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
 		end
@@ -250,11 +252,10 @@ end
 function module:OnSingleUpdate(frame)
 	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() then
 		self:AdjustPosition(frame)
-		if frame.info.missionID ~= missionIDS[frame] then
-			
+		--if frame.info.missionID ~= missionIDS[frame] then
 			self:AdjustMissionButton(frame)
 			missionIDS[frame]=frame.info.missionID
-		end
+		--end
 		local class,value=addon:GetMissionData(frame.info.missionID,'class')
 		if class and class=="Artifact" then
 			local rw=frame.Rewards[1]

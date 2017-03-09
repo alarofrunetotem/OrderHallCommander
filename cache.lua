@@ -293,7 +293,8 @@ end
 --
 function module:GetFollowerData(followerID,field,defaultValue)
 	if empty(followerCache) then rebuildFollowerIndex() end 
-	if not followerID then return followerCache or emptyTable end 
+	--if not followerID then return OHFFollowerList.followers or emptyTable end 
+	if not followerID then return OHFFollowerList.followers or emptyTable end 
 	local followerIndex=indexes.followers[followerID]
 	local pointer=followerCache[followerIndex]
 	if not pointer or pointer.followerID~=followerID then
