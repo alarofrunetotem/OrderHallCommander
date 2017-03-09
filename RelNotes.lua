@@ -20,6 +20,7 @@ Fix: All cache error should be gone
 Feature: you can decide if show busy or even inactive followers
 Feature: shift click on reward prints wowhead link in chat
 Feature: added icon to show active bonus and malus in mission buttons
+Feature: added an informative message when the options you checked lead to not being able to fill missions
 ]])
 self:RelNotes(0,2,4,[[
 Fix: lua errors in matchmaker.lua
