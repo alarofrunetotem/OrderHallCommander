@@ -166,9 +166,8 @@ function module:EventsOn()
 end
 function module:CloseReport()
 	addon:ResetParties()
-	addon:ScheduleTimer("HardRefreshMissions",0.1)
 	if report then pcall(report.Close,report) report=nil end
-	print(pcall(OHF.CloseMissionComplete(OHF)))
+	pcall(OHF.CloseMissionComplete,OHF)
 end
 local UnitLevel,UnitXP,UnitXPMax=UnitLevel,UnitXP,UnitXPMax
 local function fillMyStatus(tab)
