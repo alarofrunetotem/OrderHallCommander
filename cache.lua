@@ -62,8 +62,7 @@ local print=function() end
 --*BEGIN 
 local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
 local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
-local pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug=
-		pairs,math,wipe,tinsert,GetTime,next,ipairs,type,_G.OHCDebug
+local pairs,math,wipe,tinsert,GetTime,next,ipairs,type=pairs,math,wipe,tinsert,GetTime,next,ipairs,type
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
@@ -84,10 +83,6 @@ busyUntil=function(followerID) return GetTime() + (G.GetFollowerMissionTimeLeftS
 missions={
 }
 }--- Caches
-local nob=setmetatable({},{__index=function() return 0 end,__call=function() end})
-if not OHCDebug then
-	OHCDebug=setmetatable({},{__index=nob}) 
-end
 
 -- 
 local currency
@@ -120,9 +115,6 @@ local function fillCachedMission(mission,time)
 end
 local function getCachedMissions()
 	if not next(cachedMissions) then
---@debug@
-		OHCDebug:Bump("Missions")
---@end-debug@	
 		local time=GetTime()
 		for property,method in pairs(methods) do
 			local missions=G[method](followerType)
@@ -136,11 +128,7 @@ local function getCachedMissions()
 	return cachedMissions
 end	
 local function getCachedFollowers()
-	
 	if empty(cachedFollowers) then
---@debug@
-		OHCDebug:Bump("Followers")
---@end-debug@	
 		local followers=G.GetFollowers(followerType)
 		if type(followers)=="table" then
 			local time=GetTime()
@@ -575,9 +563,6 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 end
 
 function module:Refresh(event,...)
---@debug@
-	OHCDebug.CacheRefresh:SetText(event:sub(10))
---@end-debug@
 	addon:Print(event,...)
 	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
@@ -603,6 +588,7 @@ end
 function module:OnInitialized()
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
 	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
+	addon:Print("Currency init",currencyName, resources, currencyTexture)
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()
 end
@@ -627,7 +613,10 @@ function module:EventsOff()
 end
 ---- Public Interface
 -- 
-function addon:GetResources()
+function addon:GetResources(refresh)
+	if refresh then
+		resources = select(2,GetCurrencyInfo(currency))			
+	end 
 	return resources,currencyName,currencyTexture
 end
 function addon:GetMissionData(...)

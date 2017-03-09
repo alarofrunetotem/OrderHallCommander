@@ -559,8 +559,6 @@ function addon:TestParty(missionID)
 	local choosen,choosenkey=parties:GetSelectedParty()
 	self:Print(choosenkey)
 	DevTools_Dump(choosen)
-	
-	
 end
 --@end-debug@
 
@@ -569,13 +567,6 @@ function addon:GetMissionParties(missionID)
 		missionParties[missionID]=partiesPool:Acquire()
 		missionParties[missionID].missionID=missionID
 	end
---@debug@
-	local n=0
-	for _,_ in pairs(missionParties) do
-		n=n+1
-	end
-	OHCDebug:Set("NumParties",n)
---@end-debug@	
 	return missionParties[missionID]
 end
 function addon:GetAllMissionParties()
