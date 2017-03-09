@@ -47,11 +47,11 @@
  		<Size x="128" y="24"/>
 		<Layers>
 			<Layer level="OVERLAY">
-				<FontString parentKey="Cost" justifyV="TOP" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+				<FontString parentKey="Cost" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
 					<Size x="250" y="20"/>
 				</FontString>
-				<FontString parentKey="HighCost" text="GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP" justifyV="BOTTOM" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
-					<Size x="350" y="20"/>
+				<FontString parentKey="XP" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
+					<Size x="250" y="20"/>
 				</FontString>
 			</Layer>
 		</Layers> 		
