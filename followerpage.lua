@@ -146,7 +146,7 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	if not follower.isCollected then return end
 	if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
-	if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
+	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	local u=UpgradeFrame
 	local previous
 	if follower.iLevel <850 then
