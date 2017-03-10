@@ -268,7 +268,7 @@ local function GetFollowers()
 	addon:Print("Requesting followers")
 	collectgarbage("step",100)
 	followerCacheUpdate=GetTime()
-	return C.Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
+	return C_Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
 end
 --- Return followerdata-
 -- Available fields:
