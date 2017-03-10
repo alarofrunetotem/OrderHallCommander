@@ -61,3 +61,5 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0

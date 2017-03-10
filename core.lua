@@ -3,7 +3,6 @@ local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line
 print('Loaded',__FILE__)
 --@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
-local px=print
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
@@ -58,6 +57,8 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
@@ -314,12 +315,12 @@ local uamu=UpdateAddOnMemoryUsage
 local redpattern="c|FFFF0000%dM|r"
 local greenpattern="%dM"
 local function wrap(obj,func)
-	pp("Hook func",func)
+	addon:Print("Hook func",func)
 	local old=obj[func]
 	obj[func] = function(...)
 		local r1,r2,r3,r4,r5,r6,r7,r8,r9=old(...)
 		local m2=gamu(me)
-		px("Called",func,format(greenpattern,m2/1024))
+		addon:Print("Called",func,format(greenpattern,m2/1024))
 		return r1,r2,r3,r4,r5,r6,r7,r8,r9
 	end
 end
@@ -375,5 +376,5 @@ function addon:Resolve(frame)
 	end
 	return "unk"
 end
---@end-do-not-package@
 _G.OHC=addon
+--@end-do-not-package@
