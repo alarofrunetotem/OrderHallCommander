@@ -190,7 +190,8 @@ function partyManager:SatisfyCondition(candidate,key)
 	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
 	if addon:GetBoolean("BONUS") and candidate.hasBonusLootNegativeEffect then return self:Fail("BONUS") end
-	if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect then if addon:GetFollowerData(followerID,'durability',0) > 1 then self:Fail("KILLTROOPS") end end 	
+	if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect then if addon:GetFollowerData(followerID,'durability',0) > 1 then self:Fail("KILLTROOPS") end end
+	if addon:GetBoolean("NOTROOPS") 	and addon:GetFollowerData(followerID,"isTroop") then return self:Fail("NOTROOPS") end
 	local ready=addon:GetFollowerData(followerID,"busyUntil")
 	if not ready then return self:Fail("No ready data") end
 	local status=G.GetFollowerStatus(followerID)
@@ -216,6 +217,7 @@ local function GetSelectedParty(self,dbg)
 	local xpperc=0
 	local xpgainers=0
 	local maxChamps=addon:GetNumber("MAXCHAMP")
+	local maximizeXP=addon:GetBoolean("MAXIMIZEXP")
 --@debug@
 		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name","none"),self.candidates)
 --@end-debug@				
@@ -248,7 +250,7 @@ local function GetSelectedParty(self,dbg)
 				addon:PushDebug(missionID,"Accepted",candidate[i])
 --@end-debug@				
 				if not bestkey then bestkey=key end
-				if addon:GetBoolean("MAXIMIZEXP") then
+				if maximizeXP then
 					if candidate.perc >= 100 and candidate.xpGainers >xpgainers then
 						xpkey=key
 						xpperc=candidate.perc
@@ -519,10 +521,11 @@ function module:OnInitialized()
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	--addon:AddBoolean("MAXIMIZEMISSIONS",false,L["Maximize filled missions"],L["Attempts to use less champions for missions, in order to fill more missions"])
 	addon:AddRange("MAXCHAMP",2,1,3,L["Max champions"],L["Use at most this many champions"])
+	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
 	addon:AddBoolean("IGNOREBUSY",false,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
-	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'MAXCHAMP','USEALLY','IGNOREBUSY','IGNOREINACTIVE')
+	addon:RegisterForMenu("mission","SAVETROOPS","BONUS","SPARE","MAKEITQUICK","MAKEITVERYQUICK","MAXIMIZEXP",'MAXCHAMP','NOTROOPS','USEALLY','IGNOREBUSY','IGNOREINACTIVE')
 end
 function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
