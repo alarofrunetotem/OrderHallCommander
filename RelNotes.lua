@@ -17,6 +17,8 @@ typing /ohc silent in chat will eliminate every chat message from GarrisonComman
 ]])
 self:RelNotes(1,1,0,[[
 Fix: All cache error should be gone
+Feature: new Don't use troops switch
+Feature: Separate state rcap for Champions and Troops
 Feature: you can decide if show busy or even inactive followers
 Feature: shift click on reward prints wowhead link in chat
 Feature: added icon to show active bonus and malus in mission buttons
