@@ -253,14 +253,20 @@ end
 --@end-debug@
 local indexes={followers={},missions={}}
 local followerCache
+local followerCacheUpdate=GetTime()
 local emptyFollower={}
 local function rebuildFollowerIndex()
 	wipe(indexes.followers)
-	if empty(followerCache) then followerCache=OHFFollowerList.followers or emptyFollower end
 	for i = 1,#followerCache do
 		indexes.followers[followerCache[i].followerID]=i
 		indexes.followers[followerCache[i].name]=i
 	end
+end
+local function GetFollowers()
+	addon:Print("Requesting followers")
+	collectgarbage("step",100)
+	followerCacheUpdate=GetTime()
+	return C.Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
 end
 --- Return followerdata-
 -- Available fields:
@@ -292,9 +298,10 @@ end
 -- 
 --
 function module:GetFollowerData(followerID,field,defaultValue)
-	if empty(followerCache) then rebuildFollowerIndex() end 
-	--if not followerID then return OHFFollowerList.followers or emptyTable end 
-	if not followerID then return OHFFollowerList.followers or emptyTable end 
+	if empty(followerCache) or followerCacheUpdate < addon.lastChange then 
+		followerCache=OHFFollowerList.followers or GetFollowers() or emptyTable
+	end
+	if not followerID then return followerCache  end 
 	local followerIndex=indexes.followers[followerID]
 	local pointer=followerCache[followerIndex]
 	if not pointer or pointer.followerID~=followerID then
@@ -685,11 +692,14 @@ function addon:GetAverageLevels(...)
 	return module:GetAverageLevels(...)
 end
 local s=setmetatable({},{__index=function(t,k) return 0 end})
-local FOLLOWER_STATUS_FORMAT= L["Followers status "] ..
+local CHAMPIONS_STATUS_FORMAT= FOLLOWERLIST_LABEL_CHAMPIONS .. ":" ..
 							C(AVAILABLE..':%d ','green') ..
 							C(GARRISON_FOLLOWER_COMBAT_ALLY .. ":%d ",'cyan') ..
 							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') ..
 							C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
+local TROOPS_STATUS_FORMAT= FOLLOWERLIST_LABEL_TROOPS .. ":" ..
+							C(AVAILABLE..':%d ','green') ..
+							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') 
 function addon:RefreshFollowerStatus()
 	if not OHF:IsVisible() then return end
 	if empty(addon:GetFollowerData()) then return end
@@ -699,16 +709,29 @@ function addon:RefreshFollowerStatus()
 		if rc then
 			status=status or AVAILABLE
 			s[status]=s[status]+1
+			if follower.isTroop then
+				s['TROOP_'..status]=s['TROOP_'..status]+1
+			else
+				s['CHAMP_'..status]=s['CHAMP_'..status]+1
+			end
 		end
 	end
-	if (OHF.FollowerStatusInfo) then
-		OHF.FollowerStatusInfo:SetWidth(0)
-		OHF.FollowerStatusInfo:SetFormattedText(
-			FOLLOWER_STATUS_FORMAT,
-			s[AVAILABLE],
+	if (OHF.ChampionsStatusInfo) then
+		OHF.ChampionsStatusInfo:SetWidth(0)
+		OHF.ChampionsStatusInfo:SetFormattedText(
+			CHAMPIONS_STATUS_FORMAT,
+			s['CHAMP_' .. AVAILABLE],
 			s[GARRISON_FOLLOWER_COMBAT_ALLY],
-			s[GARRISON_FOLLOWER_ON_MISSION],
+			s['CHAMP_' .. GARRISON_FOLLOWER_ON_MISSION],
 			s[GARRISON_FOLLOWER_INACTIVE]
+			)
+	end
+	if (OHF.TroopsStatusInfo) then
+		OHF.TroopsStatusInfo:SetWidth(0)
+		OHF.TroopsStatusInfo:SetFormattedText(
+			TROOPS_STATUS_FORMAT,
+			s['TROOP_' .. AVAILABLE],
+			s['TROOP_' .. GARRISON_FOLLOWER_ON_MISSION]
 			)
 	end
 end
