@@ -233,8 +233,10 @@ function module:OnUpdateMissions()
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
 	self:Unhook("Garrison_SortMissions")
 	if not OHFMissions.inProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
-		local totChamps,totTroops=addon:GetFollowerCounts()
-		if addon:GetNumber("MAXCHAMP") + totTroops < 3 then
+		local totChamps,totTroops=addon:GetTotFollowers('CHAMP _' .. AVAILABLE),addon:GetTotFollowers('TROOP _' .. AVAILABLE)
+		if totChamps==0 then
+			addon:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
+		elseif addon:GetNumber("MAXCHAMP") + totTroops < 3 then
 			addon:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
 		elseif totTroops==0 then
 			addon:NoMartiniNoParty(L["You have no troops"])
@@ -286,8 +288,6 @@ function module:SortMissions()
 			sortKeys[mission.missionID]=rc and result or 0
 		end
 		sort(OHFMissions.availableMissions,sortfuncAvailable)
-		
-		ddump(sortKeys)
 	end
 end
 function addon:ApplySORTMISSION(value)
@@ -297,6 +297,9 @@ end
 function addon:RefreshMissions()
 	wipe(missionIDS)
 	OHFMissions:UpdateMissions()
+	if OHF.MissionTab.MissionPage:IsVisible() then
+		module:PostMissionClick(OHF.MissionTab.MissionPage)
+	end
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
@@ -401,9 +404,12 @@ function module:InitialSetup(this)
 	self:Unhook(this,"OnShow")
 	self:SecureHookScript(this,"OnShow","MainOnShow")	
 	self:SecureHookScript(this,"OnHide","MainOnHide")
-	OHF.FollowerStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
-	OHF.FollowerStatusInfo:SetPoint("TOPRIGHT",-45,-5)
-	OHF.FollowerStatusInfo:SetText("")
+	OHF.ChampionsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
+	OHF.ChampionsStatusInfo:SetPoint("TOPRIGHT",-45,-5)
+	OHF.ChampionsStatusInfo:SetText("")
+	OHF.TroopsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
+	OHF.TroopsStatusInfo:SetPoint("TOPLEFT",80,-5)
+	OHF.TroopsStatusInfo:SetText("")
 	for _,mission in pairs(addon:GetMissionData()) do
 		addon:GetSelectedParty(mission.missionID)
 	end
@@ -547,7 +553,6 @@ function module:AddMembers(frame)
 			if members.Champions[i]:SetFollower(party:Follower(i),true) then
 				stats.Chance:SetTextColor(C.Grey())
 			end
-			addon:Print(missionID,party:Follower(i).name)
 			missionNonFilled=false
 		else
 			members.Champions[i]:SetEmpty()
