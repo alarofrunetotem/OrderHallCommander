@@ -232,7 +232,7 @@ function module:OnUpdateMissions()
 	self:SecureHook("Garrison_SortMissions","SortMissions")
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
 	self:Unhook("Garrison_SortMissions")
-	if not OHFMissions.inProgress and missionNonFilled then
+	if not OHFMissions.inProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
 		local totChamps,totTroops=addon:GetFollowerCounts()
 		if addon:GetNumber("MAXCHAMP") + totTroops < 3 then
 			addon:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
