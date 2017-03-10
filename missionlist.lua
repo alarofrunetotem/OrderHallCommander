@@ -84,7 +84,6 @@ local missionIDS={}
 local spinners=setmetatable({}, {__mode = "v"})
 local parties=setmetatable({}, {__mode = "v"})
 local buttonlist={}
-local oGarrison_SortMissions=Garrison_SortMissions
 local function nop() return 0 end
 local Current_Sorter
 local sortKeys={}
@@ -268,14 +267,19 @@ function module:OnSingleUpdate(frame)
 		end
 	end	
 end
+local pcall=pcall
+local sort=table.sort
+local strcmputf8i=strcmputf8i
 local function sortfuncProgress(a,b)
 	return a.timeLeftSeconds < b.timeLeftSeconds
 end
 local function sortfuncAvailable(a,b)
-	return sortKeys[a.missionID] < sortKeys[b.missionID]
+	if sortKeys[a.missionID] ~= sortKeys[b.missionID] then
+		return sortKeys[a.missionID] < sortKeys[b.missionID]
+	else
+		return strcmputf8i(a.name, b.name) < 0
+	end
 end
-local pcall=pcall
-local sort=table.sort
 function module:SortMissions()
 --@debug@
 	addon:Print(C("SortMissions","Orange"),Current_Sorter)
