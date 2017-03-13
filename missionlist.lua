@@ -195,11 +195,13 @@ function module:LoadButtons(...)
 	end
 end
 local tb={url=""}
+local artinfo='*' .. L["Artifact shown value is the base value without considering knowledge multiplier"]
+
 function module:rwWarning(this)
 	if this.itemID  then
 		local tip=GameTooltip
 		if addon.allArtifactPower[tostring(this.itemID)] then
-			tip:AddLine(L["Artifact shown value is the base value without considering knowledge multiplier"],C.Artifact())
+			tip:AddLine(artinfo,C.Artifact())
 		end
 		tip:AddLine("Shift-Click for a wowhead link popup")
 		tip:Show()
@@ -226,7 +228,7 @@ function module:OnUpdateMissions()
 
 --@debug@
 	local start=debugprofilestop()
-	addon:Print(C("OnUpdateMissions","Green"),OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
+	addon:Print(C("OnUpdateMissions","Green"),OHFMissions.inProgress,OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
 --@end-debug@	
 	addon.lastChange=GetTime()
 	missionNonFilled=true

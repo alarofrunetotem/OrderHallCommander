@@ -265,7 +265,9 @@ local function rebuildFollowerIndex()
 	end
 end
 local function GetFollowers()
+--@debug@
 	addon:Print("Requesting followers")
+--@end-debug@
 	collectgarbage("step",100)
 	followerCacheUpdate=GetTime()
 	return C_Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
@@ -572,7 +574,9 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 end
 
 function module:Refresh(event,...)
+--@debug@
 	addon:Print(event,...)
+--@end-debug@
 	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
 		resources = select(2,GetCurrencyInfo(currency))		
@@ -597,7 +601,9 @@ end
 function module:OnInitialized()
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
 	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
+--@debug@
 	addon:Print("Currency init",currencyName, resources, currencyTexture)
+--@end-debug@	
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()
 end

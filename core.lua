@@ -162,11 +162,11 @@ function addon:type(value)
 	end
 end
 function addon:ARTIFACT_UPDATE()
-	--@debug@
-	--@end-debug@
 	local kl=C_ArtifactUI.GetArtifactKnowledgeMultiplier()
 	if kl then
+	--@debug@
 		self:Print("Updated kl",kl)
+	--@end-debug@
 		addon.KL=kl
 	end
 end
