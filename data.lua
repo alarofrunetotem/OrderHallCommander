@@ -1,8 +1,11 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+--@debug@
+print('Loaded',__FILE__)
+--@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG profile=true,enhancedProfile=true
--- Generated on 20/02/2017 09:45:18
+-- Auto Generated
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -27,10 +30,11 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -51,6 +55,8 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -158,7 +164,7 @@ local data={
 		139420,
 		138883,
 		139376,
-		138418,
+		139418,
 		138412,
 		139670
 	},
@@ -169,25 +175,36 @@ function addon:GetData(key)
 	return data[key] or fake
 end
 function module:OnInitialized()
-	--
+	if addon.allArtifactPower then
+		wipe(data.ArtifactPower)
+	--@debug@
+	addon:Print("Updating artifact with wowhead data")
+	--@end-debug@
+		for k,_ in pairs(addon.allArtifactPower) do
+			tinsert(data.ArtifactPower,tonumber(k))
+		end
+	end
 	addon.coroutineExecute(module,0,"TickleServer")
 end
 function module:AddItem(itemID)
 
 end
 function module:TickleServer()
-	addon:Print("Precaching items")
 	local i=0
 	for _,categories in pairs(data) do
 		for _,itemid in pairs(categories) do
 			if type(itemid)=="number" then
-				pcall(GetItemInfo,itemid)
-				i=i+1
+				local rc,name=pcall(GetItemInfo,itemid)
+				if rc and name then
+					i=i+1
+				end
 				coroutine.yield()
 			end
 		end
 	end
-	addon:Print("Precached ",i," items")
+	--@debug@
+	addon:Print("Precached " .. i .. "items")
+	--@end-debug@
 end
 --@do-not-package@
 --[[

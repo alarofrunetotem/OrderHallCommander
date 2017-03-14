@@ -1,10 +1,13 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+--@debug@
+print('Loaded',__FILE__)
+--@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE addon
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 41
--- Generated on 20/02/2017 09:45:18
+-- Auto Generated
 local me,ns=...
 ns.die=true
 local LibInit,minor=LibStub("LibInit",true)
@@ -31,10 +34,11 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 local dprint=print
 local ddump
 --@debug@
@@ -67,35 +71,23 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
-local MISSING=ITEM_MISSING:format('|cff'..C.Red.c)..'|r'
+local MISSING=ITEM_MISSING:format(""):gsub(' ','')
+MISSING=C(MISSING:sub(1,1):upper() .. MISSING:sub(2),"Red")
 local ctr=0
 -- Sometimes matchmakimng starts before these are defined, so I put here a sensible default (actually, this values are constans)
-addon.MAXLEVEL=110
-addon.MAXQUALITY=4
-addon.MAXQLEVEL=addon.MAXLEVEL+addon.MAXQUALITY
-function addon.resolve(frame) 
-	local name
-	if type(frame)=="table" and frame.GetName then
-		name=frame:GetName()
-		if not name then
-			local parent=frame:GetParent()
-			if not parent then return "UIParent" end
-			for k,v in pairs(parent) do
-				if v==frame then
-					name=resolve(parent) .. '.'..k
-					return name
-				end
-			end
-		else
-			return name
-		end
-		_G['UNK_'..ctr]=frame
-		return 'UNK_'..ctr
-	end
-	return "unk"
+function addon:MAXLEVEL()
+	return OHF.followerMaxLevel or 110
+end
+function addon:MAXQUALITY()
+	return OHF.followerMaxQuality or 4
+end
+function addon:MAXQLEVEL()
+	return addon:MAXLEVEL()+addon:MAXQUALITY()
 end
 function addon.colors(c1,c2)
 	return C[c1].r,C[c1].g,C[c1].b,C[c2].r,C[c2].g,C[c2].b
@@ -122,7 +114,7 @@ local Mixin=OrderHallCommanderMixin --#Mixin
 local MixinThreats=OrderHallCommanderMixinThreats --#MixinThreats
 local MixinMenu=OrderHallCommanderMixinMenu --#MixinMenu
 local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
-local MixinMembers=OrderHallCommanderMixinMembers
+local MixinMembers=OrderHallCommanderMixinMembers --#MixinMembers
 
 function Mixin:CounterTooltip()
 	local tip=self:AnchorTT()
@@ -193,7 +185,7 @@ function MixinThreats:OnLoad()
 	self.usedPool={}
 end
 
-function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResources)
+function MixinThreats:AddIcons(mechanics,biases)
 	local icons=OHF.abilityCountersForMechanicTypes
 	if not icons then
 		--@debug@
@@ -211,11 +203,18 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
 		if mechanic then
+			if not mechanic.icon or not mechanic.id then
+				dprint("Mecha",mechanic)
+			end
 			th.Icon:SetTexture(mechanic.icon or icons[mechanic.id].icon)
 			th.Name=mechanic.name
 			th.Description=mechanic.description
 			th.Ability=mechanic.ability and mechanic.ability.name or mechanic.name
-			th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
+			if mechanic.color then
+				th.Border:SetVertexColor(C[mechanic.color]())
+			else
+				th.Border:SetVertexColor(addon:ColorFromBias(biases[mechanic] or mechanic.bias))
+			end
 			th:Show()
 		else
 			th:Hide()
@@ -231,25 +230,7 @@ function MixinThreats:AddIconsAndCost(mechanics,biases,cost,color,notEnoughResou
 			previous=th
 		end
 	end
-	if cost >=0 then
-		self.Cost:Show()
-		self.Cost:SetFormattedText(addon.resourceFormat,cost)
-		self.Cost:SetTextColor(C[color]())
-		self.Cost:ClearAllPoints()
-		self.Cost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
-		self.HighCost:SetTextColor(C.Orange())
-		self.HighCost:ClearAllPoints()
-		self.HighCost:SetPoint("BOTTOMLEFT",previous,"BOTTOMRIGHT",5,0)
-		if notEnoughResources then
-			self.HighCost:Show()
-		else
-			self.HighCost:Hide()
-		end
-	else
-		self.Cost:Hide()
-		self.HighCost:Hide()
-	end
-	return true
+	return previous
 end
 
 function MixinFollowerIcon:SetFollower(followerID,checkStatus)
@@ -278,6 +259,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus)
 			self:SetLevel(info.level)
 		end
 	end
+	return status
 end
 function MixinFollowerIcon:SetEmpty(message)
 	self.followerID=false
@@ -335,7 +317,7 @@ function MixinMembers:OnLoad()
 	end
 	self:SetWidth(self.Champions[1]:GetWidth()*3+30)
 	self.NotReady.Text:SetFormattedText(RAID_MEMBER_NOT_READY,STATUS_TEXT_PARTY)
-	self.NotReady.Text:SetTextColor(C.Orange())
+	self.NotReady.Text:SetTextColor(C.Red())
 end
 function MixinMembers:OnShow()
 	self:SetNotReady()

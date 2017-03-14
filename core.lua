@@ -1,10 +1,13 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+--@debug@
+print('Loaded',__FILE__)
+--@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 20/02/2017 09:45:18
+-- Auto Generated
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -29,10 +32,11 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -53,6 +57,8 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
@@ -89,13 +95,18 @@ function addon:ApplyMOVEPANEL(value)
 	OHF:EnableMouse(value)
 	OHF:SetMovable(value)
 end
+
 function addon:OnInitialized()
+	addon.KL=1
+	
   _G.dbOHCperChar=_G.dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
+--[[
 	local f=menu
 	f:RegisterAllEvents()
 	self:RawHookScript(f,"OnEvent","ShowGarrisonEvents")
+]]--
 --@end-debug@
 	self:AddLabel(L["General"])
 	self:AddBoolean("MOVEPANEL",true,L["Make Order Hall Mission Panel movable"],L["Position is not saved on logout"])
@@ -104,6 +115,7 @@ function addon:OnInitialized()
 	OHF:SetScript("OnDragStart",function(frame) if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
 	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))	
+	self:RegisterEvent("ARTIFACT_UPDATE")
 end
 function addon:ClearMenu()
 	if menu.widget then 
@@ -115,7 +127,16 @@ end
 function addon:RegisterForMenu(menu,...)
 	for i=1,select('#',...) do
 		local value=(select(i,...))
-		if not tContains(menuOptions[menu],value) then
+		if type(value)=="table" then
+			if type(value.arg)=="string" then
+				value=value.arg
+			elseif type(value['function'])=="string" then
+				value=value['function']
+			else
+				value=false
+			end
+		end
+		if value and not tContains(menuOptions[menu],value) then
 			tinsert(menuOptions[menu],value)
 		end
 	end
@@ -138,6 +159,15 @@ function addon:type(value)
 	if value~=value then return nil
 	elseif value==math.huge then return nil
 	else return type(value)
+	end
+end
+function addon:ARTIFACT_UPDATE()
+	local kl=C_ArtifactUI.GetArtifactKnowledgeMultiplier()
+	if kl then
+	--@debug@
+		self:Print("Updated kl",kl)
+	--@end-debug@
+		addon.KL=kl
 	end
 end
 
@@ -184,7 +214,7 @@ function addon:GetDifficultyColor(perc,usePurple)
 	elseif(perc >20) then
 		return QuestDifficultyColors['impossible']
 	else
-		return not usePurple and C.Silver or C.Fuchsia
+		return not usePurple and C.Silver or C.Epic
 	end
 end
 function addon:GetAgeColor(age)
@@ -206,7 +236,27 @@ local function tContains(table, item)
 	return nil;
 end
 local emptyTable={}
-local function Reward2Class(self,mission)
+local cachedClassSortInfo=CreateObjectPool(
+	function(obj) return {class="none",classWeight=0,value=0} end,
+	function(obj,tbl) tbl.class="none" tbl.classWeight=0 tbl.value=0 end
+)
+local classSort={
+	[MONEY]=11,
+	Artifact=12,
+	Equipment=13,
+	Quest=14,
+	Upgrades=15,
+	Reputation=16,
+	PlayerXP=17,
+	FollowerXP=18,
+	Generic=19
+}
+local rewardCache={}
+local function Reward2Class(self,mission)	
+	local GetCurrencyInfo=GetCurrencyInfo
+	local tostring=tostring
+	if type(mission)=="number" then mission=addon:GetMissionData(mission) end
+	if not mission then return "Generic",0,0 end
 	local overReward=mission.overmaxRewards
 	if not overReward then overReward=mission.OverRewards end
 	local reward=mission.rewards
@@ -225,8 +275,10 @@ local function Reward2Class(self,mission)
 	elseif reward.followerXP then
 			return "FollowerXp",reward.followerXP
 	elseif type(reward.itemID) == "number" then
-		if tContains(self:GetData('ArtifactPower'),reward.itemID) then
-			return "Artifact",0
+		local stringID=tostring(reward.itemID)
+		local artifact=self.allArtifactPower[stringID]
+		if artifact then
+			return "Artifact",artifact.Power or 0
 		elseif overReward.itemID==1447868 then
 			return "PlayerXP",0
 		elseif overReward.itemID==141344 then
@@ -247,65 +299,82 @@ local function Reward2Class(self,mission)
 	end
 	return "Generic",reward.quantity or 1
 end
-local classSort={
-	[MONEY]=11,
-	Artifact=12,
-	Equipment=13,
-	Quest=14,
-	Upgrades=15,
-	Reputation=16,
-	PlayerXP=17,
-	FollowerXP=18,
-	Generic=19
-}
 function addon:Reward2Class(mission)
-	if not mission.missionClass then
-		mission.missionClass,mission.missionValue=Reward2Class(self,mission)
-		mission.missionSort=classSort[mission.missionClass]
+	local missionID=type(mission)=="table" and mission.missionID or mission
+	if not missionID then return "generic",0 end
+	local cached=rewardCache[missionID]
+	if cached then return cached.class,cached.value,classSort[cached.class] or 0 end
+	local class,value=Reward2Class(self,mission)
+	rewardCache[missionID]={class=class,value=value}
+	return class,value,classSort[class] or 0
+end	
+--@do-not-package@
+
+local gamu=GetAddOnMemoryUsage
+local uamu=UpdateAddOnMemoryUsage
+local redpattern="c|FFFF0000%dM|r"
+local greenpattern="%dM"
+local function wrap(obj,func)
+	addon:Print("Hook func",func)
+	local old=obj[func]
+	obj[func] = function(...)
+		local r1,r2,r3,r4,r5,r6,r7,r8,r9=old(...)
+		local m2=gamu(me)
+		addon:Print("Called",func,format(greenpattern,m2/1024))
+		return r1,r2,r3,r4,r5,r6,r7,r8,r9
 	end
-	return mission.missionSort
 end
---@debug@
-local events={}
-function addon:Trace(frame, method)
-	if true then return end
-	method=method or "OnShow"
-	if type(frame)=="string" then frame=_G[frame] end
-	if not frame then return end
-	if not self:IsHooked(frame,method) and frame:GetObjectType()~="GameTooltip" then
-		self:HookScript(frame,method,function(...)
-			local name=resolve(frame)
-			tinsert(dbOHCperChar,resolve(frame:GetParent())..'/'..name)
-			print(("OHC [%s] %s:%s %s %d"):format(frame:GetObjectType(),name,method,frame:GetFrameStrata(),frame:GetFrameLevel()))
+local profile={}
+local min=5
+function addon:LoadProfileData(obj,objname)
+	for name,func in pairs(obj) do
+		if type(func)=="function" then
+			local total,times=GetFunctionCPUUsage(func,true)
+			if times >= min then
+				local average=total/(times>0 and times or 1)
+				profile[format("%06d.%s:%s",999999-average*1000,objname,name)]={total=total,times=times,average=average}
 			end
-		)
+		end
 	end
 end
-local lastevent=""
-function addon:ShowGarrisonEvents(this,event,...)
-	if event:find("GARRISON") then
-		if event=="GARRISON_MISSION_LIST_UPDATE" and event==lastevent then
-			return
+function addon:ProfileStats(newmin)
+	if newmin then min = newmin end
+	wipe(profile)
+	local profiling=GetCVarBool("scriptProfile")
+	if not profiling then
+		SetCVar("scriptProfile",true)
+		ReloadUI()
+	end
+	for name,module in self:IterateModules() do
+		self:LoadProfileData(module,name)
+		if module.ProfileStats then
+			module:ProfileStats()
 		end
-		if event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
-			local _,_,_,followers=...
-			if type(followers)=="table" then
-				tinsert(dbOHCperChar,followers)			
+	end
+	self:LoadProfileData(self,"MAIN")
+	if ViragDevTool_AddData then
+		ViragDevTool_AddData(profile,"OHC_PROFILE")
+	end
+end
+function addon:Resolve(frame) 
+	local name
+	if type(frame)=="table" and frame.GetName then
+		name=frame:GetName()
+		if not name then
+			local parent=frame:GetParent()
+			if not parent then return "UIParent" end
+			for k,v in pairs(parent) do
+				if v==frame then
+					name=self:Resolve(parent) .. '.'..k
+					return name
+				end
 			end
+			return tostring(frame)
+		else
+			return name
 		end
-		lastevent=event
-		tinsert(events,{event,...})
-		return self:PushEvent(event,...)
 	end
+	return "unk"
 end
-function addon:PushEvent(event,...)
-	if not AlarLog then AlarLog={} end
-	if not AlarLog[me] then AlarLog[me]={} end
-	tinsert(AlarLog[me],event.. " : '" .. strjoin(tostringall("' '",...)) .. "'")
-end
-function addon:DumpEvents()
-	return events
-end
-addon:PushEvent("ADDON_LOADED")
 _G.OHC=addon
---@end-debug@
+--@end-do-not-package@

@@ -51,4 +51,3 @@ function m._Constructor()
 	return widget
 end
 AceGUI:RegisterWidgetType(Type,m._Constructor,Version)
-print("Caricati widgets nuovi")

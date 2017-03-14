@@ -18,6 +18,10 @@ externals:
 		url: git://git.wowace.com/wow/libitemupgradeinfo-1-0/mainline.git
 		tag: latest
 
+	libs/LibDialog-1.0:
+		url: https://repos.wowace.com/wow/libdialog-1-0
+		tag: latest
+
 #move-folders:
 #	GarrisonCommander/GarrisonCommander-Broker: GarrisonCommander-Broker
 #	GarrisonCommander/GarrisonCommander-Auction: GarrisonCommander-Auction

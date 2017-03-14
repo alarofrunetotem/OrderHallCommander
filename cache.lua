@@ -1,10 +1,13 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+--@debug@
+print('Loaded',__FILE__)
+--@end-debug@
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
 --*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
 --*MINOR 35
--- Generated on 20/02/2017 09:45:18
+-- Auto Generated
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
@@ -29,10 +32,11 @@ local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower li
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
+local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAXLEVEL=110
+local MAX_LEVEL=110
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -53,14 +57,18 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
 local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
-local pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug=
-		pairs,math,wipe,tinsert,GetTime,next,ipairs,type,OHCDebug
+local pairs,math,wipe,tinsert,GetTime,next,ipairs,type=pairs,math,wipe,tinsert,GetTime,next,ipairs,type
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local AVAILABLE=AVAILABLE
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local missionsRefresh,followersRefresh=0,0
 local volatile={
 followers={
@@ -77,6 +85,7 @@ busyUntil=function(followerID) return GetTime() + (G.GetFollowerMissionTimeLeftS
 missions={
 }
 }--- Caches
+
 -- 
 local currency
 local currencyName
@@ -96,7 +105,6 @@ local permutations={
 }
 local methods={available='GetAvailableMissions',inProgress='GetInProgressMissions',completed='GetCompleteMissions'}
 local catPool={}
-local troopTypes={}
 local function fillCachedMission(mission,time)
 	if not time then time=GetTime() end
 	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
@@ -109,9 +117,6 @@ local function fillCachedMission(mission,time)
 end
 local function getCachedMissions()
 	if not next(cachedMissions) then
---@debug@
-		OHCDebug:Bump("Missions")
---@end-debug@	
 		local time=GetTime()
 		for property,method in pairs(methods) do
 			local missions=G[method](followerType)
@@ -125,11 +130,7 @@ local function getCachedMissions()
 	return cachedMissions
 end	
 local function getCachedFollowers()
-	
 	if empty(cachedFollowers) then
---@debug@
-		OHCDebug:Bump("Followers")
---@end-debug@	
 		local followers=G.GetFollowers(followerType)
 		if type(followers)=="table" then
 			local time=GetTime()
@@ -159,7 +160,9 @@ function module:GetAverageLevels(cached)
 	end
 	return avgLevel,avgIlevel
 end
+local permutationsUpdate=0
 function addon:GetPermutations()
+	if next(permutations) and self.lastChange <permutationsUpdate then permutationsUpdate=self.lastChange return permutations end
 	local champs=new()
 	addon:GetAllChampions(champs)
 	local k=#champs
@@ -250,7 +253,82 @@ function module:GetFollower(key)
 	end
 end
 --@end-debug@
-function module:GetFollowerData(...)
+local indexes={followers={},missions={}}
+local followerCache
+local followerCacheUpdate=GetTime()
+local emptyFollower={}
+local function rebuildFollowerIndex()
+	wipe(indexes.followers)
+	for i = 1,#followerCache do
+		indexes.followers[followerCache[i].followerID]=i
+		indexes.followers[followerCache[i].name]=i
+	end
+end
+local function GetFollowers()
+--@debug@
+	addon:Print("Requesting followers")
+--@end-debug@
+	collectgarbage("step",100)
+	followerCacheUpdate=GetTime()
+	return C_Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
+end
+--- Return followerdata-
+-- Available fields:
+-- 
+-- * classAtlas
+-- * className
+-- * displayHeight
+-- * displayIDs = { followerPageScale=1,showWeapon=true,id=68026 }
+-- * durability
+-- * followerID
+-- * followerTypeID (4)
+-- * garrFollowerID
+-- * height
+-- * iLevel
+-- * isCollected
+-- * isFavorite
+-- * isTroop
+-- * level
+-- * levelXP
+-- * name
+-- * portraitIconID
+-- * quality
+-- * scaled
+-- * slotSoundKitID
+-- * xp
+-- Calculated fields
+-- * qLevel
+-- * busyUntil
+-- 
+--
+function module:GetFollowerData(followerID,field,defaultValue)
+	if empty(followerCache) or followerCacheUpdate < addon.lastChange then 
+		followerCache=OHFFollowerList.followers or GetFollowers() or emptyTable
+	end
+	if not followerID then return followerCache  end 
+	local followerIndex=indexes.followers[followerID]
+	local pointer=followerCache[followerIndex]
+	if not pointer or pointer.followerID~=followerID then
+		rebuildFollowerIndex()
+	end
+	followerIndex=indexes.followers[followerID]
+	pointer=followerCache[followerIndex] or emptyFollower
+	if empty(pointer) then
+		return field and defaultValue or emptyFollower
+	end
+	if not field then return pointer end
+	if pointer[field] then
+		return pointer[field]
+	else
+		if field=="qLevel" then
+			return pointer.level+(pointer.level==MAX_LEVEL and pointer.quality or 0)
+		elseif field=="busyUntil" then
+			return GetTime() + (G.GetFollowerMissionTimeLeftSeconds(followerID) or 0)
+		end
+		return defaultValue
+	end
+end
+function module:delGetFollowerData(...)
 	local id,key,defaultvalue=...
 	local f=getCachedFollowers()
 	if not id then
@@ -286,37 +364,86 @@ function module:SetMissionStatus(missionID,status)
 	end
 	mission[status]=true
 end
-function module:GetMissionData(...)
-	local id,key,defaultvalue=...
-	local f=getCachedMissions()
-	if not id then
-		return f
+--	local list=inProgress and m.inProgressMissions or m.availableMissions
+-- OHF.MissionTab.MissionList
+local emptyMissions={}
+local missionCache
+local missionCacheIndex={}
+local function scanList(map,id)
+	if map=="completedMissions" then
 	end
-	local data=f[id]
-	if data and not data.numFollowers then
-		del(data)
-		data=nil
-	end
-	if not data then
-		local rc,data=pcall(G.GetBasicMissionInfo,id)
-		if rc and data then 
-			self:refreshMission(data)
-			fillCachedMission(data,GetTime(time))			
-			f[id]=data
-		else
-			if select('#',...) > 2 then
-				return defaultvalue
-			else
-				return emptyTable
-			end
+	local list=OHFMissions[map]
+	if type(list)~="table" then return end
+	for i=1,#list do
+		local key=format("%d,%s",i,map)
+		missionCacheIndex[id]=key
+		if list[i].missionID==id then 
+			return list[i]
 		end
 	end
-	if data then
-		if key then
-			return self:GetKey(data,key,defaultvalue)
-		else
-			return data
+end
+local function getMissionFromBlizzardData(cache,missionID)
+	local key=missionCacheIndex[missionID]
+	if key then
+		local index,map=strsplit(',',key)
+		local t=OHFMissions[map]
+		index=tonumber(index)
+		if t[index] and t[index].missionID==missionID then
+			return t[index]
 		end
+	end
+	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) or emptyMissions 
+end
+--- Retrieves mission data.
+-- Uses tables already loaded by Blizzard and works on both inProgress and availableMissions
+-- Possibile fields
+-- * description
+-- * cost
+-- * locPrefix
+-- * followers -- empty in availableMissions
+-- * areaID
+-- * overmaxRewards
+-- * hasBonusEffect
+-- * isMaxLevel
+-- * name
+-- * canStart
+-- * typeAtlas
+-- * followerTypeID
+-- * offeredGarrMissionTextureID
+-- * durationSeconds
+-- * odderTimeRemaining formatted time
+-- * inProgress
+-- * offerEndTime timestamp
+-- * mapPosY
+-- * type
+-- * ilevel
+-- * duration (formatted)
+-- * completed
+-- * basecost
+-- * missionID
+-- * numFollowers
+-- * requiredSuccessChance
+-- * rewards
+-- * mapPosX
+-- * requiredChampionCount
+function module:GetMissionData(missionID,field,defaultValue)
+	print("GetMissionData",missionID,field,defaultValue)
+	if not missionCache then missionCache=setmetatable({},{__index=
+		function(t,key)
+			return getMissionFromBlizzardData(t,key)
+		end
+	})
+	end
+	if not missionID then return OHFMissions.availableMissions end
+	local mission=missionCache[missionID]
+	if not field then return mission end
+	if field then
+		if field=="class" then return addon:Reward2Class(missionID) end
+	end
+	if field and mission[field] then
+		return mission[field]
+	else
+		return defaultValue
 	end
 end
 
@@ -347,18 +474,6 @@ local function alertSetup(frame,name,...)
 	frame.Title:SetText(name)
 	return frame
 end
-function module:RefreshTroopTypes()
-	wipe(troopTypes)
-	local t=new()
-	for i,v in pairs(getCachedFollowers()) do
-		if v.isTroop then
-			t[v.classSpec]=true
-		end
-	end
-	for i,_ in pairs(t) do
-		tinsert(troopTypes,i)
-	end
-end
 local TroopsHeader
 function module:GetTroopsFrame()
 	if not TroopsHeader then
@@ -385,7 +500,6 @@ function module:GetTroopsFrame()
 end
 
 function module:ParseFollowers()
-	self:RefreshTroopTypes()
 	categoryInfo = G.GetClassSpecCategoryInfo(followerType)
 	if empty(categoryInfo) then
 		G.RequestClassSpecCategoryInfo(followerType)
@@ -461,7 +575,7 @@ end
 
 function module:Refresh(event,...)
 --@debug@
-	OHCDebug.CacheRefresh:SetText(event:sub(10))
+	addon:Print(event,...)
 --@end-debug@
 	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
@@ -470,63 +584,30 @@ function module:Refresh(event,...)
 	end
 	if event=="GARRISON_FOLLOWER_REMOVED" then
 		local currentType=... -- alas, we dont have followerId here
-		if currentType==followerType then
-			followersRefresh=GetTime()
-			return self:ParseFollowers()
-		end
+		return self:ParseFollowers()
 	elseif event=="GARRISON_FOLLOWER_CATEGORIES_UPDATED" then
 		return self:ParseFollowers()
 	elseif event=="GARRISON_FOLLOWER_ADDED" then
-		local followerID, name, class, level, quality, isUpgraded, texPrefix, currentType = ...	
-		if currentType==followerType  then
-			self:BuildFollower(followerID) -- kicks rebuild
-			return self:ParseFollowers()
-		end
-	elseif event=="GARRISON_FOLLOWER_XP_CHANGED"  then
-		local currentType,followerID,xp=...
-		if currentType==followerType and xp > 0 then
-			local data=cachedFollowers[followerID]
-			if data then 
-				data.lastUpdate=0
-				self:refreshFollower(data)
---@debug@
-				addon:PushEvent("CURRENT_FOLLOWER_XP",4,followerID,0,data.xp,data.level,data.quality)
---@end-debug@
-
-			end
-		end
-	elseif event=="GARRISON_FOLLOWER_UPGRADED"then
-		local followerID=...
-		local follower=cachedFollowers[followerID]
-		if follower and follower.followerTypeID==followerType then
-			self:refreshFollower(follower)
-		end
-	elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
-		local currentType,followerID,durability=...
-		if currentType==followerType then
-			if durability==0 then
-				self:DeleteFollower(followerID)
-			else
-				local follower=cachedFollowers[followerID]
-				if follower then
-					follower.durability=durability
-					follower.lastUpdate=GetTime()
-				else
-					self:BuildFollower(followerID) -- kicks rebuild
-				end
-			end
-		end
+		return self:ParseFollowers()
+	--elseif event=="GARRISON_FOLLOWER_XP_CHANGED"  then
+	--elseif event=="GARRISON_FOLLOWER_UPGRADED"then
+	--elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
 	elseif event=="GARRISON_FOLLOWER_LIST_UPDATE" or event=="GARRISON_MISSION_STARTED" or event=="GARRISON_MISSION_FINISHED" or event=="GARRISON_MISSION_LIST_UPDATE" then
-		local currentType=...
-		if currentType==followerType then
-			followersRefresh=GetTime()
-		end
+		rebuildFollowerIndex()
 	elseif event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
-		-- alas, no followerType here
-		followersRefresh=GetTime()
+		rebuildFollowerIndex()
 	end
 end
 function module:OnInitialized()
+	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
+	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
+--@debug@
+	addon:Print("Currency init",currencyName, resources, currencyTexture)
+--@end-debug@	
+	addon.resourceFormat=COSTS_LABEL .." %d"
+	self:ParseFollowers()
+end
+function module:Events()
 	self:RegisterEvent("CURRENCY_DISPLAY_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
@@ -540,15 +621,17 @@ function module:OnInitialized()
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")	
 	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","Refresh")	
 	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")	
-	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
-	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
-	addon.resourceFormat=COSTS_LABEL .." %d " .. currencyName
-	self:ParseFollowers()
-	
+end
+function module:EventsOff()
+	self:UnregisterAllEvents()
+	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")	
 end
 ---- Public Interface
 -- 
-function addon:GetResources()
+function addon:GetResources(refresh)
+	if refresh then
+		resources = select(2,GetCurrencyInfo(currency))			
+	end 
 	return resources,currencyName,currencyTexture
 end
 function addon:GetMissionData(...)
@@ -562,7 +645,7 @@ function addon:GetFollower(...)
 end
 function addon:GetFollowerCounts()
 	local t,c=0,0
-	for _,follower in pairs(getCachedFollowers()) do
+	for _,follower in pairs(self:GetFollowerData()) do
 		if follower.isTroop then
 			t=t+1
 		else
@@ -571,17 +654,26 @@ function addon:GetFollowerCounts()
 	end
 	return c,t
 end
+function addon:GetFollowerName(id)
+	if not id then return "none" end
+	local rc,error=pcall(G.GetFollowerName,id)
+	return strconcat(tostringall(id,'(',error,')')) 
+end
 function addon:GetAllChampions(table)
-	for _,follower in pairs(getCachedFollowers()) do
-		if not follower.isTroop then
-			tinsert(table,follower)
+	if not table then table=new() end
+	local skipInactive=addon:GetBoolean('IGNOREINACTIVE')
+	for _,follower in pairs(self:GetFollowerData()) do
+		if follower.isCollected and not follower.isTroop  then
+			if not skipInactive or G.GetFollowerStatus(follower.followerID) ~= GARRISON_FOLLOWER_INACTIVE then
+				tinsert(table,follower)
+			end
 		end
 	end
 	return table
 end
 function addon:GetAllTroops(table)
-	for _,follower in pairs(getCachedFollowers()) do
-		if follower.isTroop then
+	for _,follower in pairs(self:GetFollowerData()) do
+		if follower.isTroop and follower.isCollected then
 			tinsert(table,follower)
 		end
 	end
@@ -589,26 +681,6 @@ function addon:GetAllTroops(table)
 end
 local function isInParty(followerID)
 	return G.GetFollowerStatus(followerID)==GARRISON_FOLLOWER_IN_PARTY
-end
-local troops={}
-function addon:GetTroop(troopType,qt,skipBusy)
-	if type(qt)=="boolean" then skipBusy=qt qt=1 end
-	qt=self:tonumber(qt,1)
-	local found=0
-	wipe(troops)
-	for _,follower in pairs(getCachedFollowers()) do
-		if follower.isTroop and follower.classSpec==troopType and (not skipBusy or not follower.status) then
-			tinsert(troops,follower)
-			found=found+1
-			if found>=qt then
-				break
-			end
-		end
-	end
-	return unpack(troops)
-end
-function addon:GetTroopTypes()
-	return troopTypes
 end
 
 function addon:RebuildMissionCache()
@@ -618,7 +690,6 @@ end
 function addon:RebuildFollowerCache()
 	wipe(cachedFollowers)
 	getCachedFollowers()
-	module:RefreshTroopTypes()
 end
 function addon:RebuildAllCaches()
 	self:RebuildFollowerCache()
@@ -627,4 +698,57 @@ end
 
 function addon:GetAverageLevels(...)
 	return module:GetAverageLevels(...)
+end
+local s=setmetatable({},{__index=function(t,k) return 0 end})
+local CHAMPIONS_STATUS_FORMAT= FOLLOWERLIST_LABEL_CHAMPIONS .. ":" ..
+							C(AVAILABLE..':%d ','green') ..
+							C(GARRISON_FOLLOWER_COMBAT_ALLY .. ":%d ",'cyan') ..
+							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') ..
+							C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
+local TROOPS_STATUS_FORMAT= FOLLOWERLIST_LABEL_TROOPS .. ":" ..
+							C(AVAILABLE..':%d ','green') ..
+							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') 
+function addon:RefreshFollowerStatus()
+	if not OHF:IsVisible() then return end
+	if empty(addon:GetFollowerData()) then return end
+	wipe(s)
+	for _,follower in pairs(addon:GetFollowerData()) do
+		local rc,status=pcall(G.GetFollowerStatus,follower.followerID) -- Follower could have been exhasted and still present in cache
+		if rc then
+			status=status or AVAILABLE
+			s[status]=s[status]+1
+			if follower.isTroop then
+				s['TROOP_'..status]=s['TROOP_'..status]+1
+			else
+				s['CHAMP_'..status]=s['CHAMP_'..status]+1
+			end
+		end
+	end
+	if (OHF.ChampionsStatusInfo) then
+		OHF.ChampionsStatusInfo:SetWidth(0)
+		OHF.ChampionsStatusInfo:SetFormattedText(
+			CHAMPIONS_STATUS_FORMAT,
+			s['CHAMP_' .. AVAILABLE],
+			s[GARRISON_FOLLOWER_COMBAT_ALLY],
+			s['CHAMP_' .. GARRISON_FOLLOWER_ON_MISSION],
+			s[GARRISON_FOLLOWER_INACTIVE]
+			)
+	end
+	if (OHF.TroopsStatusInfo) then
+		OHF.TroopsStatusInfo:SetWidth(0)
+		OHF.TroopsStatusInfo:SetFormattedText(
+			TROOPS_STATUS_FORMAT,
+			s['TROOP_' .. AVAILABLE],
+			s['TROOP_' .. GARRISON_FOLLOWER_ON_MISSION]
+			)
+	end
+end
+function addon:GetTotFollowers(status)
+	if not status then
+		return s[AVAILABLE]+
+			s[GARRISON_FOLLOWER_COMBAT_ALLY]+
+			s[GARRISON_FOLLOWER_ON_MISSION]
+	else
+		return s[status] or 0
+	end
 end

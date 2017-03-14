@@ -15,6 +15,16 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
+self:RelNotes(1,1,0,[[
+Fix: All cache error should be gone
+Feature: new Don't use troops switch
+Feature: Separate state rcap for Champions and Troops
+Feature: you can decide if show busy or even inactive followers
+Feature: shift click on reward prints wowhead link in chat
+Feature: added icon to show active bonus and malus in mission buttons
+Feature: added an informative message when the options you checked lead to not being able to fill missions
+Fix: Healing Stream Totem is now considered as upgrade
+]])
 self:RelNotes(0,2,4,[[
 Fix: lua errors in matchmaker.lua
 ]])
