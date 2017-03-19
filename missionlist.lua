@@ -147,8 +147,11 @@ function module:OnInitialized()
 	--hooksecurefunc("Garrison_SortMissions",Garrison_SortMissions_PostHook)--function(missions) module:SortMissions(missions) end)
 	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
 	--function(missions) module:SortMissions(missions) end)
-	--self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","SortMissions")
-	--self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","SortMissions")
+	--self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","CheckShadow")
+	--self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","CheckShadow")
+	--self:SecureHook("GarrisonMissionController_OnClickTab","CheckShadow")	
+	--self:SecureHook("GarrisonMissionListTab_OnClick","CheckShadow")	
+		
 		Dialog:Register("OHCUrlCopy", {
 			text = L["URL Copy"],
 			width = 500,
@@ -229,22 +232,24 @@ function module:OnUpdateMissions()
 	self:SecureHook("Garrison_SortMissions","SortMissions")
 	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
 	self:Unhook("Garrison_SortMissions")
-	if not OHFMissions.inProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
+	return self:CheckShadow()
+end
+function module:CheckShadow()
+	if not OHFMissions.showInProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
 		local totChamps,totTroops=addon:GetTotFollowers('CHAMP _' .. AVAILABLE),addon:GetTotFollowers('TROOP _' .. AVAILABLE)
 		if totChamps==0 then
-			addon:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
+			self:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
 		elseif addon:GetNumber("MAXCHAMP") + totTroops < 3 then
-			addon:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
+			self:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
 		elseif totTroops==0 then
-			addon:NoMartiniNoParty(L["You have no troops"])
+			self:NoMartiniNoParty(L["You have no troops"])
 		else
-			addon:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
+			self:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
 		end
 	else
-		addon:NoMartiniNoParty()
+		self:NoMartiniNoParty()
 	end
 end
-
 function module:OnSingleUpdate(frame)
 	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() then
 		self:AdjustPosition(frame)
@@ -322,7 +327,7 @@ local function CloseMenu()
 	menu:Hide()		
 end
 local warner
-function addon:NoMartiniNoParty(text)
+function module:NoMartiniNoParty(text)
 	if not warner then
 		warner=CreateFrame("Frame","OHCWarner",OHFMissions)
 		warner.label=warner:CreateFontString(nil,"OVERLAY","GameFontNormalHuge3Outline")
