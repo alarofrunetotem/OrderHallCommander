@@ -202,10 +202,7 @@ function MixinThreats:AddIcons(mechanics,biases)
 	for index,mechanic in pairs(mechanics) do
 		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
-		if mechanic then
-			if not mechanic.icon or not mechanic.id then
-				dprint("Mecha",mechanic)
-			end
+		if mechanic and (mechanic.icon or mechanic.id) then
 			th.Icon:SetTexture(mechanic.icon or icons[mechanic.id].icon)
 			th.Name=mechanic.name
 			th.Description=mechanic.description
@@ -340,31 +337,4 @@ function MixinMenu:OnLoad()
 	self.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end	
-if not addon.GetEmpty then -- Will be moved into LibInit
---@debug@
-	addon:Print("Used internal GetEmpty")
---@end-debug@
-	local type=type
-	local function empty(obj)
-		if not obj then return true end -- Simplest case, obj evaluates to false in boolean context
-		local t=type(obj)
-		if t=="number" then
-			return obj==0
-		elseif t=="bool" then
-			return true
-		elseif t=="string" then
-			return obj=='' or obj==tostring(nil)
-		elseif t=="table" then
-			return not next(obj)
-		end
-		return false -- Userdata and threads can never be empty
-	end
-	function addon:GetEmpty()
-		return empty
-	end
-else
---@debug@
-	addon:Print("Used libinit GetEmpty")
---@end-debug@
-end
 

@@ -427,7 +427,6 @@ end
 -- * mapPosX
 -- * requiredChampionCount
 function module:GetMissionData(missionID,field,defaultValue)
-	print("GetMissionData",missionID,field,defaultValue)
 	if not missionCache then missionCache=setmetatable({},{__index=
 		function(t,key)
 			return getMissionFromBlizzardData(t,key)
@@ -575,7 +574,7 @@ end
 
 function module:Refresh(event,...)
 --@debug@
-	addon:Print(event,...)
+	print(event,...)
 --@end-debug@
 	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
@@ -602,7 +601,7 @@ function module:OnInitialized()
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
 	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
 --@debug@
-	addon:Print("Currency init",currencyName, resources, currencyTexture)
+	print("Currency init",currencyName, resources, currencyTexture)
 --@end-debug@	
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()

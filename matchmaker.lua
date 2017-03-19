@@ -174,6 +174,9 @@ local partiesPool=CreateObjectPool(
 function partyManager:Fail(reason,...)
 --@debug@
 	reason=strjoin(' ',tostringall(reason,...))
+	if addon.showFailure then
+		print(self.lastChecked,addon:GetFollowerName(self.lastChecked),reason)
+	end
 --@end-debug@
 	return false,reason
 end	 
@@ -192,7 +195,7 @@ function partyManager:SatisfyCondition(candidate,key)
 	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
 	if addon:GetBoolean("BONUS") and candidate.hasBonusLootNegativeEffect then return self:Fail("BONUS") end
-	if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect then if addon:GetFollowerData(followerID,'durability',0) > 1 then self:Fail("KILLTROOPS") end end
+	if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect and addon:GetFollowerData(followerID,'durability',0) > 1 then return self:Fail("KILLTROOPS") end
 	if addon:GetBoolean("NOTROOPS") 	and addon:GetFollowerData(followerID,"isTroop") then return self:Fail("NOTROOPS") end
 	local ready=addon:GetFollowerData(followerID,"busyUntil")
 	if not ready then return self:Fail("No ready data") end
@@ -272,11 +275,9 @@ local function GetSelectedParty(self,dbg)
 		
 	end
 	--@debug@
-	if dbg then addon:Print(
-		format("Best: %s, Xp: %s, Absolute: %s, Last:%s",tostringall(bestkey,xpkey,absolutebestkey,lastkey))
-		)
-	end
-	print("XPKey,Bestkey,Lastkey",self.missionID,xpkey,bestkey,lastkey)
+	addon:PushDebug(missionID,
+		format("%s - Best: %s, Xp: %s, Absolute: %s, Last:%s",addon.lastChange,tostringall(bestkey,xpkey,absolutebestkey,lastkey))
+	)
 	--@end-debug@
 	if xpkey then 
 		return self.candidates[xpkey],xpkey
@@ -539,7 +540,7 @@ function module:Events()
 end
 function module:Refresh(event)
 	self:ResetParties()
-	addon.lastChanged=GetTime()
+	addon.lastChange=GetTime()
 	return addon:RefreshMissions()
 end
 function module:ResetParties()
