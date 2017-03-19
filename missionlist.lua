@@ -224,12 +224,6 @@ end
 -- Updates top tabs (available/in progress)
 -- calls Update
 function module:OnUpdateMissions()
-	--if true then return self.hooks[OHFMissions].UpdateMissions(OHFMissions) end
-
---@debug@
-	local start=debugprofilestop()
-	addon:Print(C("OnUpdateMissions","Green"),OHFMissions.inProgress,OHFMissions:IsVisible(),OHFCompleteDialog:IsVisible())
---@end-debug@	
 	addon.lastChange=GetTime()
 	missionNonFilled=true
 	self:SecureHook("Garrison_SortMissions","SortMissions")
@@ -249,9 +243,6 @@ function module:OnUpdateMissions()
 	else
 		addon:NoMartiniNoParty()
 	end
---@debug@
-	addon:Print(C("OnPostUpdateMissions","Blue"),debugprofilestop()-start)
---@end-debug@	
 end
 
 function module:OnSingleUpdate(frame)
@@ -283,9 +274,6 @@ local function sortfuncAvailable(a,b)
 	end
 end
 function module:SortMissions()
---@debug@
-	addon:Print(C("SortMissions","Orange"),Current_Sorter)
---@end-debug@
 	if OHFMissions.inProgress then
 		pcall(sort,OHFMissions.inProgressMissions,sortfuncProgress)
 	else
@@ -426,9 +414,6 @@ function module:InitialSetup(this)
 	addon:UpdateStop()
 end
 function module:MainOnShow()
---@debug@
-	addon:Print("OnShow")
---@end-debug@
 	for _,m in addon:IterateModules() do
 		if m.Events then m:Events() end
 	end
@@ -442,9 +427,6 @@ function module:MainOnShow()
 	addon:ApplySORTMISSION(addon:GetString("SORTMISSION"))
 end
 function module:MainOnHide()
---@debug@
-	addon:Print("OnHide")
---@end-debug@
 	for _,m in addon:IterateModules() do
 		if m.EventsOff then
 			m:EventsOff()
@@ -800,7 +782,6 @@ end
 function module:PostMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
 --@debug@
-	addon:Print(button)
 	if button=="MiddleButton" then
 		addon:TestParty(mission.missionID)
 		return
