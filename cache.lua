@@ -265,10 +265,6 @@ local function rebuildFollowerIndex()
 	end
 end
 local function GetFollowers()
---@debug@
-	addon:Print("Requesting followers")
---@end-debug@
-	collectgarbage("step",100)
 	followerCacheUpdate=GetTime()
 	return C_Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
 end
