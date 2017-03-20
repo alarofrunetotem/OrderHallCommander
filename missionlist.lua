@@ -73,6 +73,7 @@ local nobonusloot=G.GetFollowerAbilityDescription(471)
 local increasedcost=G.GetFollowerAbilityDescription(472)
 local increasedduration=G.GetFollowerAbilityDescription(428)
 local killtroops=G.GetFollowerAbilityDescription(437)
+local killtroopsnodie=killtroops:gsub('%.',' ') ..  L['but using troops with just one durability left']
 local debugprofilestop=debugprofilestop
 
 local GARRISON_MISSION_AVAILABILITY2=GARRISON_MISSION_AVAILABILITY .. " %s"
@@ -632,7 +633,11 @@ function module:AddThreats(frame,threats,party,missionID)
    	tinsert(mechanics,new({icon=timeIcon,color="red",name="Time",description=increasedduration}))
    end
    if party.hasKillTroopsEffect then
-   	tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
+     	if addon:CanKillTroops(party) then
+   		tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
+   	else
+   		tinsert(mechanics,new({icon=killIcon,color="green",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroopsnodie}))
+   	end
    end
    if party.hasResurrectTroopsEffect then
    	tinsert(mechanics,new({icon=resurrectIcon,color="green",name=RESURRECT,description=L["Resurrect troops effect"]}))
@@ -721,7 +726,11 @@ function module:AdjustMissionTooltip(this,...)
 				tip:AddLine(nobonusloot,C:Red())
 			end
 			if candidate.hasKillTroopsEffect then
-				tip:AddLine(killtroops,C:Red())
+				if addon:CanKillTroops(candidate) then
+					tip:AddLine(killtroops,C:Red())
+				else
+					tip:AddLine(killtroopsnodie,C:Green())
+				end
 			end
 			if candidate.hasResurrectTroopsEffect then
 				tip:AddLine(L["Resurrect troops effect"],C:Green())
@@ -748,38 +757,33 @@ function module:AdjustMissionTooltip(this,...)
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
 	key=key or "999999999999999999999"
-	if key then
-		for _,otherkey in party:IterateIndex() do
-			if otherkey < key then
-				local candidate=party:GetSelectedParty(otherkey)
-				local duration=math.max((candidate.busyUntil or 0)-GetTime(),0)
-				if duration > 0 then
-					if not bestTimes[duration] or bestTimes[duration] < candidate.perc then
-						bestTimes[duration]=candidate.perc
-					end
+	addon:BusyFor() -- with no parames resets cache
+	for _,otherkey in party:IterateIndex() do
+		if otherkey < key then
+			local candidate=party:GetSelectedParty(otherkey)
+			local duration=addon:BusyFor(candidate)
+			if duration > 0 then
+				if not bestTimes[duration] or bestTimes[duration] < candidate.perc then
+					bestTimes[duration]=candidate.perc
 				end
 			end
 		end
-		for t,p in pairs(bestTimes) do
-			tinsert(bestTimesIndex,t)
-		end
-		if #bestTimesIndex > 0 then
-			tip:AddLine(me)
-			tip:AddLine(L["Better parties available in next future"])
-			table.sort(bestTimesIndex)
-			local bestChance=0
-			for i=1,#bestTimesIndex do
-				local key=bestTimesIndex[i]
-				if bestTimes[key] > bestChance then
-					bestChance=bestTimes[key]
-					tip:AddDoubleLine(SecondsToTime(key),GARRISON_MISSION_PERCENT_CHANCE:format(bestChance),C.Orange.r,C.Orange.g,C.Orange.b,addon:GetDifficultyColors(bestChance))
-				end
+	end
+	for t,p in pairs(bestTimes) do
+		tinsert(bestTimesIndex,t)
+	end
+	if #bestTimesIndex > 0 then
+		tip:AddLine(me .. ' addition')
+		tip:AddLine(L["Better parties available in next future"],C:Green())
+		table.sort(bestTimesIndex)
+		local bestChance=0
+		for i=1,#bestTimesIndex do
+			local key=bestTimesIndex[i]
+			if bestTimes[key] > bestChance then
+				bestChance=bestTimes[key]
+				tip:AddDoubleLine(SecondsToTime(key),GARRISON_MISSION_PERCENT_CHANCE:format(bestChance),C.Orange.r,C.Orange.g,C.Orange.b,addon:GetDifficultyColors(bestChance))
 			end
 		end
---@debug@
-		tip:AddLine("-----------------------------------------------")
-		OrderHallCommanderMixin.DumpData(tip,addon:GetMissionParties(this.info.missionID):GetSelectedParty(key))
---@end-debug@
 	end
 	tip:Show()
 	

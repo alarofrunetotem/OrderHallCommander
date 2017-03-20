@@ -153,6 +153,29 @@ end
 function CandidateManager:Follower(index)
 	return self[index]
 end
+local busyCache={}
+function addon:BusyFor(candidate)
+	if not candidate then wipe(busyCache) return end
+	local busyUntil=0
+	for _,followerID in candidate:IterateFollowers() do
+		if not busyCache[followerID] then
+			 busyCache[followerID]=G.GetFollowerMissionTimeLeftSeconds(followerID) or 0
+		end
+		if busyCache[followerID]>busyUntil then
+			busyUntil=busyCache[followerID]
+		end 
+	end 
+	return busyUntil
+end
+function addon:CanKillTroops(candidate)
+	for _,followerID in candidate:IterateFollowers() do
+		if self:GetFollowerData(followerID,'durability',0)>1 then
+			return true
+		end
+	end
+	return false
+end
+
 -- Party management
 local partyManager={} --#PartyManager
 local missionParties={}
