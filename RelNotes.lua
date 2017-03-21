@@ -15,6 +15,11 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
+self:RelNotes(1,1,1,[[
+Fix: Save troops honored (https://wow.curseforge.com/projects/orderhallcommander/issues/33)
+Fix: restored future missions in tooltip
+Fix: improved kill troop information, now the skull is green if klll troops is in effect but used troops only have 1 durability left
+]])
 self:RelNotes(1,1,0,[[
 Fix: All cache error should be gone
 Feature: new Don't use troops switch
