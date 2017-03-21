@@ -212,7 +212,6 @@ function module:MissionComplete(this,button,skiprescheck)
 			local m=missions[i]
 --totalTimeString, totalTimeSeconds, isMissionTimeImproved, successChance, partyBuffs, isEnvMechanicCountered, xpBonus, materialMultiplier, goldMultiplier = C_Garrison.GetPartyMissionInfo(MISSION_PAGE_FRAME.missionInfo.missionID);
 			_,_,m.isMissionTimeImproved,m.successChance,_,_,m.xpBonus,m.resourceMultiplier,m.goldMultiplier=G.GetPartyMissionInfo(m.missionID)
-			addon:GetCacheModule():SetMissionStatus(m.missionID,'completed')			
 		end
 		local stop
 		for id,qt in pairs(wasted) do

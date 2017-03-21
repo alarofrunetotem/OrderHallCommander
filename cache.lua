@@ -351,15 +351,6 @@ function module:delGetFollowerData(...)
 		end
 	end
 end
-function module:SetMissionStatus(missionID,status)
-	local mission=getCachedMissions()[missionID]
-	if mission then
-		mission.inProgress=nil
-		mission.available=nil
-		mission.completed=nil
-	end
-	mission[status]=true
-end
 --	local list=inProgress and m.inProgressMissions or m.availableMissions
 -- OHF.MissionTab.MissionList
 local emptyMissions={}

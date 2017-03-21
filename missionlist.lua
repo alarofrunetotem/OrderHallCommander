@@ -500,7 +500,6 @@ function module:AdjustMissionButton(frame)
 	if mission.inProgress then
 		stats:SetPoint("LEFT",48,14)
 		stats.Expire:Hide()
-		addon:GetCacheModule():SetMissionStatus(missionID,'inProgress')
 	else
 		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining)
 		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))		
