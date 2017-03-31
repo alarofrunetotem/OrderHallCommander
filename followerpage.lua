@@ -37,7 +37,8 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
 local MAX_LEVEL=110
-
+local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
+local GARRISON_FOLLOWER_MAX_UPGRADE_QUALITY=GARRISON_FOLLOWER_MAX_UPGRADE_QUALITY[LE_FOLLOWER_TYPE_GARRISON_7_0]
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
 
@@ -120,7 +121,8 @@ function module:RenderUpgradeButton(id,previous)
 		end
 		previous=b
 		b.itemID=id
-		b:SetAttribute("item",select(2,GetItemInfo(id)))		
+		b:SetAttribute("item",select(2,GetItemInfo(id)))	
+			
 		GarrisonMissionFrame_SetItemRewardDetails(b)
 		b.Quantity:SetFormattedText("%d",qt)
 		b.Quantity:SetTextColor(C.Yellow())
@@ -151,8 +153,13 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	local u=UpgradeFrame
 	local previous
-	if follower.iLevel <850 then
+	if follower.iLevel <850  then
 		for _,id in pairs(addon:GetData("Upgrades")) do
+			previous=self:RenderUpgradeButton(id,previous)
+		end	
+	end
+	if follower.iLevel <900 then
+		for _,id in pairs(addon:GetData("Upgrades2")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end	
 	end
@@ -167,6 +174,7 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 		end	
 	end
 end
+local UpgradeFollower 
 function module:AcquireButton()
 	local b=tremove(pool)
 	if not b then
@@ -174,6 +182,7 @@ function module:AcquireButton()
 		b:EnableMouse(true)
 		b:RegisterForClicks("LeftButtonDown")
 		b:SetAttribute("type","item")
+		--b:SetScript("PostClick",UpgradeFollower)		
 		b:SetSize(40,40)
 		b.Icon:SetSize(40,40)
 		b:EnableMouse(true)
@@ -192,7 +201,7 @@ local CONFIRM2=L["Upgrading to |cff00ff00%d|r"].."\n|cffffd200 "..L["You are was
 local function DoUpgradeFollower(this)
 		G.CastSpellOnFollower(this.data);
 end
-local function UpgradeFollower(this)
+function UpgradeFollower(this)
 	local follower=this:GetParent()
 	local followerID=follower.followerID
 	local upgradelevel=this.rawlevel

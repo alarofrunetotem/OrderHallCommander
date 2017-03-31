@@ -1,8 +1,7 @@
 local me,ns=...
 if ns.die then return end
-local hlp=LibStub("LibInit"):GetAddon(me)
-local L=hlp:GetLocale()
-function hlp:loadHelp()
+local L=ns:GetLocale()
+function ns:loadHelp()
 self:HF_Title(me,"RELNOTES")
 self:HF_Paragraph("Description")
 self:Wiki([[
@@ -14,6 +13,12 @@ self:Wiki([[
 * "What if" switches to change party composition based on criteria
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
+]])
+self:RelNotes(1,1,3,[[
+Fix: Now manages new champions ilevel upgrade token
+]])
+self:RelNotes(1,1,2,[[
+Toc bump
 ]])
 self:RelNotes(1,1,1,[[
 Fix: Save troops honored (https://wow.curseforge.com/projects/orderhallcommander/issues/33)
