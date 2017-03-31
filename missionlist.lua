@@ -394,6 +394,10 @@ function module:InitialSetup(this)
 	menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
 	menu.Title:SetText(me .. ' ' .. addon.version)
 	menu.Title:SetTextColor(C:Yellow())
+	local obj=addon:GetCacheModule():GetTroopsFrame()
+	local _,minor=LibStub("LibInit")	
+	local LL=LibStub("AceLocale-3.0"):GetLocale("LibInit" .. minor,true)
+	addon:MarkAsNew(obj,addon:NumericVersion(),LL["Release notes"] .. ' ' .. addon.version,"Help")	
 	close=menu.CloseButton
 	button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]

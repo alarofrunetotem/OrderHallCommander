@@ -1,6 +1,19 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<Script file="OrderHallCommander.lua"/>
+	<Button name="OrderHallCommanderWhatsNew" inherits="UIPanelInfoButton" hidden="true" virtual="true">
+		<Size x="32" y="32"/>
+		<Scripts>
+			<OnLeave function="GameTooltip_Hide"/>
+			<OnEnter>
+				if self.tooltip then
+					GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
+					GameTooltip:AddLine(self.tooltip)
+					GameTooltip:Show()
+				end
+			</OnEnter>
+		</Scripts>
+	</Button>	
 	<Button name="OHCMissionButton" inherits="OrderHallMissionListButtonTemplate" virtual="true">
 		<Size x="832" y="75"/>
 		<KeyValues>
