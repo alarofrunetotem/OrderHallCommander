@@ -305,6 +305,35 @@ function addon:Reward2Class(mission)
 	local class,value=Reward2Class(self,mission)
 	rewardCache[missionID]={class=class,value=value}
 	return class,value,classSort[class] or 0
+end
+local newsframes={}
+function addon:MarkAsNew(obj,key,message,method)
+	local db=self.db.global
+	if not db.news then db.news={} end
+	--@debug@
+	db.news[key]=false
+	--@end-debug@
+	if (not db.news[key]) then
+		local f=CreateFrame("Button",nil,obj,"OrderHallCommanderWhatsNew")
+		f.tooltip=message
+		f.texture:ClearAllPoints()
+		f.texture:SetAllPoints()
+		f:SetPoint("TOPLEFT",obj,"TOPRIGHT")
+		f:SetFrameStrata("HIGH")
+		f:Show()
+		if method then
+			f:SetScript("OnClick",function(frame) self[method](self,frame) self:MarkAsSeen(key) end)
+		else
+			f:SetScript("OnClick",function(frame) self:MarkAsSeen(key) end)
+		end
+		newsframes[key]=f
+	end
+end
+function addon:MarkAsSeen(key)
+	local db=self.db.global
+	if not db.news then db.news={} end
+	db.news[key]=true
+	if newsframes[key] then newsframes[key]:Hide() end
 end	
 --@do-not-package@
 
@@ -373,35 +402,6 @@ function addon:Resolve(frame)
 		end
 	end
 	return "unk"
-end
-local newsframes={}
-function addon:MarkAsNew(obj,key,message,method)
-	local db=self.db.global
-	if not db.news then db.news={} end
-	--@debug@
-	db.news[key]=false
-	--@end-debug@
-	if (not db.news[key]) then
-		local f=CreateFrame("Button",nil,obj,"OrderHallCommanderWhatsNew")
-		f.tooltip=message
-		f.texture:ClearAllPoints()
-		f.texture:SetAllPoints()
-		f:SetPoint("TOPLEFT",obj,"TOPRIGHT")
-		f:SetFrameStrata("HIGH")
-		f:Show()
-		if method then
-			f:SetScript("OnClick",function(frame) self[method](self,frame) self:MarkAsSeen(key) end)
-		else
-			f:SetScript("OnClick",function(frame) self:MarkAsSeen(key) end)
-		end
-		newsframes[key]=f
-	end
-end
-function addon:MarkAsSeen(key)
-	local db=self.db.global
-	if not db.news then db.news={} end
-	db.news[key]=true
-	if newsframes[key] then newsframes[key]:Hide() end
 end
 
 _G.OHC=addon
