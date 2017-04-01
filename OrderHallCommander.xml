@@ -146,7 +146,7 @@
 	</Button>
 
 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="GarrisonUITemplate" virtual="true">
-		<Size x="220" y="30"/>
+		<Size x="200" y="30"/>
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
 			<KeyValue key="DefaultWidth" value="220" type="number"/>

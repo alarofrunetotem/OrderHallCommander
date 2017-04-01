@@ -88,31 +88,46 @@ local buttonlist={}
 local function nop() return 0 end
 local Current_Sorter
 local sortKeys={}
+local MAX=math.huge
+local function GetPerc(mission,realvalue)
+	local p=addon:GetSelectedParty(mission.missionID)
+	local perc=-p.perc or 0
+	if realvalue then
+		return perc
+	else
+		return addon:GetBoolean("IGNORELOW") and perc or 1
+	end
+end
 local sorters={
 		Garrison_SortMissions_Original=nop,
 		Garrison_SortMissions_Chance=function(mission)
-			local p=addon:GetSelectedParty(mission.missionID)
-			return -p.perc or 0 
+			return GetPerc(mission,true)
 		end,
 		Garrison_SortMissions_Level=function(mission) 
+			if GetPerc(mission) == 0 then return MAX end
 			return -mission.level * 1000 - (mission.iLevel or 0)
 		end,
 		Garrison_SortMissions_Age=function(mission) 
+			if GetPerc(mission) == 0 then return MAX end
 			return mission.offerEndTime
 		end,
 		Garrison_SortMissions_Xp=function(mission)
+			if GetPerc(mission) == 0 then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID)
 			return -p.totalXP or 0 
 		end,
 		Garrison_SortMissions_HourlyXp=function(mission)
+			if GetPerc(mission) == 0 then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID)
 			return (-p.totalXP or 0) * 60 /  (p.timeseconds or  mission.durationSeconds or 36000)
 		end,
 		Garrison_SortMissions_Duration=function(mission) 
+			if GetPerc(mission) == 0 then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID)
 			return p.timeseconds or  mission.durationSeconds or 0
 		end,
 		Garrison_SortMissions_Class=function(mission)
+			if GetPerc(mission) == 0 then return  MAX end
 			return select(3,addon:Reward2Class(mission))
 		end,
 }
@@ -138,7 +153,8 @@ function module:OnInitialized()
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
-	addon:RegisterForMenu("mission","SORTMISSION")
+	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
+	addon:RegisterForMenu("mission","SORTMISSION","IGNORELOW")
 	self:LoadButtons()
 	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
@@ -372,7 +388,12 @@ function module:Menu()
 			else
 				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
 			end
+			local w=f:GetWidth()+45
+			if w >menu:GetWidth() then menu:SetWidth(w) end
 			previous=f
+--@debug@
+			pp("Width",f:GetWidth())
+--@end-debug@			
 		end
 	end 
 	self.Menu=function() addon:Print("Should not call this again") end

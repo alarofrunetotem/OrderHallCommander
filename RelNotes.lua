@@ -16,6 +16,7 @@ typing /ohc silent in chat will eliminate every chat message from GarrisonComman
 ]])
 self:RelNotes(1,1,3,[[
 Fix: Now manages new champions ilevel upgrade token
+Feature: added option to sort unfilled missions as last 
 ]])
 self:RelNotes(1,1,2,[[
 Toc bump
