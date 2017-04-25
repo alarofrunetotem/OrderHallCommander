@@ -14,8 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
 ]])
-self:RelNotes(1,2,0,[[
+self:RelNotes(1,2,1,[[
 Fix: #43 Added missing consumable items
+Fix: #41 Consumables are now always shown
 Fix: #39 Removed usage of Blizzard UIDropDown in order to avoid random taint
 Feature: #40 Missions blacklisting available
 
