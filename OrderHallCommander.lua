@@ -104,6 +104,10 @@ function addon:ColorFromBias(followerBias)
 			return C:Green()
 		end
 end
+function addon:SetDbDefaults(default)
+	default.profile=default.profile or {}
+	default.profile.blacklist={}
+end
 local colors=addon.colors
 _G.OrderHallCommanderMixin={}
 _G.OrderHallCommanderMixinThreats={}
@@ -230,7 +234,7 @@ function MixinThreats:AddIcons(mechanics,biases)
 	return previous
 end
 
-function MixinFollowerIcon:SetFollower(followerID,checkStatus)
+function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	local info=addon:GetFollowerData(followerID)
 	if not info or not info.followerID then
 		local rc
@@ -242,19 +246,26 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus)
 	self.followerID=followerID
 	self:SetupPortrait(info)
 	local status=(followerID and checkStatus) and G.GetFollowerStatus(followerID) or nil
-	if status then 
-		self:SetILevel(0) --CHAT_FLAG_DND
-		self.Level:SetText(status);		
-		self.Portrait:SetDesaturated(true)
-		self:SetQuality(1)
-		self:GetParent():SetNotReady(true)
-	else
-		self.Portrait:SetDesaturated(false)
+	if info.isTroop then
+		self:SetILevel(0)
+		self.Level:SetText(FOLLOWERLIST_LABEL_TROOPS)
+	else 
 		if info.isMaxLevel then
 			self:SetILevel(info.iLevel)
 		else
 			self:SetLevel(info.level)
 		end
+	end
+	if status or blacklisted then 
+		if not blacklisted then 
+			self:SetILevel(0) --CHAT_FLAG_DND
+			self:GetParent():SetNotReady(true)
+			self.Level:SetText(status);
+		end
+		self.Portrait:SetDesaturated(true)
+		self:SetQuality(1)
+	else
+		self.Portrait:SetDesaturated(false)
 	end
 	return status
 end
