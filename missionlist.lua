@@ -322,7 +322,7 @@ function addon:RefreshMissions()
 	wipe(missionIDS)
 	OHFMissions:UpdateMissions()
 	if OHF.MissionTab.MissionPage:IsVisible() then
-		module:PostMissionClick(OHF.MissionTab.MissionPage)
+		module:RawMissionClick(OHF.MissionTab.MissionPage)
 	end
 end
 local function ToggleSet(this,value)
