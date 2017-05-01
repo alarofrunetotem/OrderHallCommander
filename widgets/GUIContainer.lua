@@ -34,8 +34,7 @@ function m._Constructor()
 	frame.GarrCorners.TopRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	frame.GarrCorners.BottomLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	frame.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);	
-	local widget={frame=frame,missions={}}
-	widget.type=Type
+	local widget={frame=frame,missions={},type=Type}
 	for k,v in pairs(m) do widget[k]=v end
 	widget._Constructor=nil
 	frame:SetScript("OnHide",function(self) self.obj:Fire('OnClose') end)

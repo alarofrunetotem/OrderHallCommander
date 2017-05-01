@@ -164,6 +164,7 @@ function m:AddItem(itemID,qt,isBonus)
 end
 function m._Constructor()
 	local widget=AceGUI:Create("OHCGUIContainer")
+	widget.type=Type
 	widget:SetLayout("Fill")
 	widget.missions={}
 	local scroll = AceGUI:Create("ScrollFrame")

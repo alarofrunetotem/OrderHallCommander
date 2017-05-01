@@ -110,7 +110,7 @@ function m._Constructor()
 	frame.LocBG:SetPoint("LEFT")
 	frame.MissionType:SetPoint("TOPLEFT",5,-2)
 	frame.isResult=true
-	local widget={}
+	local widget={type=Type}
 	setmetatable(widget,{__index=frame})
 	widget.frame=frame
 	widget.scripts={}
