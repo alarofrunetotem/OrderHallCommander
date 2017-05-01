@@ -254,7 +254,7 @@ function module:OnUpdateMissions()
 end
 function module:CheckShadow()
 	if not OHFMissions.showInProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
-		local totChamps,totTroops,maxChamps=addon:GetTotFollowers('CHAMP _' .. AVAILABLE),addon:GetTotFollowers('TROOP _' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
+		local totChamps,totTroops,maxChamps=addon:GetTotFollowers('CHAMP_' .. AVAILABLE),addon:GetTotFollowers('TROOP_' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
 		--@debug@
 		print("Checking shadows for ",maxChamps,totChamps,totTroops)
 		--@end-debug@
