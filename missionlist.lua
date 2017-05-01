@@ -755,9 +755,6 @@ function module:AdjustMissionTooltip(this,...)
 	local party=addon:GetMissionParties(missionID)
 	local key=parties[missionID]
 	if party then
---@debug@
-		print(party)
---@end-debug@	
 		local candidate =party:GetSelectedParty(key)
 		if candidate then
 			if candidate.hasBonusLootNegativeEffect then
@@ -807,8 +804,8 @@ function module:AdjustMissionTooltip(this,...)
 			local candidate=party:GetSelectedParty(otherkey)
 			local duration=addon:BusyFor(candidate)
 			if duration > 0 then
-				if not bestTimes[duration] or bestTimes[duration] < candidate.perc then
-					bestTimes[duration]=candidate.perc
+				if not bestTimes[duration] or not bestTimes[duration].perc or bestTimes[duration].perc < candidate.perc then
+					bestTimes[duration]=candidate
 				end
 			end
 		end
@@ -823,9 +820,14 @@ function module:AdjustMissionTooltip(this,...)
 		local bestChance=0
 		for i=1,#bestTimesIndex do
 			local key=bestTimesIndex[i]
-			if bestTimes[key] > bestChance then
-				bestChance=bestTimes[key]
+			local candidate=bestTimes[key]
+			if candidate.perc > bestChance then
+				bestChance=candidate.perc
 				tip:AddDoubleLine(SecondsToTime(key),GARRISON_MISSION_PERCENT_CHANCE:format(bestChance),C.Orange.r,C.Orange.g,C.Orange.b,addon:GetDifficultyColors(bestChance))
+				for _,c in candidate:IterateFollowers() do
+					local busy=G.GetFollowerMissionTimeLeftSeconds(c) or 0
+					tip:AddDoubleLine(G.GetFollowerLink(c),SecondsToTime(busy),1,1,1,addon:GetDifficultyColors(busy/10))
+				end
 			end
 		end
 	end
