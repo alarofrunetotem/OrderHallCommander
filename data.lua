@@ -28,7 +28,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -62,17 +62,20 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 --*BEGIN
 local fake={}
 local data={
+	ArtifactNotes={
+		146745
+	},
 	Upgrades={
 		136412,
 		137207,
 		137208,
-		
+
 	},
 	Upgrades2={
 		147348,
 		147349,
 		147350,
-		
+
 	},
 	Buffs={
 		140749,
@@ -87,7 +90,7 @@ local data={
 		139376,
 		139418,
 		138412,
-		139670,	
+		139670,
 	},
 	Xp={
 		141028
