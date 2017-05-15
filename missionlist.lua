@@ -30,7 +30,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -61,7 +61,7 @@ local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
---*BEGIN 
+--*BEGIN
 local Dialog = LibStub("LibDialog-1.0")
 local missionNonFilled=true
 local wipe=wipe
@@ -104,25 +104,25 @@ local sorters={
 		Garrison_SortMissions_Chance=function(mission)
 			return GetPerc(mission,true)
 		end,
-		Garrison_SortMissions_Level=function(mission) 
+		Garrison_SortMissions_Level=function(mission)
 			if GetPerc(mission) == 0 then return MAX end
 			return -mission.level * 1000 - (mission.iLevel or 0)
 		end,
-		Garrison_SortMissions_Age=function(mission) 
+		Garrison_SortMissions_Age=function(mission)
 			if GetPerc(mission) == 0 then return MAX end
 			return mission.offerEndTime
 		end,
 		Garrison_SortMissions_Xp=function(mission)
 			if GetPerc(mission) == 0 then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID)
-			return -p.totalXP or 0 
+			return -p.totalXP or 0
 		end,
 		Garrison_SortMissions_HourlyXp=function(mission)
 			if GetPerc(mission) == 0 then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID)
 			return (-p.totalXP or 0) * 60 /  (p.timeseconds or  mission.durationSeconds or 36000)
 		end,
-		Garrison_SortMissions_Duration=function(mission) 
+		Garrison_SortMissions_Duration=function(mission)
 			if GetPerc(mission) == 0 then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID)
 			return p.timeseconds or  mission.durationSeconds or 0
@@ -134,8 +134,8 @@ local sorters={
 }
 --@debug@
 local function Garrison_SortMissions_PostHook()
-   print("Riordino le missioni")
-   table.sort(OrderHallMissionFrame.MissionTab.MissionList.availableMissions,function(a,b) return a.name < b.name end)
+	print("Riordino le missioni")
+	table.sort(OrderHallMissionFrame.MissionTab.MissionList.availableMissions,function(a,b) return a.name < b.name end)
 end
 --@end-debug@
 local function InProgress(mission,frame)
@@ -167,18 +167,18 @@ function module:OnInitialized()
 	--function(missions) module:SortMissions(missions) end)
 	--self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","CheckShadow")
 	--self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","CheckShadow")
-	--self:SecureHook("GarrisonMissionController_OnClickTab","CheckShadow")	
-	--self:SecureHook("GarrisonMissionListTab_OnClick","CheckShadow")	
-		
+	--self:SecureHook("GarrisonMissionController_OnClickTab","CheckShadow")
+	--self:SecureHook("GarrisonMissionListTab_OnClick","CheckShadow")
+
 		Dialog:Register("OHCUrlCopy", {
 			text = L["URL Copy"],
 			width = 500,
 			editboxes = {
 				{ width = 484,
-				  on_escape_pressed = function(self, data) self:GetParent():Hide() end,
+					on_escape_pressed = function(self, data) self:GetParent():Hide() end,
 				},
 			},
-			on_show = function(self, data) 
+			on_show = function(self, data)
 				self.editboxes[1]:SetText(data.url)
 				self.editboxes[1]:HighlightText()
 				self.editboxes[1]:SetFocus()
@@ -188,7 +188,7 @@ function module:OnInitialized()
 			},
 			show_while_dead = true,
 			hide_on_escape = true,
-		})	
+		})
 end
 function addon:Apply(flag,value)
 	self:RefreshMissions()
@@ -197,12 +197,12 @@ function module:Print(...)
 	print(...)
 end
 function module:Events()
-	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)	
+	self:RegisterEvent("GARRISON_MISSION_STARTED",function() wipe(missionIDS) wipe(parties) end)
 end
 function module:LoadButtons(...)
 	buttonlist=OHFMissions.listScroll.buttons
 	for i=1,#buttonlist do
-		local b=buttonlist[i]	
+		local b=buttonlist[i]
 		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
 		self:RawHookScript(b,"OnClick","RawMissionClick")
 		b:RegisterForClicks("AnyDown")
@@ -210,7 +210,7 @@ function module:LoadButtons(...)
 		local f,h,s=b.Title:GetFont()
 		b.Title:SetFont(f,h*scale,s)
 		local f,h,s=b.Summary:GetFont()
-		b.Summary:SetFont(f,h*scale,s)		
+		b.Summary:SetFont(f,h*scale,s)
 		self:SecureHookScript(b.Rewards[1],"OnMouseUp","printLink")
 		self:SecureHookScript(b.Rewards[1],"OnEnter","rwWarning")
 	end
@@ -234,7 +234,7 @@ function module:printLink(this)
 			Dialog:Dismiss("OHCUrlCopy")
 		end
 		tb.url="http://www.wowhead.com/item=" ..this.itemID
-		Dialog:Spawn("OHCUrlCopy", tb)		
+		Dialog:Spawn("OHCUrlCopy", tb)
 	end
 end
 
@@ -286,7 +286,7 @@ function module:OnSingleUpdate(frame)
 			rw.Quantity:SetText(value .. "*")
 			rw.Quantity:Show()
 		end
-	end	
+	end
 end
 local pcall=pcall
 local sort=table.sort
@@ -330,7 +330,7 @@ local function ToggleSet(this,value)
 end
 local function ToggleGet(this)
 	return addon:ToggleGet(this.flag,this.tipo)
-	
+
 end
 local function PreToggleSet(this)
 	return ToggleSet(this,this:GetChecked())
@@ -342,12 +342,12 @@ local button
 local function OpenMenu()
 	addon.db.profile.showmenu=true
 	button:Hide()
-	menu:Show()		
+	menu:Show()
 end
 local function CloseMenu()
 	addon.db.profile.showmenu=false
 	button:Show()
-	menu:Hide()		
+	menu:Hide()
 end
 local warner
 function module:NoMartiniNoParty(text)
@@ -369,10 +369,10 @@ function module:NoMartiniNoParty(text)
 		warner:Hide()
 	end
 end
-	
+
 function module:Menu()
 	local previous
---@alpha@	
+--@alpha@
 	local frame=CreateFrame("Frame",nil,menu)
 	frame.label=frame:CreateFontString(nil,"ARTWORK","GameFontNormalSmall")
 	frame.label:SetAllPoints(frame)
@@ -382,14 +382,14 @@ function module:Menu()
 	frame.label:SetText("You are using an\r|cffff0000ALPHA VERSION|r.\n Code is NOT optimized and OHC could run REALLY slow.\n I appreciate if you test it and raise issues but if you dont like bugs please revert to a stable version :)")
 	frame:SetHeight(100)
 	previous=frame
---@end-alpha@	
+--@end-alpha@
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
 		local flag,icon=strsplit(',',v)
 		local f=factory:Option(addon,menu,flag)
 		if type(f)=="table" and f.GetObjectType then
 			if flag=="MAXCHAMP" then f:SetStep(1) end
-			if previous then 
+			if previous then
 				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-10)
 			else
 				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
@@ -399,9 +399,9 @@ function module:Menu()
 			previous=f
 --@debug@
 			pp("Width",f:GetWidth())
---@end-debug@			
+--@end-debug@
 		end
-	end 
+	end
 	self.Menu=function() addon:Print("Should not call this again") end
 end
 local stopper=addon:NewModule("stopper","AceHook-3.0")
@@ -417,14 +417,14 @@ function module:InitialSetup(this)
 			addon.db.global.warn02_seen=addon.db.global.warn02_seen+1
 			addon:Popup(L["OrderHallCommander overrides GarrisonCommander for Order Hall Management.\n You can revert to GarrisonCommander simply disabling OrderhallCommander.\nIf instead you like OrderHallCommander remember to add it to Curse client and keep it updated"],20)
 		end
-	end 
+	end
 	menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
 	menu.Title:SetText(me .. ' ' .. addon.version)
 	menu.Title:SetTextColor(C:Yellow())
 	local obj=addon:GetCacheModule():GetTroopsFrame()
-	local _,minor=LibStub("LibInit")	
+	local _,minor=LibStub("LibInit")
 	local LL=LibStub("AceLocale-3.0"):GetLocale("LibInit" .. minor,true)
-	addon:MarkAsNew(obj,addon:NumericVersion(),LL["Release notes"] .. ' ' .. addon.version,"Help")	
+	addon:MarkAsNew(obj,addon:NumericVersion(),LL["Release notes"] .. ' ' .. addon.version,"Help")
 	close=menu.CloseButton
 	button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
@@ -435,7 +435,7 @@ function module:InitialSetup(this)
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
 	self:Unhook(this,"OnShow")
-	self:SecureHookScript(this,"OnShow","MainOnShow")	
+	self:SecureHookScript(this,"OnShow","MainOnShow")
 	self:SecureHookScript(this,"OnHide","MainOnHide")
 	OHF.ChampionsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.ChampionsStatusInfo:SetPoint("TOPRIGHT",-45,-5)
@@ -471,10 +471,10 @@ function module:MainOnHide()
 		elseif m.UnregisterAllEvents then
 			m:UnregisterAllEvents()
 		end
-	end	
+	end
 	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
-	self:Unhook("GarrisonMissionButton_SetRewards")	
+	self:Unhook("GarrisonMissionButton_SetRewards")
 end
 function module:AdjustPosition(frame)
 	local mission=frame.info
@@ -486,7 +486,7 @@ function module:AdjustPosition(frame)
 	else
 		frame.Title:SetPoint("TOPLEFT",165,-7)
 	end
-	if mission.isRare then 
+	if mission.isRare then
 		frame.Title:SetTextColor(frame.RareText:GetTextColor())
 	else
 		frame.Title:SetTextColor(C:White())
@@ -498,7 +498,7 @@ function module:AdjustPosition(frame)
 	frame.MissionType:ClearAllPoints()
 	frame.ItemLevel:Hide()
 	frame.Level:SetPoint("LEFT",5,0)
-	frame.MissionType:SetPoint("LEFT",5,0)		
+	frame.MissionType:SetPoint("LEFT",5,0)
 	if mission.isMaxLevel then
 		frame.Level:SetText(mission.iLevel)
 	else
@@ -518,7 +518,7 @@ function module:AdjustMissionButton(frame)
 		missionstats[frame]=CreateFrame("Frame",nil,frame,"OHCStats")
 --@debug@
 		self:RawHookScript(missionstats[frame],"OnEnter","MissionTip")
---@end-debug@		
+--@end-debug@
 	end
 	local stats=missionstats[frame]
 	local aLevel,aIlevel=addon:GetAverageLevels()
@@ -534,7 +534,7 @@ function module:AdjustMissionButton(frame)
 		stats.Expire:Hide()
 	else
 		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining)
-		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))		
+		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))
 		stats:SetPoint("LEFT",48,0)
 		stats.Expire:Show()
 	end
@@ -572,8 +572,12 @@ function module:AddMembers(frame)
 		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 		return
 	end
-		
+
 	local party,key=addon:GetSelectedParty(missionID,mission)
+	if party.timeseconds ~= mission.durationSeconds then
+		local color=party.timeseconds > mission.durationSeconds and RED_FONT_COLOR_CODE or GREEN_FONT_COLOR_CODE
+		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
+	end
 	local perc=party.perc or 0
 	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
@@ -599,13 +603,13 @@ function module:AddMembers(frame)
 		frame.Level:SetTextColor(C.Grey())
 	end
 	return self:AddThreats(frame,threats,party,missionID)
-end	
+end
 local function goodColor(good,bad)
 	if type(bad)=="nil" then bad=not good end
-	if good then return "green" 
+	if good then return "green"
 	elseif bad then return "red" else
 	return "tear" end
-	
+
 end
 local timeIcon="Interface/ICONS/INV_Misc_PocketWatch_01"
 local killIcon="Interface/TARGETINGFRAME/UI-RaidTargetingIcon_8"
@@ -614,7 +618,7 @@ local resurrectIcon="Interface/ICONS/Spell_Holy_GuardianSpirit"
 function module:AddThreats(frame,threats,party,missionID)
 	threats:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-5)
 	local enemies=addon:GetMissionData(missionID,'enemies')
-	if type(enemies)~="table" then 
+	if type(enemies)~="table" then
 		enemies=select(8,G.GetMissionInfo(missionID))
 	end
 	local mechanics=new()
@@ -622,72 +626,72 @@ function module:AddThreats(frame,threats,party,missionID)
 	local biases=new()
 	for _,enemy in pairs(enemies) do
 		if type(enemy.mechanics)=="table" then
-		   for mechanicID,mechanic in pairs(enemy.mechanics) do
-	   	-- icon=enemy.mechanics[id].icon
-	   		mechanic.id=mechanicID
-	   		mechanic.bias=-1
+			for mechanicID,mechanic in pairs(enemy.mechanics) do
+			-- icon=enemy.mechanics[id].icon
+				mechanic.id=mechanicID
+				mechanic.bias=-1
 				tinsert(mechanics,mechanic)
-	   	end
-   	end
-   end
-   for _,followerID in party:IterateFollowers() do
-   	if not G.GetFollowerIsTroop(followerID) then
-		   local followerBias = G.GetFollowerBiasForMission(missionID,followerID)
-		   tinsert(counters,("%04d,%s,%s,%f"):format(1000-(followerBias*100),followerID,G.GetFollowerName(followerID),followerBias))
-	   end
-   end
-   table.sort(counters)
-   for _,data in pairs(counters) do
-   	local _,followerID,_,bias=strsplit(",",data)
-      local abilities=G.GetFollowerAbilities(followerID)
-      for _,ability in pairs(abilities) do
-         for counter,info in pairs(ability.counters) do
-         	for _,mechanic in pairs(mechanics) do
-         		if mechanic.id==counter and not biases[mechanic] then
-         			biases[mechanic]=tonumber(bias)
-         			break
-         		end
-         	end
-         end
+			end
 		end
-   end
-   tinsert(mechanics,false) -- separator
-   local r,n,i=addon:GetResources()
-   local baseCost, cost = party.baseCost or 0 ,party.cost or 0
-   -- nobonusloot
+	end
+	for _,followerID in party:IterateFollowers() do
+		if not G.GetFollowerIsTroop(followerID) then
+			local followerBias = G.GetFollowerBiasForMission(missionID,followerID)
+			tinsert(counters,("%04d,%s,%s,%f"):format(1000-(followerBias*100),followerID,G.GetFollowerName(followerID),followerBias))
+		end
+	end
+	table.sort(counters)
+	for _,data in pairs(counters) do
+		local _,followerID,_,bias=strsplit(",",data)
+			local abilities=G.GetFollowerAbilities(followerID)
+			for _,ability in pairs(abilities) do
+				for counter,info in pairs(ability.counters) do
+					for _,mechanic in pairs(mechanics) do
+						if mechanic.id==counter and not biases[mechanic] then
+							biases[mechanic]=tonumber(bias)
+							break
+						end
+					end
+				end
+		end
+	end
+	tinsert(mechanics,false) -- separator
+	local r,n,i=addon:GetResources()
+	local baseCost, cost = party.baseCost or 0 ,party.cost or 0
+	-- nobonusloot
 	-- increasedcost
 	-- increasedduration
 	-- killtroops
 	if cost>baseCost then
-   	tinsert(mechanics,new({icon=i,color="red",name=n,description=increasedcost}))
-   end
+		tinsert(mechanics,new({icon=i,color="red",name=n,description=increasedcost}))
+	end
 	if cost<baseCost then
-   	tinsert(mechanics,new({icon=i,color="green",name=n,description=L["Cost reduced"]}))
-   end
-   if party.timeImproved then
-   	tinsert(mechanics,new({icon=timeIcon,color="green",name="Time",description=L["Mission duration reduced"]}))
-  	end
-  	if party.hasMissionTimeNegativeEffect then
-   	tinsert(mechanics,new({icon=timeIcon,color="red",name="Time",description=increasedduration}))
-   end
-   if party.hasKillTroopsEffect then
-     	if addon:CanKillTroops(party) then
-   		tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
-   	else
-   		tinsert(mechanics,new({icon=killIcon,color="green",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroopsnodie}))
-   	end
-   end
-   if party.hasResurrectTroopsEffect then
-   	tinsert(mechanics,new({icon=resurrectIcon,color="green",name=RESURRECT,description=L["Resurrect troops effect"]}))
-   end
-   if party.hasBonusLootNegativeEffect then
-   	tinsert(mechanics,new({icon=lootIcon,color="red",name=LOOT,description=nobonusloot}))
-   end
+		tinsert(mechanics,new({icon=i,color="green",name=n,description=L["Cost reduced"]}))
+	end
+	if party.timeImproved then
+		tinsert(mechanics,new({icon=timeIcon,color="green",name="Time",description=L["Mission duration reduced"]}))
+		end
+		if party.hasMissionTimeNegativeEffect then
+		tinsert(mechanics,new({icon=timeIcon,color="red",name="Time",description=increasedduration}))
+	end
+	if party.hasKillTroopsEffect then
+			if addon:CanKillTroops(party) then
+			tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
+		else
+			tinsert(mechanics,new({icon=killIcon,color="green",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroopsnodie}))
+		end
+	end
+	if party.hasResurrectTroopsEffect then
+		tinsert(mechanics,new({icon=resurrectIcon,color="green",name=RESURRECT,description=L["Resurrect troops effect"]}))
+	end
+	if party.hasBonusLootNegativeEffect then
+		tinsert(mechanics,new({icon=lootIcon,color="red",name=LOOT,description=nobonusloot}))
+	end
 	threats:AddIcons(mechanics,biases)
 	threats.Cost:Show()
 	threats.Cost:SetWidth(0)
 	threats.Cost:SetFormattedText(addon.resourceFormat,cost)
-   local color=goodColor(cost>=r)
+	local color=goodColor(cost>=r)
 	if cost>r then
 		threats.Cost:SetTextColor(C:Red())
 	else
@@ -702,14 +706,14 @@ function module:AddThreats(frame,threats,party,missionID)
 		threats.XP:Show()
 	else
 		threats.XP:Hide()
-	end		
-   del(mechanics)
-   del(counters)
-   del(biases)
+	end
+	del(mechanics)
+	del(counters)
+	del(biases)
 end
 function module:MissionTip(this)
 	local tip=GameTooltip
-	tip:SetOwner(this,"ANCHOR_CURSOR")	
+	tip:SetOwner(this,"ANCHOR_CURSOR")
 	tip:AddLine(me)
 	tip:AddDoubleLine(addon:GetAverageLevels())
 --@debug@
@@ -734,8 +738,8 @@ function module:MissionTip(this)
 	tip:AddDoubleLine("MissionClass",mission.missionClass)
 	tip:AddDoubleLine("MissionValue",mission.missionValue)
 	tip:AddDoubleLine("MissionSort",mission.missionSort)
-	
---@end-debug@	
+
+--@end-debug@
 	tip:Show()
 end
 local bestTimes={}
@@ -743,20 +747,23 @@ local bestTimesIndex={}
 function module:AdjustMissionTooltip(this,...)
 	local tip=GameTooltip
 	local missionID=this.info.missionID
+	local party=addon:GetMissionParties(missionID)
+	local key=parties[missionID]
 --@debug@
 	tip:AddDoubleLine("MissionID",missionID)
---@end-debug@	
+--@end-debug@
 	if this.info.inProgress or this.info.completed then return end
 	if not this.info.isRare then
 		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
-
-	local party=addon:GetMissionParties(missionID)
-	local key=parties[missionID]
 	if party then
 		local candidate =party:GetSelectedParty(key)
 		if candidate then
+--@debug@
+			tip:AddDoubleLine("Base time",this.info.durationSeconds)
+			tip:AddDoubleLine("Party time",candidate.timeseconds)
+--@end-debug@
 			if candidate.hasBonusLootNegativeEffect then
 				tip:AddLine(nobonusloot,C:Red())
 			end
@@ -779,10 +786,10 @@ function module:AdjustMissionTooltip(this,...)
 			if candidate.timeImproved then
 				tip:AddLine(L["Duration reduced"],C:Green())
 			end
-		   local r,n,i=addon:GetResources()
+			local r,n,i=addon:GetResources()
 			if candidate.cost > r then
 				tip:AddLine(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,C:Red())
-			end			
+			end
 			-- Not important enough to be specifically shown
 			-- hasSuccessChanceNegativeEffect
 			-- hasUncounterableSuccessChanceNegativeEffect
@@ -832,26 +839,30 @@ function module:AdjustMissionTooltip(this,...)
 		end
 	end
 	tip:Show()
-	
+
 end
 function module:RawMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
 	if button=="LeftButton" then
 		self.hooks[this].OnClick(this,button)
-		if( IsControlKeyDown()) then 
+		if( IsControlKeyDown()) then
 			self:Print("Ctrl key, ignoring mission prefill")
-		else 		
+		else
 			addon:GetMissionpageModule():FillMissionPage(mission,parties[mission.missionID])
 		end
 	elseif button=="RightButton" then
-		addon.db.profile.blacklist[mission.missionID]= not addon.db.profile.blacklist[mission.missionID]	
+		addon.db.profile.blacklist[mission.missionID]= not addon.db.profile.blacklist[mission.missionID]
 		GameTooltip:Hide()
 		addon:RefreshMissions()
 		this:GetScript("OnEnter")(this)
 --@debug@
 	elseif button=="MiddleButton" then
-		addon:TestParty(mission.missionID)
-		
+		if (IsShiftKeyDown()) then
+			DevTools_Dump(this.info)
+		else
+			addon:TestParty(mission.missionID)
+		end
+
 		return
 --@end-debug@
 	end
