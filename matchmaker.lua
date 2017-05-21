@@ -203,7 +203,8 @@ function partyManager:Fail(reason,...)
 --@end-debug@
 	return false,reason
 end
-
+function partyManager:HasBusyFollowers(candidateParty)
+end
 function partyManager:SatisfyCondition(candidate,key)
 	local missionID=self.missionID
 --@debug@
@@ -222,13 +223,6 @@ function partyManager:SatisfyCondition(candidate,key)
 	if addon:GetBoolean("NOTROOPS") 	and addon:GetFollowerData(followerID,"isTroop") then return self:Fail("NOTROOPS") end
 	local ready=addon:GetFollowerData(followerID,"busyUntil")
 	if not ready then return self:Fail("No ready data") end
-	local status=G.GetFollowerStatus(followerID)
-	if status then
-		if addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY then
-			return true
-		end
-		return self:Fail("BUSY",status,'G.GetFollowerStatus("' ..followerID..'")')
-	end
 	return true,'OK'
 end
 function partyManager:IterateIndex()
@@ -237,6 +231,7 @@ function partyManager:IterateIndex()
 end
 local function GetSelectedParty(self,dbg)
 	local missionID=self.missionID
+	local busylastkey
 	local lastkey
 	local bestkey
 	local xpkey
@@ -246,6 +241,7 @@ local function GetSelectedParty(self,dbg)
 	local xpgainers=0
 	local maxChamps=addon:GetNumber("MAXCHAMP")
 	local maximizeXP=addon:GetBoolean("MAXIMIZEXP")
+	local cap=empty(addon:GetMissionData(missionID,'overmaxRewards')) and 100 or 200
 --@debug@
 		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name","none"),self.candidates)
 --@end-debug@
@@ -256,13 +252,37 @@ local function GetSelectedParty(self,dbg)
 		addon:PushDebug(missionID,{key=key,Candidate=candidate})
 --@end-debug@
 		if candidate and candidate.champions <=maxChamps  then
+			for i=1,self.numFollowers do
+				local followerID=candidate[i]
+				if followerID then
+					local status=addon:GetFollowerStatus(followerID)
+					if status ~= AVAILABLE then
+						if addon:GetBoolean("USEALLY") then
+							if status~=GARRISON_FOLLOWER_COMBAT_ALLY then
+								candidate.busy=true
+								break
+							end
+						else
+							candidate.busy=true
+							break
+						end
+					end
+				end
+			end
+			if candidate.busy then
+				busylastkey=key
+			else
+				lastkey=key
+			end
+			local got
+			if candidate.perc <= cap then
 			if not absolutebestkey then absolutebestkey=key end
-			lastkey=key
-			local got=true
+				got=true
 			local reason=''
 			if type(self.numFollowers) ~= "number" then
 				self.numFollowers=addon:GetMissionData(self,"numfollowers",3)
 			end
+				if not candidate.busy then
 			for i=1,self.numFollowers do
 				local rc,reason = self:SatisfyCondition(candidate,i)
 				got=got and rc
@@ -271,6 +291,8 @@ local function GetSelectedParty(self,dbg)
 					addon:PushDebug(missionID,"Rejected",candidate[i],reason)
 --@end-debug@
 					break
+				end
+			end
 				end
 			end
 			if got then
@@ -308,13 +330,15 @@ local function GetSelectedParty(self,dbg)
 	if bestkey then
 		return self.candidates[bestkey],bestkey
 	end
+
+		--in this case lastkey is actually the best possible key
 	if not addon:GetBoolean("IGNOREBUSY") and absolutebestkey then
 		return self.candidates[absolutebestkey],absolutebestkey
 	end
 	if lastkey then
-		--if self.candidates[lastkey].busyUntil <= GetTime() then
-			return self.candidates[lastkey],lastkey -- should not return busy followers
-		--end
+		return self.candidates[lastkey],lastkey -- does not return busy followers
+	elseif not addon:GetBoolean("IGNOREBUSY") and busylastkey then
+		return self.candidates[busylastkey],busylastkey
 	end
 	return setmetatable(self:GetEffects(),CandidateMeta)
 end
