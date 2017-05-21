@@ -757,6 +757,7 @@ function module:AdjustMissionTooltip(this,...)
 		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
+	tip:AddLine(me .. ' additions',C:Silver())
 	if party then
 		local candidate =party:GetSelectedParty(key)
 		if candidate then
@@ -821,7 +822,6 @@ function module:AdjustMissionTooltip(this,...)
 		tinsert(bestTimesIndex,t)
 	end
 	if #bestTimesIndex > 0 then
-		tip:AddLine(me .. ' addition')
 		tip:AddLine(L["Better parties available in next future"],C:Green())
 		table.sort(bestTimesIndex)
 		local bestChance=0
