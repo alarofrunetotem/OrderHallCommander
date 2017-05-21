@@ -30,7 +30,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -61,7 +61,7 @@ local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
---*BEGIN 
+--*BEGIN
 addon.lastChange=GetTime()
 local matchtimer={time=0,count=0}
 local lethalMechanicEffectID = 437;
@@ -70,16 +70,16 @@ local slowingMechanicEffectID = 428;
 local disorientingMechanicEffectID = 472;
 local debugMission=0
 local function parse(default,rc,...)
-	if rc then 
-		return ... 
+	if rc then
+		return ...
 	else
 	--@debug@
-		error(message,2) 
+		error(message,2)
 	--@end-debug@
 		return default
 	end
 end
-	
+
 local meta={
 __index = function(t,key)
 	return function(...) return parse(nil,pcall(C_Garrison[key],...)) end end
@@ -111,8 +111,8 @@ function addon:PushDebug(missionID,text,...)
 	end
 	debug[missionID]._ctr=debug[missionID]._ctr or 0
 	debug[missionID]._ctr=debug[missionID]._ctr+1
-	local stack=debugstack(2,1,0)	
-	local addon,file, line = stack:match("([%w_]*)[/\\]?([%w_]*%.[Ll][Uu][Aa]):(%d-):")	
+	local stack=debugstack(2,1,0)
+	local addon,file, line = stack:match("([%w_]*)[/\\]?([%w_]*%.[Ll][Uu][Aa]):(%d-):")
 	local key=format("%03d %s:%d",debug[missionID]._ctr,file,line)
 	debug[missionID][key]=text
 	if select('#',...)>0 then
@@ -159,12 +159,12 @@ function addon:BusyFor(candidate)
 	local busyUntil=0
 	for _,followerID in candidate:IterateFollowers() do
 		if not busyCache[followerID] then
-			 busyCache[followerID]=G.GetFollowerMissionTimeLeftSeconds(followerID) or 0
+			busyCache[followerID]=G.GetFollowerMissionTimeLeftSeconds(followerID) or 0
 		end
 		if busyCache[followerID]>busyUntil then
 			busyUntil=busyCache[followerID]
-		end 
-	end 
+		end
+	end
 	return busyUntil
 end
 function addon:CanKillTroops(candidate)
@@ -190,7 +190,7 @@ local partiesPool=CreateObjectPool(
 		obj.candidates=c
 		obj.candidatesIndex=ci
 	end
-	
+
 )
 
 --	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAXIMIZEXP")
@@ -202,7 +202,7 @@ function partyManager:Fail(reason,...)
 	end
 --@end-debug@
 	return false,reason
-end	 
+end
 
 function partyManager:SatisfyCondition(candidate,key)
 	local missionID=self.missionID
@@ -223,12 +223,12 @@ function partyManager:SatisfyCondition(candidate,key)
 	local ready=addon:GetFollowerData(followerID,"busyUntil")
 	if not ready then return self:Fail("No ready data") end
 	local status=G.GetFollowerStatus(followerID)
-	if status then 
+	if status then
 		if addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY then
 			return true
 		end
 		return self:Fail("BUSY",status,'G.GetFollowerStatus("' ..followerID..'")')
-	end 
+	end
 	return true,'OK'
 end
 function partyManager:IterateIndex()
@@ -248,20 +248,20 @@ local function GetSelectedParty(self,dbg)
 	local maximizeXP=addon:GetBoolean("MAXIMIZEXP")
 --@debug@
 		addon:PushDebug(missionID,"GetSelectedParty " .. addon:GetMissionData(missionID,"name","none"),self.candidates)
---@end-debug@				
+--@end-debug@
 
 	for i,key in ipairs(self.candidatesIndex) do
 		local candidate=self.candidates[key]
 --@debug@
 		addon:PushDebug(missionID,{key=key,Candidate=candidate})
---@end-debug@				
+--@end-debug@
 		if candidate and candidate.champions <=maxChamps  then
 			if not absolutebestkey then absolutebestkey=key end
 			lastkey=key
 			local got=true
 			local reason=''
 			if type(self.numFollowers) ~= "number" then
-				self.numFollowers=addon:GetMissionData(self,"numfollowers",3)				
+				self.numFollowers=addon:GetMissionData(self,"numfollowers",3)
 			end
 			for i=1,self.numFollowers do
 				local rc,reason = self:SatisfyCondition(candidate,i)
@@ -269,14 +269,14 @@ local function GetSelectedParty(self,dbg)
 				if not got then
 --@debug@
 					addon:PushDebug(missionID,"Rejected",candidate[i],reason)
---@end-debug@				
-					break 
+--@end-debug@
+					break
 				end
 			end
 			if got then
 --@debug@
 				addon:PushDebug(missionID,"Accepted",candidate[i])
---@end-debug@				
+--@end-debug@
 				if not bestkey then bestkey=key end
 				if maximizeXP then
 					if candidate.perc >= 100 and candidate.xpGainers >xpgainers then
@@ -293,25 +293,25 @@ local function GetSelectedParty(self,dbg)
 --@debug@
 		else
 			if dbg then addon:Print("Too many champions:",candidate.champions) end
---@end-debug@			
+--@end-debug@
 		end
-		
+
 	end
 	--@debug@
 	addon:PushDebug(missionID,
 		format("%s - Best: %s, Xp: %s, Absolute: %s, Last:%s",addon.lastChange,tostringall(bestkey,xpkey,absolutebestkey,lastkey))
 	)
 	--@end-debug@
-	if xpkey then 
+	if xpkey then
 		return self.candidates[xpkey],xpkey
 	end
-	if bestkey then 
+	if bestkey then
 		return self.candidates[bestkey],bestkey
 	end
-	if not addon:GetBoolean("IGNOREBUSY") and absolutebestkey then 
+	if not addon:GetBoolean("IGNOREBUSY") and absolutebestkey then
 		return self.candidates[absolutebestkey],absolutebestkey
 	end
-	if lastkey then 
+	if lastkey then
 		--if self.candidates[lastkey].busyUntil <= GetTime() then
 			return self.candidates[lastkey],lastkey -- should not return busy followers
 		--end
@@ -348,8 +348,8 @@ function partyManager:Remove(...)
 			if type(id)=="table" then id=id.followerID end
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,id)
 --@debug@
-			if not rc then	
-				print("Remove failed",message,self.missionID,...) 
+			if not rc then
+				print("Remove failed",message,self.missionID,...)
 			end
 --@end-debug@
 		end
@@ -357,12 +357,12 @@ function partyManager:Remove(...)
 		for i=1,select('#',...) do
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,(select(i,...)))
 --@debug@
-			if not rc then	
-				print("Remove failed",message,self.missionID,...) 
+			if not rc then
+				print("Remove failed",message,self.missionID,...)
 			end
 --@end-debug@
 		end
-	end	
+	end
 end
 function partyManager:GetEffects()
 	local timestring,timeseconds,timeImproved,chance,buffs,missionEffects,xpBonus,materials,gold=G.GetPartyMissionInfo(self.missionID)
@@ -373,9 +373,9 @@ function partyManager:GetEffects()
 	missionEffects.xpBonus=xpBonus
 	missionEffects.materials=materials
 	missionEffects.gold=gold
-	
+
 	local improvements=5
-	if timeImproved then improvements=improvements -1 end  
+	if timeImproved then improvements=improvements -1 end
 	if missionEffects.hasMissionTimeNegativeEffect then improvements=improvements+1 end
 	missionEffects.baseCost,missionEffects.cost=G.GetMissionCost(self.missionID)
 	if missionEffects.baseCost < missionEffects.cost then
@@ -411,13 +411,13 @@ function partyManager:Build(...)
 				del(followers)
 				return
 			end
-			tinsert(followers,followerID) 
-		end 
+			tinsert(followers,followerID)
+		end
 	end
 	local missionEffects=self:GetEffects()
 	missionEffects.xpGainers=0
 	missionEffects.champions=0
-	for i=1,#followers do 
+	for i=1,#followers do
 		local followerID=followers[i]
 		local isTroop=addon:GetFollowerData(followerID,"isTroop")
 		if not  isTroop then
@@ -425,20 +425,20 @@ function partyManager:Build(...)
 			missionEffects.champions=missionEffects.champions+1
 			if qlevel < addon:MAXQLEVEL() then
 				missionEffects.xpGainers=missionEffects.xpGainers+1
-			end 
+			end
 		end
 		missionEffects[i]=followerID
 	--@debug@
 		missionEffects['f'..i]=addon:GetFollowerName(followerID)
 	--@end-debug@
 	end
-	self.unique=self.unique+1	
-	local index=format("%03d:%1d:%1d:%1d:%2d",900-missionEffects.perc,missionEffects.improvements,missionEffects.champions,3-missionEffects.xpGainers,self.unique)
-	missionEffects.chance=index	
+	self.unique=self.unique+1
+	local index=format("%04d:%1d:%1d:%1d:%2d",1000-missionEffects.perc,missionEffects.improvements,missionEffects.champions,3-missionEffects.xpGainers,self.unique)
+	missionEffects.chance=index
 	self.candidates[index]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
 
-end	
+end
 
 function partyManager:Match()
 	if self.ready and self.updated > addon.lastChange then return end
@@ -534,9 +534,9 @@ function partyManager:GenerateIndex()
 	wipe(self.candidatesIndex)
 	for k,_ in pairs(self.candidates) do
 		tinsert(self.candidatesIndex,k)
-	end	
+	end
 	table.sort(self.candidatesIndex)
-end	
+end
 function module:OnInitialized()
 	addon:AddLabel(L["Missions"],L["Configuration for mission party builder"])
 	addon:AddBoolean("SAVETROOPS",false,L["Dont kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
@@ -558,8 +558,8 @@ function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
-	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")	
-	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")	
+	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")
+	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")
 end
 function module:Refresh(event)
 	self:ResetParties()
