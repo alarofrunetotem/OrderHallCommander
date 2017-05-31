@@ -16,6 +16,7 @@ typing /ohc silent in chat will eliminate every chat message from GarrisonComman
 ]])
 self:RelNotes(1,3,0,[[
 Feature: updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)
+Fix: Elite mission chance is now commputed the right way
 ]])
 self:RelNotes(1,2,2,[[
 Fix: #44 Error when changing options on send mission page

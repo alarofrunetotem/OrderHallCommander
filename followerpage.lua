@@ -30,7 +30,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -79,7 +79,7 @@ function module:OnInitialized()
 	u:SetPoint("BOTTOMLEFT",OHFFollowerTab,"BOTTOMLEFT",5,7)
 	u:SetWidth(70)
 	u:Show()
-	--addon:SetBackdrop(u,C:Green())
+	addon:SetBackdrop(u,C:Green())
 	self:SecureHook("GarrisonMission_SetFollowerModel","RefreshUpgrades")
 	UpgradeFrame:EnableMouse(true)
 	--@debug@
@@ -87,7 +87,7 @@ function module:OnInitialized()
 	self:RawHookScript(UpgradeFrame,"OnLeave",function() GameTooltip:Hide() end)
 	debugInfo=u:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	debugInfo:SetPoint("TOPLEFT",70,20)
---@end-debug@	
+--@end-debug@
 end
 function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
@@ -109,7 +109,7 @@ function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
 		self:ScheduleTimer("RefreshUpgrades",0.3)
 	end
 end
-		
+
 function module:RenderUpgradeButton(id,previous)
 		local qt=GetItemCount(id)
 		if qt== 0 then return previous end --Not rendering empty buttons
@@ -122,15 +122,15 @@ function module:RenderUpgradeButton(id,previous)
 		end
 		previous=b
 		b.itemID=id
-		b:SetAttribute("item",select(2,GetItemInfo(id)))	
-			
+		b:SetAttribute("item",select(2,GetItemInfo(id)))
+
 		GarrisonMissionFrame_SetItemRewardDetails(b)
 		b.Quantity:SetFormattedText("%d",qt)
 		b.Quantity:SetTextColor(C.Yellow())
 		b.Quantity:Show()
 		b:Show()
 		return b
-end 
+end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 --@debug@
 	debugInfo:SetText(followerID)
@@ -155,30 +155,30 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	local previous
 	for _,id in pairs(addon:GetData("Buffs")) do
 		previous=self:RenderUpgradeButton(id,previous)
-	end	
+	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
 		for _,id in pairs(addon:GetData("Upgrades")) do
 			previous=self:RenderUpgradeButton(id,previous)
-		end	
+		end
 	end
 	if follower.iLevel <900 then
 		for _,id in pairs(addon:GetData("Upgrades2")) do
 			previous=self:RenderUpgradeButton(id,previous)
-		end	
+		end
 	end
 	if not follower.isMaxLevel or  follower.quality ~=LE_ITEM_QUALITY_EPIC then
 		for _,id in pairs(addon:GetData("Xp")) do
 			previous=self:RenderUpgradeButton(id,previous)
-		end	
+		end
 	end
 	if follower.quality >=LE_ITEM_QUALITY_RARE then
 		for _,id in pairs(addon:GetData("Equipment")) do
 			previous=self:RenderUpgradeButton(id,previous)
-		end	
+		end
 	end
 end
-local UpgradeFollower 
+local UpgradeFollower
 function module:AcquireButton()
 	local b=tremove(pool)
 	if not b then
@@ -186,12 +186,12 @@ function module:AcquireButton()
 		b:EnableMouse(true)
 		b:RegisterForClicks("LeftButtonDown")
 		b:SetAttribute("type","item")
-		--b:SetScript("PostClick",UpgradeFollower)		
+		--b:SetScript("PostClick",UpgradeFollower)
 		b:SetSize(40,40)
 		b.Icon:SetSize(40,40)
 		b:EnableMouse(true)
-		b:RegisterForClicks("LeftButtonDown")	
-	end		
+		b:RegisterForClicks("LeftButtonDown")
+	end
 	tinsert(UpgradeButtons,b)
 	return b
 end
@@ -199,7 +199,7 @@ function module:ReleaseButton(u)
 	u:Hide()
 	u:ClearAllPoints()
 	tinsert(pool,u)
-end	
+end
 local CONFIRM1=L["Upgrading to |cff00ff00%d|r"].."\n" .. CONFIRM_GARRISON_FOLLOWER_UPGRADE
 local CONFIRM2=L["Upgrading to |cff00ff00%d|r"].."\n|cffffd200 "..L["You are wasting |cffff0000%d|cffffd200 point(s)!!!"].."|r\n" .. CONFIRM_GARRISON_FOLLOWER_UPGRADE
 local function DoUpgradeFollower(this)
