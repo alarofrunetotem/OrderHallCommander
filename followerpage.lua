@@ -79,10 +79,12 @@ function module:OnInitialized()
 	u:SetPoint("BOTTOMLEFT",OHFFollowerTab,"BOTTOMLEFT",5,7)
 	u:SetWidth(70)
 	u:Show()
+--@debug@
 	addon:SetBackdrop(u,C:Green())
+--@end-debug@
 	self:SecureHook("GarrisonMission_SetFollowerModel","RefreshUpgrades")
 	UpgradeFrame:EnableMouse(true)
-	--@debug@
+--@debug@
 	self:RawHookScript(UpgradeFrame,"OnEnter","ShowFollowerData")
 	self:RawHookScript(UpgradeFrame,"OnLeave",function() GameTooltip:Hide() end)
 	debugInfo=u:CreateFontString(nil, "OVERLAY", "GameFontNormal")
