@@ -115,7 +115,6 @@ end
 function module:RenderUpgradeButton(id,previous)
 		local qt=GetItemCount(id)
 		if qt== 0 then return previous end --Not rendering empty buttons
-		print("Rendering",id,"for",qt,"pieces")
 		local b=self:AcquireButton()
 		if previous then
 			b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-8)
@@ -135,7 +134,7 @@ function module:RenderUpgradeButton(id,previous)
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 --@debug@
-	debugInfo:SetText(followerID)
+	debugInfo:SetText(followerID ..  " " .. displayID)
 --@end-debug@
 	if not OHFFollowerTab:IsVisible() then return end
 	if model then

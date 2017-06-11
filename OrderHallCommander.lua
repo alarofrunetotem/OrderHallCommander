@@ -32,7 +32,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -60,7 +60,7 @@ addon.safeG=setmetatable({},{
 			function(default,...)
 				return parse(default,pcall(G[key],...))
 			end
-		) 
+		)
 		return table[key]
 	end
 })
@@ -77,6 +77,7 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local MISSING=ITEM_MISSING:format(""):gsub(' ','')
+local IGNORED=IGNORED
 MISSING=C(MISSING:sub(1,1):upper() .. MISSING:sub(2),"Red")
 local ctr=0
 -- Sometimes matchmakimng starts before these are defined, so I put here a sensible default (actually, this values are constans)
@@ -111,7 +112,7 @@ end
 local colors=addon.colors
 _G.OrderHallCommanderMixin={}
 _G.OrderHallCommanderMixinThreats={}
-_G.OrderHallCommanderMixinFollowerIcon={} 
+_G.OrderHallCommanderMixinFollowerIcon={}
 _G.OrderHallCommanderMixinMenu={}
 _G.OrderHallCommanderMixinMembers={}
 local Mixin=OrderHallCommanderMixin --#Mixin
@@ -125,7 +126,7 @@ function Mixin:CounterTooltip()
 	tip:AddLine(self.Ability)
 	tip:AddLine(self.Description)
 	tip:Show()
-	
+
 end
 function Mixin:DebugOnLoad()
 	self:RegisterForDrag("LeftButton")
@@ -174,9 +175,9 @@ end
 function Mixin.DumpData(tip,data)
 	for k,v in kpairs(data) do
 		local color="Silver"
-		if type(v)=="number" then color="Cyan" 
+		if type(v)=="number" then color="Cyan"
 		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
-		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White" 
+		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
 		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
 		else v=type(v) color="Blue"
 		end
@@ -194,8 +195,8 @@ function MixinThreats:AddIcons(mechanics,biases)
 	if not icons then
 		--@debug@
 		print("Empty icons")
-		--@end-debug@ 
-		return false 
+		--@end-debug@
+		return false
 	end
 	for i=1,#self.usedPool do
 		self.threatPool:Release(self.usedPool[i])
@@ -239,7 +240,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	if not info or not info.followerID then
 		local rc
 		rc,info=pcall(G.GetFollowerInfo,followerID)
-		if not rc or not info then 	
+		if not rc or not info then
 			return self:SetEmpty(LFG_LIST_APP_TIMED_OUT)
 		end
 	end
@@ -249,15 +250,15 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	if info.isTroop then
 		self:SetILevel(0)
 		self.Level:SetText(FOLLOWERLIST_LABEL_TROOPS)
-	else 
+	else
 		if info.isMaxLevel then
 			self:SetILevel(info.iLevel)
 		else
 			self:SetLevel(info.level)
 		end
 	end
-	if status or blacklisted then 
-		if not blacklisted then 
+	if status or blacklisted then
+		if not blacklisted then
 			self:SetILevel(0) --CHAT_FLAG_DND
 			self:GetParent():SetNotReady(true)
 			self.Level:SetText(status);
@@ -274,7 +275,9 @@ function MixinFollowerIcon:SetEmpty(message)
 	self:SetLevel(message or MISSING)
 	self:SetPortraitIcon()
 	self:SetQuality(1)
-	self:GetParent():SetNotReady(true)
+	if message ~=IGNORED then
+		self:GetParent():SetNotReady(true)
+	end
 end
 function MixinFollowerIcon:ShowTooltip()
 	if not self.followerID then
@@ -283,7 +286,7 @@ function MixinFollowerIcon:ShowTooltip()
 --@end-debug@
 --[===[@non-debug@
 		return
---@end-non-debug@]===]	
+--@end-non-debug@]===]
 	end
 	local link = C_Garrison.GetFollowerLink(self.followerID);
 	if link then
@@ -293,7 +296,7 @@ function MixinFollowerIcon:ShowTooltip()
 		GarrisonFollowerTooltip:SetPoint("BOTTOM", self, "TOP")
 		local _, garrisonFollowerID, quality, level, itemLevel, ability1, ability2, ability3, ability4, trait1, trait2, trait3, trait4, spec1 = strsplit(":", link)
 		GarrisonFollowerTooltip_Show(tonumber(garrisonFollowerID), true, tonumber(quality), tonumber(level), xp,levelXP,  tonumber(itemLevel), tonumber(spec1), tonumber(ability1), tonumber(ability2), tonumber(ability3), tonumber(ability4), tonumber(trait1), tonumber(trait2), tonumber(trait3), tonumber(trait4))
-		if not GarrisonFollowerTooltip.Status then 		
+		if not GarrisonFollowerTooltip.Status then
 			GarrisonFollowerTooltip.Status=GarrisonFollowerTooltip:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 			GarrisonFollowerTooltip.Status:SetPoint("BOTTOM",0,5)
 		end
@@ -347,5 +350,5 @@ function MixinMenu:OnLoad()
 	self.GarrCorners.BottomLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
-end	
+end
 

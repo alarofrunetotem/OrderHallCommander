@@ -69,6 +69,7 @@ local GetTime=GetTime
 local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
 local RESURRECT=RESURRECT
 local LOOT=LOOT
+local IGNORED=IGNORED
 local nobonusloot=G.GetFollowerAbilityDescription(471)
 local increasedcost=G.GetFollowerAbilityDescription(472)
 local increasedduration=G.GetFollowerAbilityDescription(428)
@@ -397,9 +398,6 @@ function module:Menu()
 			local w=f:GetWidth()+45
 			if w >menu:GetWidth() then menu:SetWidth(w) end
 			previous=f
---@debug@
-			pp("Width",f:GetWidth())
---@end-debug@
 		end
 	end
 	self.Menu=function() addon:Print("Should not call this again") end
@@ -579,6 +577,7 @@ function module:AddMembers(frame)
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
 	end
 	local perc=party.perc or 0
+	local maxChance=addon:GetMissionData(missionID,'maxChance')
 	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 	parties[missionID]=key
@@ -590,8 +589,13 @@ function module:AddMembers(frame)
 			end
 			missionNonFilled=false
 		else
-			members.Champions[i]:SetEmpty()
-			stats.Chance:SetTextColor(C.Grey())
+			if perc >= maxChance then
+				missionNonFilled=false
+				members.Champions[i]:SetEmpty(IGNORED)
+			else
+				members.Champions[i]:SetEmpty()
+				stats.Chance:SetTextColor(C.Grey())
+			end
 		end
 		members.Champions[i]:Show()
 	end
@@ -713,15 +717,27 @@ function module:AddThreats(frame,threats,party,missionID)
 end
 function module:MissionTip(this)
 	local tip=GameTooltip
+	local info=this:GetParent().info
+	local missionID=info.missionID
 	tip:SetOwner(this,"ANCHOR_CURSOR")
 	tip:AddLine(me)
 	tip:AddDoubleLine(addon:GetAverageLevels())
---@debug@
-	local info=this:GetParent().info
 	OrderHallCommanderMixin.DumpData(tip,info)
 	tip:AddLine("Followers")
 	for i,id in ipairs(info.followers) do
-		tip:AddDoubleLine(id,pcall(G.GetFollowerName,id))
+		local rc,name = pcall(G.GetFollowerName,id)
+		tip:AddDoubleLine(id,name)
+	end
+	local party=addon:GetMissionParties(missionID)
+	local key=parties[missionID]
+	local candidate =party:GetSelectedParty(key)
+	local dataclass=addon:GetData('Troops')
+	for i,id in ipairs(candidate) do
+		local rc,name = pcall(G.GetFollowerName,id)
+		if rc and addon:GetFollowerData(id,'isTroop') then
+			name=name .. ' ' .. addon:GetFollowerData(id,'garrFollowerID')
+		end
+		tip:AddDoubleLine(id,name)
 	end
 	tip:AddLine("Rewards")
 	for i,d in pairs(info.rewards) do
@@ -738,8 +754,6 @@ function module:MissionTip(this)
 	tip:AddDoubleLine("MissionClass",mission.missionClass)
 	tip:AddDoubleLine("MissionValue",mission.missionValue)
 	tip:AddDoubleLine("MissionSort",mission.missionSort)
-
---@end-debug@
 	tip:Show()
 end
 local bestTimes={}
@@ -839,7 +853,6 @@ function module:AdjustMissionTooltip(this,...)
 		end
 	end
 	tip:Show()
-
 end
 function module:RawMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page

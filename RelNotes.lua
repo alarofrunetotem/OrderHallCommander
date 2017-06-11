@@ -16,6 +16,8 @@ typing /ohc silent in chat will eliminate every chat message from GarrisonComman
 ]])
 self:RelNotes(1,3,0,[[
 Feature: updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)
+Fix: if mission is maxed, no longer fills it (mission can be sent wit less than 3 followers)
+Feature: tries to use cheaper troops when available
 Fix: Elite mission chance is now commputed the right way
 ]])
 self:RelNotes(1,2,2,[[

@@ -30,7 +30,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -61,7 +61,7 @@ local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
---*BEGIN 
+--*BEGIN
 local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
 local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,type=pairs,math,wipe,tinsert,GetTime,next,ipairs,type
@@ -86,7 +86,7 @@ missions={
 }
 }--- Caches
 
--- 
+--
 local currency
 local currencyName
 local currencyTexture
@@ -128,7 +128,7 @@ local function getCachedMissions()
 		end
 	end
 	return cachedMissions
-end	
+end
 local function getCachedFollowers()
 	if empty(cachedFollowers) then
 		local followers=G.GetFollowers(followerType)
@@ -143,7 +143,7 @@ local function getCachedFollowers()
 			end
 		end
 	end
-	return cachedFollowers 
+	return cachedFollowers
 end
 function module:GetAverageLevels(cached)
 	if avgLevel==0 or not cached then
@@ -194,9 +194,9 @@ function module:DeleteFollower(followerID)
 end
 function module:BuildFollower(followerID)
 	local f=getCachedFollowers()
-	if f[followerID] then 
+	if f[followerID] then
 		f[followerID].busyUntil=volatile.followers.busyUntil(followerID)
-		return 
+		return
 	end
 	local rc,data=pcall(G.GetFollowerInfo,followerID)
 	if rc then
@@ -238,7 +238,7 @@ function module:refreshFollower(data)
 			del(data,true)
 			data=nil
 		end
-	end	
+	end
 end
 --@debug@
 function module:GetFollower(key)
@@ -270,7 +270,7 @@ local function GetFollowers()
 end
 --- Return followerdata-
 -- Available fields:
--- 
+--
 -- * classAtlas
 -- * className
 -- * displayHeight
@@ -295,13 +295,13 @@ end
 -- Calculated fields
 -- * qLevel
 -- * busyUntil
--- 
+--
 --
 function module:GetFollowerData(followerID,field,defaultValue)
-	if empty(followerCache) or followerCacheUpdate < addon.lastChange then 
+	if empty(followerCache) or followerCacheUpdate < addon.lastChange then
 		followerCache=OHFFollowerList.followers or GetFollowers() or emptyTable
 	end
-	if not followerID then return followerCache  end 
+	if not followerID then return followerCache  end
 	local followerIndex=indexes.followers[followerID]
 	local pointer=followerCache[followerIndex]
 	if not pointer or pointer.followerID~=followerID then
@@ -333,9 +333,9 @@ function module:delGetFollowerData(...)
 		end
 		return f
 	end
-	local data=f[id] 
+	local data=f[id]
 	if data then
-		self:refreshFollower(data) 
+		self:refreshFollower(data)
 	end
 	if data then
 		if key then
@@ -364,7 +364,7 @@ local function scanList(map,id)
 	for i=1,#list do
 		local key=format("%d,%s",i,map)
 		missionCacheIndex[id]=key
-		if list[i].missionID==id then 
+		if list[i].missionID==id then
 			return list[i]
 		end
 	end
@@ -379,7 +379,7 @@ local function getMissionFromBlizzardData(cache,missionID)
 			return t[index]
 		end
 	end
-	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) or emptyMissions 
+	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) or emptyMissions
 end
 --- Retrieves mission data.
 -- Uses tables already loaded by Blizzard and works on both inProgress and availableMissions
@@ -425,6 +425,7 @@ function module:GetMissionData(missionID,field,defaultValue)
 	if not field then return mission end
 	if field then
 		if field=="class" then return addon:Reward2Class(missionID) end
+		if field=="maxChance" then return mission.hasBonusEffect and 200 or 100 end
 	end
 	if field and mission[field] then
 		return mission[field]
@@ -436,7 +437,7 @@ end
 
 function module:GetKey(data,key,defaultvalue)
 -- some keys need to be fresh only if champions is not maxed
-	
+
 	if volatile[key] and not data[key] then
 		data[key]=volatile[key](data.followerID)
 	end
@@ -444,8 +445,8 @@ function module:GetKey(data,key,defaultvalue)
 		data.status=G.GetFollowerStatus(data.followerID)
 	end
 	if data[key] then return data[key] end
-	-- pseudokeys 
-	if key=="qLevel" then 
+	-- pseudokeys
+	if key=="qLevel" then
 		return data.isMaxLevel and data.quality+data.level or data.level
 	end
 	assert("Invalid pseudo key " .. tostring(key))
@@ -478,7 +479,7 @@ function module:GetTroopsFrame()
 		frame:SetMovable(true)
 		frame:RegisterForDrag("LeftButton")
 		frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
-		frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)		
+		frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
 		frame:Show()
 		TroopsHeader=frame
 	end
@@ -509,15 +510,15 @@ function module:ParseFollowers()
 		end
 		categoryInfoFrame.Icon:SetTexture(category.icon);
 		categoryInfoFrame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
-		categoryInfoFrame.TroopPortraitCover:Hide()		
+		categoryInfoFrame.TroopPortraitCover:Hide()
 		categoryInfoFrame.Icon:SetHeight(15)
 		categoryInfoFrame.Icon:SetWidth(35)
 		categoryInfoFrame.name = category.name;
 		categoryInfoFrame.description = category.description;
 		categoryInfoFrame.Count:SetFormattedText(
-			CATEGORY_INFO_FORMAT, 
+			CATEGORY_INFO_FORMAT,
 			category.count, category.limit,unpack(shipmentInfo[category.icon]));
-		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)			
+		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)
 		categoryInfoFrame:ClearAllPoints();
 		local w=35 + categoryInfoFrame.Count:GetWidth()
 		categoryInfoFrame:SetWidth(w)
@@ -537,10 +538,10 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 	for _,t in pairs(shipmentInfo) do
 		t[1]=0
 		t[2]=0
-	end		
+	end
 	for i = 1, #followerShipments do
-	   local name, texture, shipmentCapacity, shipmentsReady, shipmentsTotal, creationTime, duration, timeleftString, _, _, _, _, followerID = C_Garrison.GetLandingPageShipmentInfoByContainerID(followerShipments[i]);
-	   if name and shipmentCapacity > 0 then
+		local name, texture, shipmentCapacity, shipmentsReady, shipmentsTotal, creationTime, duration, timeleftString, _, _, _, _, followerID = C_Garrison.GetLandingPageShipmentInfoByContainerID(followerShipments[i]);
+		if name and shipmentCapacity > 0 then
 			shipmentInfo[texture]=shipmentInfo[texture] or {}
 			shipmentInfo[texture][1]=shipmentsReady
 			shipmentInfo[texture][2]=shipmentsTotal
@@ -549,11 +550,11 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 			if shipmentsReady > 0 then
 				if GetTime()>shownAlerts[signature] then
 					shownAlerts[signature]=GetTime()+60
-					OrderHallCommanderAlertSystem:AddAlert(name, GARRISON_LANDING_COMPLETED:format(shipmentsReady,shipmentsTotal), 110, 0, false, 
+					OrderHallCommanderAlertSystem:AddAlert(name, GARRISON_LANDING_COMPLETED:format(shipmentsReady,shipmentsTotal), 110, 0, false,
 						{isTroop=true,followerTypeID=4,portraitIconID=texture,quality=1}
 					)
 				end
-			end	
+			end
 		end
 	end
 
@@ -565,7 +566,7 @@ function module:Refresh(event,...)
 --@end-debug@
 	addon:RefreshFollowerStatus()
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
-		resources = select(2,GetCurrencyInfo(currency))		
+		resources = select(2,GetCurrencyInfo(currency))
 		return
 	end
 	if event=="GARRISON_FOLLOWER_REMOVED" then
@@ -589,7 +590,7 @@ function module:OnInitialized()
 	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
 --@debug@
 	print("Currency init",currencyName, resources, currencyTexture)
---@end-debug@	
+--@end-debug@
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()
 end
@@ -599,25 +600,25 @@ function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","Refresh") 
+	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_FINISHED","Refresh")
-	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")	
-	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","Refresh")	
-	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")	
+	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")
+	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","Refresh")
+	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
 end
 function module:EventsOff()
 	self:UnregisterAllEvents()
-	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")	
+	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
 end
 ---- Public Interface
--- 
+--
 function addon:GetResources(refresh)
 	if refresh then
-		resources = select(2,GetCurrencyInfo(currency))			
-	end 
+		resources = select(2,GetCurrencyInfo(currency))
+	end
 	return resources,currencyName,currencyTexture
 end
 function addon:GetMissionData(...)
@@ -643,7 +644,7 @@ end
 function addon:GetFollowerName(id)
 	if not id then return "none" end
 	local rc,error=pcall(G.GetFollowerName,id)
-	return strconcat(tostringall(id,'(',error,')')) 
+	return strconcat(tostringall(id,'(',error,')'))
 end
 function addon:GetAllChampions(table)
 	if not table then table=new() end
@@ -693,7 +694,7 @@ local CHAMPIONS_STATUS_FORMAT= FOLLOWERLIST_LABEL_CHAMPIONS .. ":" ..
 							C(GARRISON_FOLLOWER_INACTIVE .. ":%d","silver")
 local TROOPS_STATUS_FORMAT= FOLLOWERLIST_LABEL_TROOPS .. ":" ..
 							C(AVAILABLE..':%d ','green') ..
-							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red') 
+							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red')
 function addon:RefreshFollowerStatus()
 	if not OHF:IsVisible() then return end
 	if empty(addon:GetFollowerData()) then return end

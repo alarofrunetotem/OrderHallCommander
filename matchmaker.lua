@@ -263,7 +263,9 @@ local function GetSelectedParty(self,dbg)
 			if type(self.numFollowers) ~= "number" then
 				self.numFollowers=addon:GetMissionData(self,"numfollowers",3)
 			end
-			for i=1,self.numFollowers do
+
+--			for i=1,self.numFollowers do
+			for i=1,#candidate do
 				local rc,reason = self:SatisfyCondition(candidate,i)
 				got=got and rc
 				if not got then
@@ -412,11 +414,15 @@ function partyManager:Build(...)
 				return
 			end
 			tinsert(followers,followerID)
+			if G.GetMissionSuccessChance(missionID) >= self.maxChance then
+				break
+			end
 		end
 	end
 	local missionEffects=self:GetEffects()
 	missionEffects.xpGainers=0
 	missionEffects.champions=0
+	local troopcost=0
 	for i=1,#followers do
 		local followerID=followers[i]
 		local isTroop=addon:GetFollowerData(followerID,"isTroop")
@@ -426,6 +432,8 @@ function partyManager:Build(...)
 			if qlevel < addon:MAXQLEVEL() then
 				missionEffects.xpGainers=missionEffects.xpGainers+1
 			end
+		else
+			troopcost=troopcost + addon:GetFollowerData(followerID,"maxDurability") + addon:GetFollowerData(followerID,"quality")
 		end
 		missionEffects[i]=followerID
 	--@debug@
@@ -433,7 +441,14 @@ function partyManager:Build(...)
 	--@end-debug@
 	end
 	self.unique=self.unique+1
-	local index=format("%04d:%1d:%1d:%1d:%2d",1000-missionEffects.perc,missionEffects.improvements,missionEffects.champions,3-missionEffects.xpGainers,self.unique)
+	local index=format("%04d:%1d:%1d:%1d:%1d:%1d:%2d",
+		1000-missionEffects.perc,
+		#followers,
+		troopcost,
+		missionEffects.improvements,
+		missionEffects.champions,
+		3-missionEffects.xpGainers,
+		self.unique)
 	missionEffects.chance=index
 	self.candidates[index]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
@@ -461,6 +476,7 @@ function partyManager:Match()
 	self.missionSort=addon:Reward2Class(missionID)
 	self.missionClass="MissionClass"
 	self.missionValue=-1
+	self.maxChance=addon:GetMissionData(missionID,'maxChance') or 200
 	self.baseXP=baseXP or 0
 	self.rewardXP=(self.missionClass=="FollowerXP" and self.missionValue) or 0
 	self.totalXP=self.baseXP+self.rewardXP
