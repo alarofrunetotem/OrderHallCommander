@@ -12,13 +12,13 @@ self:Wiki([[
 * Proposed party buttons and mission autofill
 * "What if" switches to change party composition based on criteria
 == Silent mode ==
-typing /ohc silent in chat will eliminate every chat message from GarrisonCommander
+typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:RelNotes(1,3,0,[[
 Feature: updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)
-Fix: if mission is maxed, no longer fills it (mission can be sent wit less than 3 followers)
+Fix: if mission is maxed, no longer fills it (mission can be sent with less than 3 followers)
 Feature: tries to use cheaper troops when available
-Fix: Elite mission chance is now commputed the right way
+Fix: Elite mission chance is now computed the right way
 ]])
 self:RelNotes(1,2,2,[[
 Fix: #44 Error when changing options on send mission page
