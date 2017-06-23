@@ -156,7 +156,8 @@ function module:OnInitialized()
 	}
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
-	addon:RegisterForMenu("mission","SORTMISSION","IGNORELOW")
+	addon:AddBoolean("NOWARN",false,L["Remove no champions warning"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
+	addon:RegisterForMenu("mission","SORTMISSION","IGNORELOW","NOWARN")
 	self:LoadButtons()
 	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
@@ -254,7 +255,7 @@ function module:OnUpdateMissions()
 	return self:CheckShadow()
 end
 function module:CheckShadow()
-	if not OHFMissions.showInProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
+	if not addon:GetBoolean("NOWARN") and not OHFMissions.showInProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
 		local totChamps,totTroops,maxChamps=addon:GetTotFollowers('CHAMP_' .. AVAILABLE),addon:GetTotFollowers('TROOP_' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
 		--@debug@
 		print("Checking shadows for ",maxChamps,totChamps,totTroops)
