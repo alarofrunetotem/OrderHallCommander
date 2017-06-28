@@ -14,6 +14,11 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,3,1,[[
+Feature: You can now deacrivate the Not enouch champions warning
+Fix: Elite mission were not identified the right way
+Fix: When changing switches while mission page was shown, selection was not updated
+]])
 self:RelNotes(1,3,0,[[
 Feature: updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)
 Fix: if mission is maxed, no longer fills it (mission can be sent with less than 3 followers)

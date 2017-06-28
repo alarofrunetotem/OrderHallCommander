@@ -194,6 +194,11 @@ function module:OnInitialized()
 end
 function addon:Apply(flag,value)
 	self:RefreshMissions()
+	print("Flag ", flag,"applied")
+	if OHF.MissionTab.MissionPage:IsVisible() then
+		print("mission refresh")
+		module:RawMissionClick(OHF.MissionTab.MissionPage,"missionpage")
+	end
 end
 function module:Print(...)
 	print(...)
@@ -323,9 +328,6 @@ end
 function addon:RefreshMissions()
 	wipe(missionIDS)
 	OHFMissions:UpdateMissions()
-	if OHF.MissionTab.MissionPage:IsVisible() then
-		module:RawMissionClick(OHF.MissionTab.MissionPage)
-	end
 end
 local function ToggleSet(this,value)
 	return addon:ToggleSet(this.flag,this.tipo,value)
@@ -766,6 +768,7 @@ function module:AdjustMissionTooltip(this,...)
 	local key=parties[missionID]
 --@debug@
 	tip:AddDoubleLine("MissionID",missionID)
+	tip:AddDoubleLine("Max Chance",addon:GetMissionData(missionID,'maxChance'))
 --@end-debug@
 	if this.info.inProgress or this.info.completed then return end
 	if not this.info.isRare then
@@ -857,8 +860,8 @@ function module:AdjustMissionTooltip(this,...)
 end
 function module:RawMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
-	if button=="LeftButton" then
-		self.hooks[this].OnClick(this,button)
+	if button=="LeftButton" or button=="missionpage" then
+		if button ~= "missionpage" then self.hooks[this].OnClick(this,button) end
 		if( IsControlKeyDown()) then
 			self:Print("Ctrl key, ignoring mission prefill")
 		else

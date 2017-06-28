@@ -425,7 +425,7 @@ function module:GetMissionData(missionID,field,defaultValue)
 	if not field then return mission end
 	if field then
 		if field=="class" then return addon:Reward2Class(missionID) end
-		if field=="maxChance" then return mission.hasBonusEffect and 200 or 100 end
+		if field=="maxChance" then return empty(mission.overmaxRewards) and 100 or 200 end
 	end
 	if field and mission[field] then
 		return mission[field]
