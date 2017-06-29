@@ -134,7 +134,9 @@ function module:RenderUpgradeButton(id,previous)
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 --@debug@
-	debugInfo:SetText(followerID ..  " " .. displayID)
+	if followerID then
+		debugInfo:SetText(followerID  ..  " " .. (displayID or "no display id"))
+	end
 --@end-debug@
 	if not OHFFollowerTab:IsVisible() then return end
 	if model then
