@@ -14,10 +14,12 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,3,1,[[
-Feature: You can now deacrivate the Not enouch champions warning
+self:RelNotes(1,4,0,[[
+Feature: You can now deactivate the Not enough champions warning
+Feature: Item level in upgrade items is now more evident
 Fix: Elite mission were not identified the right way
-Fix: When changing switches while mission page was shown, selection was not updated
+Fix: #59 When changing switches while mission page was shown, selection was not updated
+Fix: #59 Mission report is now also closed when you use esc to close mission panel
 ]])
 self:RelNotes(1,3,0,[[
 Feature: updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)

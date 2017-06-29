@@ -80,12 +80,13 @@ function module:OnInitialized()
 	u:SetWidth(70)
 	u:Show()
 --@debug@
-	addon:SetBackdrop(u,C:Green())
+	--addon:SetBackdrop(u,C:Green())
 --@end-debug@
 	self:SecureHook("GarrisonMission_SetFollowerModel","RefreshUpgrades")
 	UpgradeFrame:EnableMouse(true)
 --@debug@
 	self:RawHookScript(UpgradeFrame,"OnEnter","ShowFollowerData")
+	self:SecureHook(OHFFollowerTab,"ShowEquipment","CheckEquipment")
 	self:RawHookScript(UpgradeFrame,"OnLeave",function() GameTooltip:Hide() end)
 	debugInfo=u:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	debugInfo:SetPoint("TOPLEFT",70,20)
@@ -112,32 +113,52 @@ function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
 	end
 end
 
-function module:RenderUpgradeButton(id,previous)
+function module:RenderUpgradeButton(id,previous,left)
+		left=left or 0
 		local qt=GetItemCount(id)
 		if qt== 0 then return previous end --Not rendering empty buttons
 		local b=self:AcquireButton()
 		if previous then
-			b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-8)
+			b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-18)
 		else
-			b:SetPoint("TOPLEFT",5,-10)
+			b:SetPoint("TOPLEFT",left,-12)
 		end
 		previous=b
 		b.itemID=id
 		b:SetAttribute("item",select(2,GetItemInfo(id)))
-
 		GarrisonMissionFrame_SetItemRewardDetails(b)
 		b.Quantity:SetFormattedText("%d",qt)
-		b.Quantity:SetTextColor(C.Yellow())
+		b.Quantity:SetTextColor(b.IconBorder:GetVertexColor())
 		b.Quantity:Show()
 		b:Show()
+		--b.IconBorder:SetVertexColor(1,0,0)
 		return b
 end
-function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
---@debug@
-	if followerID then
-		debugInfo:SetText(followerID  ..  " " .. (displayID or "no display id"))
+local originalcolor
+function module:CheckEquipment(this,followerInfo)
+	local equipmentFrames=this.AbilitiesFrame.Equipment
+	if not originalcolor then
+		originalcolor={equipmentFrames[1].Border:GetVertexColor()}
+		print(originalcolor)
 	end
---@end-debug@
+	for _,f in pairs(equipmentFrames) do
+		local iconid=f.Icon:GetTexture()
+		local colored=false
+		if type(iconid)=="number" then
+			local itemid=addon:GetItemIdByIcon(iconid)
+			if  type(iconid)=="number" then
+				local quality=addon:GetItemQuality(itemid)
+				if  type(quality)=="number" then
+					colored=true
+					print(iconid,itemid,quality)
+					f.Border:SetVertexColor(GetItemQualityColor(quality))
+				end
+			end
+		end
+		if not colored then f.Border:SetVertexColor(unpack(originalcolor)) end
+	end
+end
+function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	if not OHFFollowerTab:IsVisible() then return end
 	if model then
 		UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
@@ -145,29 +166,36 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	end
 	if not followerID then followerID=OHFFollowerTab.followerID end
 	local follower=addon:GetFollowerData(followerID)
+--@debug@
+	if followerID then
+		debugInfo:SetText(followerID  ..  " " .. (displayID or "no display id") .. " " .. (follower.status or ""))
+	end
+--@end-debug@
 	for i=1,#UpgradeButtons do
 		self:ReleaseButton(UpgradeButtons[i])
 	end
 	wipe(UpgradeButtons)
 	if not follower then print("No follower for ",followerID) return end
 	if not follower.isCollected then return end
-	if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
-	if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
+	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
+	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
 	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	local u=UpgradeFrame
 	local previous
+	local uprevious
+	local uleft=360
 	for _,id in pairs(addon:GetData("Buffs")) do
 		previous=self:RenderUpgradeButton(id,previous)
 	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
 		for _,id in pairs(addon:GetData("Upgrades")) do
-			previous=self:RenderUpgradeButton(id,previous)
+			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
 		end
 	end
 	if follower.iLevel <900 then
 		for _,id in pairs(addon:GetData("Upgrades2")) do
-			previous=self:RenderUpgradeButton(id,previous)
+			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
 		end
 	end
 	if not follower.isMaxLevel or  follower.quality ~=LE_ITEM_QUALITY_EPIC then
@@ -189,9 +217,13 @@ function module:AcquireButton()
 		b:EnableMouse(true)
 		b:RegisterForClicks("LeftButtonDown")
 		b:SetAttribute("type","item")
+		--b.Quantity:SetFontObject("NumberFont_Outline_Huge")
+		b.Quantity:SetFontObject("GameFOntNormalShadowHuge2")
 		--b:SetScript("PostClick",UpgradeFollower)
-		b:SetSize(40,40)
-		b.Icon:SetSize(40,40)
+		--b:SetSize(35,35)
+		--b.Icon:SetSize(35,35)
+		--b.IconBorder:SetSize(36,36)
+		b:SetScale(0.7)
 		b:EnableMouse(true)
 		b:RegisterForClicks("LeftButtonDown")
 	end
