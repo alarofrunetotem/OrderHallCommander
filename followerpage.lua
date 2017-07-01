@@ -137,10 +137,6 @@ end
 local originalcolor
 function module:CheckEquipment(this,followerInfo)
 	local equipmentFrames=this.AbilitiesFrame.Equipment
-	if not originalcolor then
-		originalcolor={equipmentFrames[1].Border:GetVertexColor()}
-		print(originalcolor)
-	end
 	for _,f in pairs(equipmentFrames) do
 		local iconid=f.Icon:GetTexture()
 		local colored=false
@@ -155,7 +151,7 @@ function module:CheckEquipment(this,followerInfo)
 				end
 			end
 		end
-		if not colored then f.Border:SetVertexColor(unpack(originalcolor)) end
+		if not colored then f.Border:SetVertexColor(1,1,1,1) end
 	end
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
@@ -184,6 +180,7 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	local previous
 	local uprevious
 	local uleft=360
+	
 	for _,id in pairs(addon:GetData("Buffs")) do
 		previous=self:RenderUpgradeButton(id,previous)
 	end
