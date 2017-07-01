@@ -17,6 +17,7 @@ typing /ohc silent in chat will eliminate every chat message from OrderHallComma
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning
 Feature: Item level in upgrade items is now more evident
+Feature: Equipped items are no quality colored
 Fix: Elite mission were not identified the right way
 Fix: #59 When changing switches while mission page was shown, selection was not updated
 Fix: #59 Mission report is now also closed when you use esc to close mission panel
