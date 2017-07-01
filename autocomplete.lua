@@ -77,7 +77,7 @@ function module:OnInitialized()
 	bt:SetWidth(bt:GetTextWidth()+10)
 	bt:SetPoint("CENTER",0,-50)
 	addon:ActivateButton(bt,"MissionComplete",L["Complete all missions without confirmation"])
-	self:RegisterEvent("GARRISON_MISSION_NPC_CLOSED","CloseReport")
+	self:RegisterEvent("GARRISON_MISSION_NPC_CLOSED","AutoClose")
 end
 
 function module:GenerateMissionCompleteList(title,anchor)
@@ -167,10 +167,13 @@ function module:EventsOn()
 	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","MissionAutoComplete")
 	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","MissionAutoComplete")
 end
-function module:CloseReport()
-	addon:ResetParties()
+function module:AutoClose()
 	if report then pcall(report.Close,report) report=nil end
 	pcall(OHF.CloseMissionComplete,OHF)
+end
+function module:CloseReport()
+	addon:ResetParties()
+	self:AutoClose()
 end
 local UnitLevel,UnitXP,UnitXPMax=UnitLevel,UnitXP,UnitXPMax
 local function fillMyStatus(tab)
