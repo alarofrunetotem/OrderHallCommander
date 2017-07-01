@@ -473,6 +473,7 @@ function module:MainOnHide()
 			m:UnregisterAllEvents()
 		end
 	end
+	addon:GetAutocompleteModule():AutoClose()
 	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")
