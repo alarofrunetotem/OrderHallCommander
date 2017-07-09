@@ -21,6 +21,7 @@ Feature: Equipped items are no quality colored
 Fix: Elite mission were not identified the right way
 Fix: #59 When changing switches while mission page was shown, selection was not updated
 Fix: #59 Mission report is now also closed when you use esc to close mission panel
+Fix: #60 Future parties now dont include compab ally if "Use combat ally" is not checked
 ]])
 self:RelNotes(1,3,0,[[
 Feature: updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)

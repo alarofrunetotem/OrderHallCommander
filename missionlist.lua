@@ -70,6 +70,7 @@ local ENCOUNTER_JOURNAL_SECTION_FLAG4=ENCOUNTER_JOURNAL_SECTION_FLAG4
 local RESURRECT=RESURRECT
 local LOOT=LOOT
 local IGNORED=IGNORED
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local nobonusloot=G.GetFollowerAbilityDescription(471)
 local increasedcost=G.GetFollowerAbilityDescription(472)
 local increasedduration=G.GetFollowerAbilityDescription(428)
@@ -831,8 +832,20 @@ function module:AdjustMissionTooltip(this,...)
 			local candidate=party:GetSelectedParty(otherkey)
 			local duration=addon:BusyFor(candidate)
 			if duration > 0 then
-				if not bestTimes[duration] or not bestTimes[duration].perc or bestTimes[duration].perc < candidate.perc then
-					bestTimes[duration]=candidate
+				local busy=false
+				if addon:GetBoolean("USEALLY") then
+					for _,c in candidate:IterateFollowers() do
+						local rc,status = pcall(G.GetFollowerStatus,c)
+						if rc and status and status==GARRISON_FOLLOWER_COMBAT_ALLY then
+							busy=true
+							break
+						end
+					end
+				end
+				if not busy then
+					if not bestTimes[duration] or not bestTimes[duration].perc or bestTimes[duration].perc < candidate.perc then
+						bestTimes[duration]=candidate
+					end
 				end
 			end
 		end
