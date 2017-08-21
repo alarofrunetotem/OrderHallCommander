@@ -113,7 +113,6 @@ local function fillCachedMission(mission,time)
 	mission.enemies=enemies
 	mission.lastUpdate=time
 	mission.available=not mission.inProgress
-	addon:Reward2Class(mission)
 end
 local function getCachedMissions()
 	if not next(cachedMissions) then
@@ -423,11 +422,13 @@ function module:GetMissionData(missionID,field,defaultValue)
 	if not missionID then return OHFMissions.availableMissions end
 	local mission=missionCache[missionID]
 	if not field then return mission end
-	if field then
-		if field=="class" then return addon:Reward2Class(missionID) end
-		if field=="maxChance" then return empty(mission.overmaxRewards) and 100 or 200 end
-	end
-	if field and mission[field] then
+	if field then 
+		if empty(mission[field]) then
+			if field=="class" then return addon:Reward2Class(missionID) -- not a scalar
+			elseif field=="elite" then mission[field] = empty(mission.overmaxRewards) 
+			else return defaultValue
+			end
+		end 
 		return mission[field]
 	else
 		return defaultValue
