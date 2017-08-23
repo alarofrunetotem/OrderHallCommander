@@ -660,6 +660,7 @@ function addon:GetAllChampions(table)
 	return table
 end
 function addon:GetAllTroops(table)
+	if not table then table=new() end
 	for _,follower in pairs(self:GetFollowerData()) do
 		if follower.isTroop and follower.isCollected then
 			tinsert(table,follower)
