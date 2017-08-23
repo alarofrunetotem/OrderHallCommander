@@ -157,6 +157,7 @@ do
 	local left=360
 	local i=0
 	local previous=nil
+	local rendered
 	function module:RenderUpgradeButton(id)
 		if not(id) then
 			left=360
@@ -214,9 +215,9 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	self:RenderEquipmentButton()
 	if not follower then print("No follower for ",followerID) return end
 	if not follower.isCollected then return end
+	if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
-	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	local u=UpgradeFrame
 	
 	for _,id in pairs(addon:GetData("Buffs")) do
