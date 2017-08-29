@@ -76,6 +76,8 @@ local increasedcost=G.GetFollowerAbilityDescription(472)
 local increasedduration=G.GetFollowerAbilityDescription(428)
 local killtroops=G.GetFollowerAbilityDescription(437)
 local killtroopsnodie=killtroops:gsub('%.',' ') ..  L['but using troops with just one durability left']
+local debugprofilestop=debugprofilestop
+
 local GARRISON_MISSION_AVAILABILITY2=GARRISON_MISSION_AVAILABILITY .. " %s"
 local GARRISON_MISSION_ID="MissionID: %d"
 local missionstats=setmetatable({}, {__mode = "v"})
@@ -193,7 +195,9 @@ function module:OnInitialized()
 end
 function addon:Apply(flag,value)
 	self:RefreshMissions()
+	print("Flag ", flag,"applied")
 	if OHF.MissionTab.MissionPage:IsVisible() then
+		print("mission refresh")
 		module:RawMissionClick(OHF.MissionTab.MissionPage,"missionpage")
 	end
 end
@@ -248,26 +252,26 @@ end
 -- Sorts missions
 -- Updates top tabs (available/in progress)
 -- calls Update
--- 
 function module:OnUpdateMissions()
-	print("Called OnUpdataMissions")
 	addon.lastChange=GetTime()
 	missionNonFilled=true
---	self:SecureHook("Garrison_SortMissions","SortMissions")
---	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
---	self:Unhook("Garrison_SortMissions")
+	self:SecureHook("Garrison_SortMissions","SortMissions")
+	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
+	self:Unhook("Garrison_SortMissions")
 	return self:CheckShadow()
 end
 function module:CheckShadow()
 	if not addon:GetBoolean("NOWARN") and not OHFMissions.showInProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
-		local totChamps,maxChamps=addon:GetTotFollowers('CHAMP_' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
+		local totChamps,totTroops,maxChamps=addon:GetTotFollowers('CHAMP_' .. AVAILABLE),addon:GetTotFollowers('TROOP_' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
 		--@debug@
-		print("Checking shadows for ",maxChamps,totChamps)
+		print("Checking shadows for ",maxChamps,totChamps,totTroops)
 		--@end-debug@
 		if totChamps==0 then
 			self:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-		elseif maxChamps  < 3 then
-			self:NoMartiniNoParty(L["Unable to fill missions, raise maximum champions' number"])
+		elseif (maxChamps + totTroops < 3) and maxChamps < 3 then
+			self:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
+		elseif totTroops==0 then
+			self:NoMartiniNoParty(L["You have no troops"])
 		else
 			self:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
 		end
@@ -381,16 +385,17 @@ function module:Menu()
 	frame:SetPoint("TOPRIGHT",menu,-32,-30)
 	frame.label:SetJustifyV("TOP")
 	frame.label:SetText("You are using an\r|cffff0000ALPHA VERSION|r.\n Code is NOT optimized and OHC could run REALLY slow.\n I appreciate if you test it and raise issues but if you dont like bugs please revert to a stable version :)")
-	frame:SetHeight(70)
+	frame:SetHeight(100)
 	previous=frame
 --@end-alpha@
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
 		local flag,icon=strsplit(',',v)
-		local f=factory:Option(addon,menu,flag,200)
+		local f=factory:Option(addon,menu,flag)
 		if type(f)=="table" and f.GetObjectType then
+			if flag=="MAXCHAMP" then f:SetStep(1) end
 			if previous then
-				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-5)
+				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-10)
 			else
 				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
 			end
@@ -453,8 +458,7 @@ function module:MainOnShow()
 	end
 	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
 	addon:GetResources(true)
-	self:SecureHook("Garrison_SortMissions","SortMissions")	
-	self:SecureHook(OHFMissions,"UpdateMissions","OnUpdateMissions")
+	self:RawHook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
 	addon:RefreshFollowerStatus()
 	addon:GetCacheModule():GARRISON_LANDINGPAGE_SHIPMENTS()
@@ -471,7 +475,6 @@ function module:MainOnHide()
 		end
 	end
 	addon:GetAutocompleteModule():AutoClose()
-	self:Unhook("Garrison_SortMissions")	
 	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")
@@ -579,20 +582,23 @@ function module:AddMembers(frame)
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
 	end
 	local perc=party.perc or 0
-	local maxChance=addon:GetMissionData(missionID,'elite') and addon:GetNumber('ELITECHANCE') or addon:GetNumber('BASECHANCE') 
+	local maxChance=addon:GetMissionData(missionID,'maxChance')
 	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 	parties[missionID]=key
 	local blacklisted=addon.db.profile.blacklist[missionID]
 	for i=1,mission.numFollowers do
-		missionNonFilled=false
 		if party:Follower(i) then
 			if members.Champions[i]:SetFollower(party:Follower(i),true,blacklisted) then
 				stats.Chance:SetTextColor(C.Grey())
 			end
+			missionNonFilled=false
 		else
+			if perc >= maxChance then
+				missionNonFilled=false
 				members.Champions[i]:SetEmpty(IGNORED)
-			if perc < maxChance then
+			else
+				members.Champions[i]:SetEmpty()
 				stats.Chance:SetTextColor(C.Grey())
 			end
 		end

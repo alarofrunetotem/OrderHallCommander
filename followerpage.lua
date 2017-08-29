@@ -112,16 +112,18 @@ function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
 		self:ScheduleTimer("RefreshUpgrades",0.3)
 	end
 end
-local function RenderButton(id,left,previous)
+
+function module:RenderUpgradeButton(id,previous,left)
+		left=left or 0
 		local qt=GetItemCount(id)
 		if qt== 0 then return previous end --Not rendering empty buttons
-		if type(id) ~= "number" then return previous end
-		local b=module:AcquireButton()
+		local b=self:AcquireButton()
 		if previous then
 			b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-18)
 		else
 			b:SetPoint("TOPLEFT",left,-12)
 		end
+		previous=b
 		b.itemID=id
 		b:SetAttribute("item",select(2,GetItemInfo(id)))
 		GarrisonMissionFrame_SetItemRewardDetails(b)
@@ -130,49 +132,7 @@ local function RenderButton(id,left,previous)
 		b.Quantity:Show()
 		b:Show()
 		--b.IconBorder:SetVertexColor(1,0,0)
-		return b,true
-end
-do
-	local left=0
-	local i=0
-	local previous=nil
-	local rendered
-	function module:RenderEquipmentButton(id)
-		if not(id) then
-			left=0
-			i=0
-			previous=nil
-		else
-			if i > 13 then 
-				i=0 
-				left=left + 50
-				previous=nil 
-			end
-			previous,rendered=RenderButton(id,left,previous)
-			if rendered then i=i+1 end
-		end
-	end
-end
-do
-	local left=360
-	local i=0
-	local previous=nil
-	local rendered
-	function module:RenderUpgradeButton(id)
-		if not(id) then
-			left=360
-			i=0
-			return
-		else
-			if i > 12 then 
-				i=0 
-				left=left - 50
-				previous=nil 
-			end
-			previous,rendered=RenderButton(id,left,previous)
-			if rendered then i=i+1 end
-		end
-	end
+		return b
 end
 local originalcolor
 function module:CheckEquipment(this,followerInfo)
@@ -211,37 +171,38 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 		self:ReleaseButton(UpgradeButtons[i])
 	end
 	wipe(UpgradeButtons)
-	self:RenderUpgradeButton()
-	self:RenderEquipmentButton()
 	if not follower then print("No follower for ",followerID) return end
 	if not follower.isCollected then return end
-	if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
+	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
 	local u=UpgradeFrame
+	local previous
+	local uprevious
+	local uleft=360
 	
 	for _,id in pairs(addon:GetData("Buffs")) do
-		self:RenderEquipmentButton(id)
+		previous=self:RenderUpgradeButton(id,previous)
 	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
 		for _,id in pairs(addon:GetData("Upgrades")) do
-			self:RenderUpgradeButton(id)
+			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
 		end
 	end
 	if follower.iLevel <900 then
 		for _,id in pairs(addon:GetData("Upgrades2")) do
-			self:RenderUpgradeButton(id)
+			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
 		end
 	end
 	if not follower.isMaxLevel or  follower.quality ~=LE_ITEM_QUALITY_EPIC then
 		for _,id in pairs(addon:GetData("Xp")) do
-			self:RenderUpgradeButton(id)
+			previous=self:RenderUpgradeButton(id,previous)
 		end
 	end
 	if follower.quality >=LE_ITEM_QUALITY_RARE then
 		for _,id in pairs(addon:GetData("Equipment")) do
-			self:RenderEquipmentButton(id)
+			previous=self:RenderUpgradeButton(id,previous)
 		end
 	end
 end
