@@ -508,10 +508,12 @@ function partyManager:GetEffects()
 	if timeImproved then improvements=improvements -1 end
 	if missionEffects.hasMissionTimeNegativeEffect then improvements=improvements+1 end
 	missionEffects.baseCost,missionEffects.cost=G.GetMissionCost(self.missionID)
-	if missionEffects.baseCost < missionEffects.cost then
-		improvements=improvements+2
-	elseif missionEffects.baseCost > missionEffects.cost then
-		improvements=improvements-1
+	if missionEffects.baseCost and missionEffects.cost then
+		if missionEffects.baseCost < missionEffects.cost then
+			improvements=improvements+2
+		elseif missionEffects.baseCost > missionEffects.cost then
+			improvements=improvements-1
+		end
 	end
 	if missionEffects.hasKillTroopsEffect then
 		improvements=improvements+2
