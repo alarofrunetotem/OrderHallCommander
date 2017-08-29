@@ -20,6 +20,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
+--local new=function() return {} end 
+--local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -59,6 +61,13 @@ local print=function() end
 --@end-non-debug@]===]
 local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
+local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+
+
+
+
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
@@ -98,7 +107,6 @@ end
 
 function addon:OnInitialized()
 	addon.KL=1
-	
   _G.dbOHCperChar=_G.dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
@@ -335,6 +343,7 @@ function addon:MarkAsSeen(key)
 	db.news[key]=true
 	if newsframes[key] then newsframes[key]:Hide() end
 end	
+
 --@do-not-package@
 
 local gamu=GetAddOnMemoryUsage
@@ -403,6 +412,18 @@ function addon:Resolve(frame)
 	end
 	return "unk"
 end
+local events=CreateFrame("Frame")
+addon.evt={} 
+events:RegisterAllEvents()
+events:SetScript("OnEvent", 
+	function(this,event)
+		if event:find("GARRISON") then
+			addon.evt[event]=event
+		end
+	end
+)
 
-_G.OHC=addon
 --@end-do-not-package@
+--@debug@
+_G.OHC=addon
+--@end-debug@

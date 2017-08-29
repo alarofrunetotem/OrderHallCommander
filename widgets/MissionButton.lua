@@ -106,7 +106,7 @@ function m._Constructor()
 	frame:SetScript("OnEnter",function(self) self.obj:Fire("OnEnter") end)
 	frame:SetScript("OnLeave",function(self)self.obj:Fire("OnLeave") end)
 	frame:RegisterForClicks("LeftButtonUp","RightButtonUp")
-	frame:SetScript("OnClick",function(self,button) print(button) return button=="RightButton" and self.obj:Fire("OnRightClick",self,button) or  self.obj:Fire("OnClick",self,button) end)
+	frame:SetScript("OnClick",function(self,button) return button=="RightButton" and self.obj:Fire("OnRightClick",self,button) or  self.obj:Fire("OnClick",self,button) end)
 	frame.LocBG:SetPoint("LEFT")
 	frame.MissionType:SetPoint("TOPLEFT",5,-2)
 	frame.isResult=true

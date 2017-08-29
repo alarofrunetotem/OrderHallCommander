@@ -14,10 +14,17 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,0,[[
+Feature: You can now set a minimum requested bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
+Feature: You can now set a minimum requested success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
+Fix: #68 Initial lag when opening panels should be gone or at least greatly reduced. YMV
+Fix: #65 Errors from ACE when rapidly changing sliders
+Fix: #66 Not using less than 3 units total
+]])
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning
 Feature: Item level in upgrade items is now more evident
-Feature: Equipped items are no quality colored
+Feature: Equipped items are now quality colored
 Fix: Elite mission were not identified the right way
 Fix: #59 When changing switches while mission page was shown, selection was not updated
 Fix: #59 Mission report is now also closed when you use esc to close mission panel

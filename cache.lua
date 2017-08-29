@@ -20,6 +20,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
+--local new=function() return {} end 
+--local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -30,7 +32,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -59,6 +61,13 @@ local print=function() end
 --@end-non-debug@]===]
 local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
+local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+
+
+
+
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -159,33 +168,6 @@ function module:GetAverageLevels(cached)
 	end
 	return avgLevel,avgIlevel
 end
-local permutationsUpdate=0
-function addon:GetPermutations()
-	if next(permutations) and self.lastChange <permutationsUpdate then permutationsUpdate=self.lastChange return permutations end
-	local champs=new()
-	addon:GetAllChampions(champs)
-	local k=#champs
-	local refresh=false
-	for i=1,k do
-		if permutations[1][i]~=champs[i] then refresh=true end
-	end
-	if refresh then
-		wipe(permutations[1])
-		wipe(permutations[2])
-		wipe(permutations[3])
-		for i=1,k do
-			tinsert(permutations[1],champs[i].followerID)
-			for j=i+1,k do
-				tinsert(permutations[2],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID)))
-				for z=j+1,k do
-					tinsert(permutations[3],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID,champs[z].followerID)))
-				end
-			end
-		end
-	end
-	del(champs)
-	return permutations
-end
 function module:DeleteFollower(followerID)
 	if followerID and cachedFollowers[followerID] then
 		del(cachedFollowers[followerID])
@@ -208,7 +190,7 @@ function module:BuildFollower(followerID)
 		end
 	end
 end
-function module:BuildMission(missionIDfollowerID)
+function module:BuildMission(missionID,followerID)
 	local rc,data=pcall(G.GetFollowerInfo,followerID)
 	if rc then
 		if data and data.isCollected then
@@ -223,7 +205,7 @@ end
 function module:refreshMission(data)
 	--local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
 end
-function module:refreshFollower(data)
+function module:xxxrefreshFollower(data)
 	if (data.lastUpdate or 0) < followersRefresh then
 		-- stale data, refresh volatile fields
 		local id=data.followerID
@@ -272,6 +254,7 @@ end
 --
 -- * classAtlas
 -- * className
+-- * classSpec
 -- * displayHeight
 -- * displayIDs = { followerPageScale=1,showWeapon=true,id=68026 }
 -- * durability
@@ -321,33 +304,6 @@ function module:GetFollowerData(followerID,field,defaultValue)
 			return GetTime() + (G.GetFollowerMissionTimeLeftSeconds(followerID) or 0)
 		end
 		return defaultValue
-	end
-end
-function module:delGetFollowerData(...)
-	local id,key,defaultvalue=...
-	local f=getCachedFollowers()
-	if not id then
-		for _,data in pairs(f) do
-			self:refreshFollower(data)
-		end
-		return f
-	end
-	local data=f[id]
-	if data then
-		self:refreshFollower(data)
-	end
-	if data then
-		if key then
-			return self:GetKey(data,key,defaultvalue)
-		else
-			return data
-		end
-	else
-		if select('#',...) > 2 then
-			return defaultvalue
-		else
-			return emptyTable
-		end
 	end
 end
 --	local list=inProgress and m.inProgressMissions or m.availableMissions
@@ -649,25 +605,57 @@ function addon:GetFollowerName(id)
 end
 function addon:GetAllChampions(table)
 	if not table then table=new() end
-	local skipInactive=addon:GetBoolean('IGNOREINACTIVE')
 	for _,follower in pairs(self:GetFollowerData()) do
 		if follower.isCollected and not follower.isTroop  then
-			if not skipInactive or G.GetFollowerStatus(follower.followerID) ~= GARRISON_FOLLOWER_INACTIVE then
-				tinsert(table,follower)
-			end
-		end
-	end
-	return table
-end
-function addon:GetAllTroops(table)
-	if not table then table=new() end
-	for _,follower in pairs(self:GetFollowerData()) do
-		if follower.isTroop and follower.isCollected then
 			tinsert(table,follower)
 		end
 	end
 	return table
 end
+local troopsPermutations={}
+local troopsSeen={}
+function addon:GetAllTroops(refill)
+	if empty(troopsPermutations) or refill then
+		wipe(troopsSeen)
+		for _,follower in pairs(self:GetFollowerData()) do
+			if follower.isTroop and follower.isCollected then
+				--if not troopsSeen[follower.className] then
+					tinsert(troopsPermutations,follower.followerID)
+					troopsSeen[follower.className]=true
+				--end
+			end
+		end
+	end
+	return troopsPermutations
+end
+function addon:GetPermutations(refill)
+	if refill or empty(permutations) then
+		local champs=new()
+		addon:GetAllChampions(champs)
+		local k=#champs
+		local refresh=false
+		for i=1,k do
+			if permutations[1][i]~=champs[i] then refresh=true end
+		end
+		if refresh then
+			wipe(permutations[1])
+			wipe(permutations[2])
+			wipe(permutations[3])
+			for i=1,k do
+				tinsert(permutations[1],champs[i].followerID)
+				for j=i+1,k do
+					tinsert(permutations[2],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID)))
+					for z=j+1,k do
+						tinsert(permutations[3],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID,champs[z].followerID)))
+					end
+				end
+			end
+		end
+		del(champs)
+	end
+	return permutations
+end
+
 local function isInParty(followerID)
 	return G.GetFollowerStatus(followerID)==GARRISON_FOLLOWER_IN_PARTY
 end

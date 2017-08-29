@@ -18,6 +18,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
+--local new=function() return {} end 
+--local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -28,7 +30,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -57,6 +59,13 @@ local print=function() end
 --@end-non-debug@]===]
 local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
+local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+
+
+
+
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -102,71 +111,66 @@ local data={
 		141028
 	},
 	Equipment={
-		'Success Chance Increase',
-		139816,
+		139792,
+		139795,
+		139799,
 		139801,
 		139802,
-		140572,
-		140571,
-		140573,
-		140581,
-		140582,
-		140583,
-		147566,
-		147554,
-		147555,
-		152437,
-		152438,
-		152439,
-		152440,
-		152441,
-		152442,
-		'Mission Time Reduction',
-		139813,
-		139814,
-		139799,
-		147557,
-		152443,
-		145244,
-		152445,
-		152446,
-		152447,
-		'Combat Ally Bonus',
-		139792,
+		139804,
 		139808,
 		139809,
-		139795,
 		139811,
 		139812,
-		147552,
-		147558,
-		147553,
-		147559,
-		'Troop Affinity',
-		139875,
-		139876,
-		139877,
-		139878,
+		139813,
+		139814,
+		139816,
+		139819,
+		139821,
+		139822,
+		139823,
+		139824,
+		139825,
+		139826,
+		139827,
+		139828,
+		139829,
+		139830,
+		139831,
+		139832,
+		139833,
+		139834,
 		139835,
 		139836,
 		139837,
 		139838,
-		139863,
-		139864,
-		139865,
-		139866,
-		139847,
-		139848,
-		139849,
-		139850,
+		139839,
+		139840,
+		139841,
+		139842,
 		139843,
 		139844,
 		139845,
 		139846,
+		139847,
+		139848,
+		139849,
+		139850,
+		139851,
+		139852,
+		139853,
+		139854,
+		139855,
+		139856,
+		139857,
+		139858,
 		139859,
 		139860,
 		139861,
 		139862,
+		139863,
+		139864,
+		139865,
+		139866,
 		139867,
 		139868,
 		139869,
@@ -175,44 +179,43 @@ local data={
 		139872,
 		139873,
 		139874,
-		139831,
-		139832,
-		139833,
-		139834,
-		139839,
-		139840,
-		139841,
-		139842,
-		139855,
-		139856,
-		139857,
-		139858,
-		139851,
-		139852,
-		139853,
-		139854,
-		147569,
-		'Legendary Equipment',
-		139830,
-		139828,
-		139829,
-		139827,
-		139825,
-		139826,
-		139821,
-		139804,
-		139819,
-		139824,
-		139823,
-		139822,
+		139875,
+		139876,
+		139877,
+		139878,
+		140571,
+		140572,
+		140573,
+		140581,
+		140582,
+		140583,
+		145244,
+		147552,
+		147553,
+		147554,
+		147555,
 		147557,
-		152454,
-		152453,
-		152452,
-		152451,
-		152450,
-		152449,
+		147558,
+		147559,
+		147566,
+		147569,
+		152437,
+		152438,
+		152439,
+		152440,
+		152441,
+		152442,
+		152443,
+		152445,
+		152446,
+		152447,
 		152448,
+		152449,
+		152450,
+		152451,
+		152452,
+		152453,
+		152454,
 	},
 	ArtifactPower={},
 }
@@ -347,7 +350,7 @@ local GetItemInfo=GetItemInfo
 local coroutine=coroutine
 local i=0
 local failed=1
-local iteration=10
+local iteration=2
 local GetTime=GetTime
 function tickle(category)
 	local start=GetTime()
@@ -375,11 +378,11 @@ function module:TickleServer()
 		local now=GetTime()
 		failed=0
 		tickle(data.Equipment)
-		tickle(data.Equipment)
 		tickle(data.ArtifactPower)
 		tickle(data.Buffs)
 		tickle(data.Upgrades)
 		tickle(data.Upgrades2)
+		tickle(data.Upgrades3)
 		iteration=iteration-1
 		if failed * iteration == 0 then break end
 	end

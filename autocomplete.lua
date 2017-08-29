@@ -20,6 +20,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
+--local new=function() return {} end 
+--local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -30,7 +32,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
@@ -59,6 +61,13 @@ local print=function() end
 --@end-non-debug@]===]
 local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
+local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+
+
+
+
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -132,9 +141,6 @@ local function startTimer(delay,event,...)
 	event=event or "LOOP"
 	stopTimer()
 	timer=module:ScheduleRepeatingTimer("MissionAutoComplete",delay,event,...)
-	--@debug@
-	print("Timer rearmed for",event,delay)
-	--@end-debug@
 end
 function module:MissionsCleanup()
 	local f=OHF
@@ -220,9 +226,6 @@ function module:MissionComplete(this,button,skiprescheck)
 		local stop
 		for id,qt in pairs(wasted) do
 			local name,current,_,_,_,cap=GetCurrencyInfo(id)
-			--@debug@
-			print(name,current,qt,cap)
-			--@end-debug@
 			current=current+qt
 			if current+qt > cap then
 				message=message.."\n"..format(L["Capped %1$s. Spend at least %2$d of them"],name,current+qt-cap)
@@ -289,9 +292,6 @@ function module:MissionAutoComplete(event,...)
 	local current=report:GetUserData('current')
 	local currentMission=report:GetUserData('missions')[current]
 	local missionID=currentMission and currentMission.missionID or 0
---@debug@
-	print("evt",missionID,event,...)
---@end-debug@
 	-- GARRISON_FOLLOWER_XP_CHANGED: followerType,followerID, xpGained, oldXp, oldLevel, oldQuality
 	if (event=="GARRISON_FOLLOWER_XP_CHANGED") then
 		local followerType,followerID, xpGained, oldXp, oldLevel, oldQuality=...

@@ -110,7 +110,18 @@
 		<Scripts>
 			<OnEnter method="ShowTooltip"/>
 			<OnLeave method="HideTooltip"/>
+			<OnMouseUp method="Click"/>
 		</Scripts>
+		<Layers>
+			<Layer level="OVERLAY">
+				<!-- Texture parentKey="Lock" file="Interface/CHATFRAME/UI-ChatFrame-LockIcon"-->
+				<Texture parentKey="Lock" file="Interface/PETBATTLES/PetBattle-LockIcon">
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="15" y="15"/>
+					</Anchors>
+				</Texture>
+			</Layer>		
+		</Layers>
 	</Frame>
 	<Frame name="OHCFollowerPortrait" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
 		<Size x="161" y="58"/>
