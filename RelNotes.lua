@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,4,2,[[
+Fix: Error when callong Playsound
+]])
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning
 Feature: Item level in upgrade items is now more evident
