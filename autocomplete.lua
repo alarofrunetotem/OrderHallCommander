@@ -378,14 +378,12 @@ function module:MissionAutoComplete(event,...)
 end
 function module:GetMissionResults(finalStatus,currentMission)
 	stopTimer()
---	PlaySound("UI_Garrison_CommandTable_MissionSuccess_Stinger");
---	PlaySound("UI_Garrison_Mission_Complete_MissionFail_Stinger");
 	if (finalStatus>=3) then
 		report:AddMissionResult(currentMission.missionID,finalStatus)
-		PlaySound("UI_Garrison_CommandTable_MissionSuccess_Stinger")
+		PlaySound(SOUNDKIT.UI_GARRISON_MISSION_COMPLETE_MISSION_SUCCESS)
 	else
 		report:AddMissionResult(currentMission.missionID,false)
-		PlaySound("UI_Garrison_Mission_Complete_MissionFail_Stinger")
+		PlaySound(SOUNDKIT.UI_GARRISON_MISSION_COMPLETE_MISSION_FAIL_STINGER)
 	end
 	local resourceMultiplier=currentMission.resourceMultiplier or {}
 	local goldMultiplier=currentMission.goldMultiplier or 1

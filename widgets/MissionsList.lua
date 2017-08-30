@@ -111,7 +111,7 @@ function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 --			return self:AddFollowerIcon(followerType,follower.portraitIconID,format("%s is already at maximum xp",follower.fullname))
 	end
 	if levelup then
-		PlaySound("UI_Garrison_CommandTable_Follower_LevelUp");
+		PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_FOLLOWER_LEVEL_UP);
 	end
 	
 	local message=GARRISON_FOLLOWER_XP_ADDED_ZONE_SUPPORT:format(fullname,xp)
