@@ -20,6 +20,8 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
+--local new=function() return {} end 
+--local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -33,6 +35,9 @@ local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
+local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
+local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
+
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -59,6 +64,14 @@ local print=function() end
 --@end-non-debug@]===]
 local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
 local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
+local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
+local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local ViragDevTool_AddData=_G.ViragDevTool_AddData
+if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
+
+
+
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
@@ -98,7 +111,6 @@ end
 
 function addon:OnInitialized()
 	addon.KL=1
-	
   _G.dbOHCperChar=_G.dbOHCperChar or {}
 	menu=CreateFrame("Frame")
 --@debug@
@@ -335,6 +347,7 @@ function addon:MarkAsSeen(key)
 	db.news[key]=true
 	if newsframes[key] then newsframes[key]:Hide() end
 end	
+
 --@do-not-package@
 
 local gamu=GetAddOnMemoryUsage
@@ -403,6 +416,78 @@ function addon:Resolve(frame)
 	end
 	return "unk"
 end
+local events=CreateFrame("Frame")
+addon.evt={} 
+events:RegisterAllEvents()
+events:SetScript("OnEvent", 
+	function(this,event)
+		if event:find("GARRISON") then
+			addon.evt[event]=event
+		end
+	end
+)
+function addon:GetScroller(title,type,h,w)
+	h=h or 800
+	w=w or 400
+	type=type or "Frame"
+	local scrollerWindow=AceGUI:Create("Frame")
+	--scrollerWindow.frame:SetAlpha(1)
+	scrollerWindow:SetTitle(title)
+	scrollerWindow:SetLayout("Fill")
+	--local scrollcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
+	--scrollcontainer:SetFullWidth(true)
+	--scrollcontainer:SetFullHeight(true) -- probably?
+	--scrollcontainer:SetLayout("Fill") -- important!
+	--scrollerWindow:AddChild(scrollcontainer)
+	local scroll = AceGUI:Create("ScrollFrame")
+	scroll:SetLayout("Flow") -- probably?
+	scroll:SetFullWidth(true)
+	scroll:SetFullHeight(true)
+	scrollerWindow:AddChild(scroll)
+	scrollerWindow:SetCallback("OnClose","Release")
+	scrollerWindow:SetHeight(h)
+	scrollerWindow:SetWidth(w)
+	scrollerWindow:SetPoint("CENTER")
+	scrollerWindow:Show()
+	scroll.addRow=scroll.AddRow
+	return scroll
+end
+function addon:cutePrint(scroll,level,k,v)
+	if (type(level)=="table") then
+		for k,v in kpairs(level,safesort) do
+			self:cutePrint(scroll,"",k,v)
+		end
+		return
+	end
+	if (type(v)=="table") then
+		if (level:len()>6) then return end
+		self:AddRow(scroll,level..C(k,"Azure")..":" ..C("Table","Orange") .. " " .. tostring(#v))
+		for kk,vv in pairs(v) do
+			self:cutePrint(scroll,level .. "  ",kk,vv)
+		end
+	else
+		if (type(v)=="string" and v:sub(1,2)=='0x') then
+			v=v.. " " ..tostring(self:GetFollowerData(v,'name'))
+		end
+		self:AddRow(scroll,level..C(k,"White")..":" ..C(v,"Yellow"))
+	end
+end
+function addon:Dump(title,data)
+	if type(data)=="string" then
+		data=_G[data]
+	end
+	if type(data) ~= "table" then
+		print(data,"is not a table")
+		return
+	end
+	local scroll=self:GetScroller(title)
+	print("Dumping",title)
+	self:cutePrint(scroll,data)
+	return scroll
+end
 
-_G.OHC=addon
+
 --@end-do-not-package@
+--@debug@
+_G.OHC=addon
+--@end-debug@
