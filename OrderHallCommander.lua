@@ -125,7 +125,11 @@ function addon:SetDbDefaults(default)
 end
 local reservedFollowers={}
 function addon:UnReserve(followerID)
-	reservedFollowers[followerID]=nil
+	if not followerID then
+		wipe(reservedFollowers)
+	else
+		reservedFollowers[followerID]=nil
+	end
 end
 function addon:IsReserved(followerID)
 	if not followerID then return reservedFollowers end
@@ -274,7 +278,6 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	self:SetupPortrait(info)
 	local status=(followerID and checkStatus) and G.GetFollowerStatus(followerID) or nil
 	if info.isTroop then
-		self.locked=false
 		self:SetILevel(0)
 		self.Level:SetText(FOLLOWERLIST_LABEL_TROOPS)
 	else
@@ -283,8 +286,8 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 		else
 			self:SetLevel(info.level)
 		end
-		self.locked=addon:IsReserved(followerID) and true or false
 	end
+	self.locked=addon:IsReserved(followerID) and true or false
 	if status or blacklisted then
 		if not blacklisted then
 			self:SetILevel(0) --CHAT_FLAG_DND

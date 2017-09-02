@@ -658,7 +658,7 @@ local function stringify(...)
 	local s=format("%d,%d,%d",n,c,t)
 	for i=1,n do
 		local f=tt[i]
-		s=s .. ',' .. (f.isTroop and 'T' or 'H') .. (f.isTroop and f.classSpec or f.followerID)
+		s= s .. ',' .. (f.isTroop and 'T|' or 'H|') .. f.followerID
 	end
 	return s
 end
@@ -671,12 +671,15 @@ local function compose(f1,f2,f3)
 		return stringify(f1)
 	end
 end	
-function addon:GetTroop(missionID,classSpec,durability)
+function addon:GetTroop(missionID,followerID,durability,ignoreBusy)
 	local notsobad=nil
+	local classSpec=self:GetFollowerData(followerID,'classSpec')
 	for _,follower in pairs(self:GetFollowerData()) do
-		if follower.isTroop and follower.isCollected then
-			local reserved=self:IsReserved(follower.followedID)
+		if follower.isTroop and follower.isCollected and follower.classSpec==classSpec then
+			local reserved=self:IsReserved(follower.followerID)
 			if reserved and reserved ~=missionID then
+				-- next one
+			elseif ignoreBusy and G.GetFollowerStatus(followerID) then
 				-- next one
 			else
 				if not durability or durability==follower.durability then

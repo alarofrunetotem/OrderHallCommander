@@ -395,8 +395,6 @@ function addon:ApplySORTMISSION(value)
 	OHFMissions:UpdateMissions()
 end
 function addon:RefreshMissions()
-	wipe(missionKEYS)
-	wipe(missionIDS)
 	module:RefreshButtons()
 	if OHF.MissionTab.MissionPage:IsVisible() then
 		module:RawMissionClick(OHF.MissionTab.MissionPage,"missionpage")
@@ -516,10 +514,11 @@ function module:InitialSetup(this)
 	OHF.TroopsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.TroopsStatusInfo:SetPoint("TOPLEFT",80,-5)
 	OHF.TroopsStatusInfo:SetText("")
-	local option1=addon:GetFactory():Button(OHFMissionScroll,L["Launch all ready missions"],L["For better experience, lock your desired follower to get filled only the missions you want"])
+	local option1=addon:GetFactory():Button(OHFMissionScroll,L["Launch all ready missions"],L["For better experience, lock your desired follower to get filled only the missions you want"] .. "\n(Not Yet Implemented)",200)
 	local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower at once"])
 	option1:SetPoint("BOTTOMLEFT",200,-20)
 	option2:SetPoint("BOTTOMRIGHT",-200,-20)
+	option2:SetOnChange(function() addon:UnReserve() addon:RefreshMissions() end)
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
 	for _,mission in pairs(addon:GetMissionData()) do
 		addon:GetSelectedParty(mission.missionID)
