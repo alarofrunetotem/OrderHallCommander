@@ -240,13 +240,18 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 			self:RenderUpgradeButton(id)
 		end
 	end
-	if follower.iLevel <900 then
+	if follower.iLevel <880 then
 		for _,id in pairs(addon:GetData("Upgrades2")) do
 			self:RenderUpgradeButton(id)
 		end
 	end
-	if follower.iLevel <950 then
+	if follower.iLevel <900 then
 		for _,id in pairs(addon:GetData("Upgrades3")) do
+			self:RenderUpgradeButton(id)
+		end
+	end
+	if follower.iLevel <950 then
+		for _,id in pairs(addon:GetData("Upgrades4")) do
 			self:RenderUpgradeButton(id)
 		end
 	end

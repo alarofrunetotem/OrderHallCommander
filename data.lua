@@ -85,16 +85,17 @@ local data={
 
 	},
 	Upgrades2={
+		153005,
+	},
+	Upgrades3={
 		147348,
 		147349,
 		147350,
-
 	},
-	Upgrades3={
+	Upgrades4={
 		151842,
 		151843,
 		151844,
-
 	},
 	Buffs={
 		140749,
