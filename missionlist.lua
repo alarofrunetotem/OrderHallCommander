@@ -20,8 +20,6 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=function() return {} end 
---local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -32,12 +30,11 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -73,9 +70,6 @@ local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
-
-
-
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local Dialog = LibStub("LibDialog-1.0")
@@ -108,7 +102,6 @@ local sortKeys={}
 local MAX=math.huge
 local OHFButtons=OHFMissions.listScroll.buttons
 local clean
-
 local function GetPerc(mission,realvalue)
 	if addon.db.profile.blacklist[mission.missionID] then return 0 end
 	local p=addon:GetSelectedParty(mission.missionID)
@@ -158,6 +151,8 @@ local sorters={
 			return select(3,addon:Reward2Class(mission))
 		end,
 }
+--@debug@
+--@end-debug@
 local function InProgress(mission,frame)
 	return (mission and mission.inProgress) or OHFMissions.showInProgress or (frame and frame.IsCustom)
 end
@@ -176,7 +171,6 @@ function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
 	addon:AddBoolean("NOWARN",false,L["Remove no champions warning"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-	--addon:AddBoolean("ELITEMODE",false,L["Only consider Elite missions"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
 	addon:RegisterForMenu("mission",
 		--"ELITEMODE",
 		"SORTMISSION",
@@ -185,25 +179,35 @@ function module:OnInitialized()
 	self:LoadButtons()
 	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
-	Dialog:Register("OHCUrlCopy", {
-		text = L["URL Copy"],
-		width = 500,
-		editboxes = {
-			{ width = 484,
-				on_escape_pressed = function(self, data) self:GetParent():Hide() end,
+	--@debug@
+	--@end-debug@
+	--hooksecurefunc("Garrison_SortMissions",Garrison_SortMissions_PostHook)--function(missions) module:SortMissions(missions) end)
+	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
+	--function(missions) module:SortMissions(missions) end)
+	--self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","CheckShadow")
+	--self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","CheckShadow")
+	--self:SecureHook("GarrisonMissionController_OnClickTab","CheckShadow")
+	--self:SecureHook("GarrisonMissionListTab_OnClick","CheckShadow")
+
+		Dialog:Register("OHCUrlCopy", {
+			text = L["URL Copy"],
+			width = 500,
+			editboxes = {
+				{ width = 484,
+					on_escape_pressed = function(self, data) self:GetParent():Hide() end,
+				},
 			},
-		},
-		on_show = function(self, data)
-			self.editboxes[1]:SetText(data.url)
-			self.editboxes[1]:HighlightText()
-			self.editboxes[1]:SetFocus()
-		end,
-		buttons = {
-			{ text = CLOSE, },
-		},
-		show_while_dead = true,
-		hide_on_escape = true,
-	})
+			on_show = function(self, data)
+				self.editboxes[1]:SetText(data.url)
+				self.editboxes[1]:HighlightText()
+				self.editboxes[1]:SetFocus()
+			end,
+			buttons = {
+				{ text = CLOSE, },
+			},
+			show_while_dead = true,
+			hide_on_escape = true,
+		})
 end
 function module:Print(...)
 	print(...)
@@ -305,10 +309,12 @@ end
 -- 
 function module:OnUpdateMissions(frame)
 	if not clean then
-	--@debug@
+--	self:SecureHook("Garrison_SortMissions","SortMissions")
 		print("Called OnUpdataMissions with wipeout")
-	--@end-debug@
+--	self.hooks[OHFMissions].UpdateMissions(OHFMissions)
+--	self:Unhook("Garrison_SortMissions")
 		missionNonFilled=false
+		wipe(missionKEYS)
 		wipe(missionIDS)
 		addon:GetPermutations(true)
 		addon:GetAllTroops(true)
@@ -345,26 +351,27 @@ function module:CheckShadow()
 		self:NoMartiniNoParty()
 	end
 end
-
 function module:OnSingleUpdate(frame)
 	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() and frame.info then
 		self:AdjustPosition(frame)
+		--if frame.info.missionID ~= missionIDS[frame] then
 		local full= not missionIDS[frame] or missionIDS[frame]~=frame.info.missionID
 		local blacklisted=addon:IsBlacklisted(frame.info.missionID)
 		if full and not blacklisted  then
 			self:AdjustMissionButton(frame)
 		end
-		missionIDS[frame]=frame.info.missionID
+			missionIDS[frame]=frame.info.missionID
+		--end
 		local class,value=addon:GetMissionData(frame.info.missionID,'class')
 		if blacklisted then
 			self:Dim(frame)
 		else
-			local rw=frame.Rewards[1]
+		local rw=frame.Rewards[1]
 			rw.Icon:SetDesaturated(false)
 			rw.IconBorder:SetDesaturated(false)
-			if class and class=="Artifact" then
-				rw.Quantity:SetText(value .. "*")
-				rw.Quantity:Show()
+		if class and class=="Artifact" then
+			rw.Quantity:SetText(value .. "*")
+			rw.Quantity:Show()
 			end
 		end
 	end
@@ -401,7 +408,6 @@ function addon:Apply(flag,value)
 	if not timer then timer=addon:NewDelayableTimer(function() addon:RefreshMissions() end) end
 	timer:Start(0.01)
 end
-
 function addon:ApplySORTMISSION(value)
 	Current_Sorter=value
 	OHFMissions:UpdateMissions()
@@ -528,7 +534,6 @@ function module:InitialSetup(this)
 	OHF.TroopsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.TroopsStatusInfo:SetPoint("TOPLEFT",80,-5)
 	OHF.TroopsStatusInfo:SetText("")
---@debug@
 	local option1=addon:GetFactory():Button(OHFMissionScroll,L["Quick start first mission"],L["Launch the first filled mission. You can lock mission composition clicking on champions' icons in buttons\n Keep shift pressed to actually launch, a simple click will only print what will be launched"],200)
 	option1:SetPoint("BOTTOMLEFT",200,-25)
 	option1.obj=module
@@ -599,6 +604,7 @@ function module:EvOn()
 	for _,m in addon:IterateModules() do
 		if m.Events then m:Events() end
 	end
+	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
 	self:SecureHook("Garrison_SortMissions","SortMissions")	
 	self:Hook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
 	self:SecureHook(OHFMissions,"Update","OnUpdate")	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
@@ -618,8 +624,7 @@ end
 function module:MainOnShow()
 	addon:GetResources(true)
 	print(OHF.selectedTab)
-	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission","OnUpdateMissions")	
-	--self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
+	--self:Unhook(OHFMissions,"Update")
 	addon:RefreshFollowerStatus()
 	addon:GetCacheModule():GARRISON_LANDINGPAGE_SHIPMENTS()
 	addon:ParseFollowers()
@@ -674,7 +679,6 @@ function module:AdjustMissionButton(frame)
 	if not OHF:IsVisible() then return end
 	local mission=frame.info
 	local missionID=mission and mission.missionID
-
 	if not missionID then return end
 	missionIDS[frame]=missionID
 	-- Adding stats frame (expiration date and chance)
@@ -709,9 +713,11 @@ function module:AdjustMissionButton(frame)
 	if not missionthreats[frame] then
 		missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
 	end
-	if addon.db.profile.blacklist[missionID] then
+	if addon;IsBlacklisdted(missionID]) then
 		self:Dim(frame)
 		return
+	else
+		self:UnDim(frame)
 	end
 	self:AddMembers(frame)
 end
@@ -771,6 +777,7 @@ function module:AddMembers(frame)
 		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 		return
 	end
+
 	local lastkey=missionKEYS[missionID]
 	local party,key=addon:GetSelectedParty(missionID,lastkey)
 	if party.timeseconds ~= mission.durationSeconds then
@@ -785,7 +792,7 @@ function module:AddMembers(frame)
 	local emptymarker=UNUSED
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
-			missionNonFilled=false
+		missionNonFilled=false
 			if members.Champions[i]:SetFollower(party:Follower(i),true) then
 				stats.Chance:SetTextColor(C.Grey())
 			end
@@ -799,9 +806,8 @@ function module:AddMembers(frame)
 		members.Champions[i]:Show()
 	end
 	for i=mission.numFollowers+1,3 do
-		members.Champions[i]:Hide()
+			members.Champions[i]:Hide()
 	end
-
 	return self:AddThreats(frame,threats,party,missionID)
 end
 local function goodColor(good,bad)
@@ -926,7 +932,7 @@ function module:MissionTip(this)
 		tip:AddDoubleLine(id,name)
 	end
 	local party=addon:GetMissionParties(missionID)
-	local key=missionKEYS[missionID]
+	local key=parties[missionID]
 	local candidate =party:GetSelectedParty(key)
 	local dataclass=addon:GetData('Troops')
 	for i,id in ipairs(candidate) do
@@ -1007,7 +1013,7 @@ function module:AdjustMissionTooltip(this,...)
 			-- hasUncounterableSuccessChanceNegativeEffect
 		end
 	end
-	if (addon.db.profile.blacklist[this.info.missionID]) then
+	if (addon:IsBlacklisted(this.info.missionID) then
 		tip:AddDoubleLine(L["Blacklisted"],L["Right-Click to remove from blacklist"],1,0.125,0.125,C:Green())
 		--GameTooltip:AddLine(L["Blacklisted missions are ignored in Mission Control"])
 	else
@@ -1063,7 +1069,6 @@ function module:AdjustMissionTooltip(this,...)
 			end
 		end
 	end
-	--@debug@
 	tip:AddDoubleLine("Max Chance",addon:GetMissionData(missionID,'maxChance'))
 	tip:AddDoubleLine("Best Key",party.bestkey)
 	tip:AddDoubleLine("Xp Key",party.xpkey)
@@ -1074,7 +1079,6 @@ function module:AdjustMissionTooltip(this,...)
 			tip:AddDoubleLine(n,r)
 		end
 	end
-	--@end-debug@
 	tip:Show()
 end
 function module:RawMissionClick(this,button)
@@ -1092,7 +1096,7 @@ function module:RawMissionClick(this,button)
 		GameTooltip:Hide()
 		missionIDS[this]=nil
 		addon:RefreshMissions()
-		if addon.db.profile.blacklist[mission.missionID] then
+		if addon:IsBlacklisted(mission.missionID) then
 			self:Dim(this)
 		else
 			self:UnDim(this)

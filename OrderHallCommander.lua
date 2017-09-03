@@ -22,8 +22,6 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=function() return {} end 
---local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
@@ -34,12 +32,11 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -65,7 +62,7 @@ addon.safeG=setmetatable({},{
 			function(default,...)
 				return parse(default,pcall(G[key],...))
 			end
-		) 
+		)
 		return table[key]
 	end
 })
@@ -88,9 +85,6 @@ local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:
 --local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
 local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
-
-
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -225,6 +219,8 @@ function MixinThreats:AddIcons(mechanics,biases)
 	local icons=OHF.abilityCountersForMechanicTypes
 	local frame=self:GetParent()
 	if not icons then
+		--@debug@
+		--@end-debug@
 		return false
 	end
 	for i=1,#self.usedPool do
@@ -232,7 +228,6 @@ function MixinThreats:AddIcons(mechanics,biases)
 	end
 	wipe(self.usedPool)
 	local previous
-	frame.mechanics=mechanics
 	for index,mechanic in pairs(mechanics) do
 		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
@@ -264,6 +259,7 @@ function MixinThreats:AddIcons(mechanics,biases)
 	end
 	return previous
 end
+
 function MixinFollowerIcon:GetFollower()
 	return self.followerID
 end
@@ -383,7 +379,7 @@ function MixinFollowerIcon:ShowTooltip()
 				 	line:SetTextColor(YELLOW_FONT_COLOR:GetRGBA())
 				 	line:SetPoint("TOPLEFT",this.lines[i-1],"BOTTOMLEFT",0,-5) 
 				 	line:SetPoint("TOPRIGHT",this.lines[i-1],"BOTTOMRIGHT",0,-5) 
-				 end
+	end
 				 if (r and g and b) then
 				 	line:SetTextColor(r,g,b,a or 1)
 				 end				 	
@@ -494,6 +490,4 @@ function MixinMenu:OnLoad()
 	self.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end
-
-
 

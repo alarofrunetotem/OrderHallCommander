@@ -75,9 +75,6 @@ local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:
 local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
-
-
-
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
 --local missionPanelMissionList=OrderHallMissionFrameMissions
@@ -434,6 +431,7 @@ events:SetScript("OnEvent",
 		end
 	end
 )
+
 function addon:GetScroller(title,type,h,w)
 	h=h or 800
 	w=w or 400
@@ -493,8 +491,6 @@ function addon:Dump(title,data)
 	self:cutePrint(scroll,data)
 	return scroll
 end
-
-
 --@end-do-not-package@
 --@debug@
 _G.OHC=addon

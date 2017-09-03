@@ -22,7 +22,6 @@ Fix: #68 Initial lag when opening panels should be gone or at least greatly redu
 Fix: #65 Errors from ACE when rapidly changing sliders
 Fix: #66 Not using less than 3 units total
 ]])
---Feature: Quick send button to start missions without opening the page mission. You can even have all suitable mission sent automatically (not yet active)
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning
 Feature: Item level in upgrade items is now more evident

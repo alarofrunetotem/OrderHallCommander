@@ -74,18 +74,8 @@ local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:
 --local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
 local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
-
-
-
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
-local debugprofilestop=debugprofilestop
-local timings={
-	match={},
-	select={},
-	acquire={},
-}
 addon.lastChange=GetTime()
 local matchtimer={time=0,count=0}
 local lethalMechanicEffectID = 437;
@@ -497,9 +487,9 @@ function module:OnInitialized()
 	addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	addon:AddRange("MAXCHAMP",2,1,3,L["Max champions"],L["Use at most this many champions"],1)
-	addon:AddRange("MINCHANCE",50,5,100,L["Absolute Minimum Chance"],L["Dont bother fillinf missions under this success chance. (Can speed up the whole selection)."],5)
-	addon:AddRange("BONUSCHANCE",100,5,100,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to not overcap the mission."],5)
-	addon:AddRange("BASECHANCE",100,10,100,L["Base Chance"],L["When we cant achieve the requested bonus chance, we try to reach at least this one"],5)
+	addon:AddRange("MINCHANCE",5,5,100,L["Absolute Minimum Chance"],L["Dont bother filling missions under this success chance. (Can speed up the whole selection)."],5)
+	addon:AddRange("BONUSCHANCE",5,5,100,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to not overcap the mission."],5)
+	addon:AddRange("BASECHANCE",5,5,100,L["Base Chance"],L["When we cant achieve the requested bonus chance, we try to reach at least this one"],5)
 	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
 	addon:AddBoolean("IGNOREBUSY",false,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
