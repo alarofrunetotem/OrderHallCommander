@@ -14,7 +14,7 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,5,0,[[
+self:RelNotes(1,5,"0-Alpha1",[[
 Feature: You can now set a minimum requested bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
 Feature: You can now set a minimum requested success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
 Feature: Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones
@@ -22,6 +22,7 @@ Fix: #68 Initial lag when opening panels should be gone or at least greatly redu
 Fix: #65 Errors from ACE when rapidly changing sliders
 Fix: #66 Not using less than 3 units total
 ]])
+--Feature: Quick send button to start missions without opening the page mission. You can even have all suitable mission sent automatically (not yet active)
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning
 Feature: Item level in upgrade items is now more evident

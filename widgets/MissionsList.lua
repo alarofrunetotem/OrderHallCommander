@@ -102,14 +102,16 @@ function m:AddPlayerXP(xpgain)
 
 end
 function m:AddFollower(followerID,xp,levelup,portrait,fullname)
+--@debug@
 	print("Called addfollower for",followerID)
+--@end-debug@
 	if xp < 0 then
 		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname))
 	end
 	local isMaxLevel=addon:GetFollowerData(followerID,'isMaxLevel',false)
 	if isMaxLevel and not levelup then
 --		return
-		return self:AddFollowerIcon(portrait,format("%s is already at maximum xp",follower.fullname))
+		return self:AddFollowerIcon(portrait,format("%s is already at maximum xp",fullname))
 	end
 	if levelup then
 		PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_FOLLOWER_LEVEL_UP);

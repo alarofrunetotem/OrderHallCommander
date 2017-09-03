@@ -69,6 +69,9 @@ local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
+local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
+local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 
 
@@ -173,8 +176,12 @@ function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
 	addon:AddBoolean("NOWARN",false,L["Remove no champions warning"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-	addon:AddBoolean("ELITEMODE",false,L["Only consider Elite missions"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-	addon:RegisterForMenu("mission","ELITEMODE","SORTMISSION","IGNORELOW","NOWARN")
+	--addon:AddBoolean("ELITEMODE",false,L["Only consider Elite missions"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
+	addon:RegisterForMenu("mission",
+		--"ELITEMODE",
+		"SORTMISSION",
+		"IGNORELOW",
+		"NOWARN")
 	self:LoadButtons()
 	Current_Sorter=addon:GetString("SORTMISSION")
 	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
@@ -202,20 +209,20 @@ function module:Print(...)
 	print(...)
 end
 function module:Events()
-	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE")
-	self:RegisterEvent("GARRISON_MISSION_STARTED")
-	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED")
-	self:RegisterEvent("GARRISON_FOLLOWER_ADDED")
-	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED")
-	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATED")
-	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
-	self:RegisterEvent("GARRISON_UPDATE")
-	self:RegisterEvent("GARRISON_UPGRADEABLE_RESULT")
-	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE")
-	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED")
-	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
-	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED")
-	self:RegisterEvent("SHIPMENT_CRAFTER_CLOSED")
+	addon:RegisterEvent("GARRISON_MISSION_LIST_UPDATE")
+	addon:RegisterEvent("GARRISON_MISSION_STARTED")
+	addon:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED")
+	addon:RegisterEvent("GARRISON_FOLLOWER_ADDED")
+	addon:RegisterEvent("GARRISON_FOLLOWER_REMOVED")
+	addon:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATED")
+	addon:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
+	addon:RegisterEvent("GARRISON_UPDATE")
+	addon:RegisterEvent("GARRISON_UPGRADEABLE_RESULT")
+	addon:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE")
+	addon:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED")
+	addon:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
+	addon:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED")
+	addon:RegisterEvent("SHIPMENT_CRAFTER_CLOSED")
 end
 function module:LoadButtons(...)
 	local buttonlist=OHFMissions.listScroll.buttons
@@ -247,20 +254,24 @@ local function makedirty(self,event,missionType,missionID)
 		OHFMissions:UpdateMissions()
 	end
 end
-function module:GARRISON_MISSION_LIST_UPDATE(...) makedirty(self,...) end
-function module:GARRISON_MISSION_STARTED(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_ADDED(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_REMOVED(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_LIST_UPDATED(...) makedirty(self,...) end
-function module:GARRISON_LANDINGPAGE_SHIPMENTS(...) makedirty(self,...) end
-function module:GARRISON_UPDATE(...) makedirty(self,...) end
-function module:GARRISON_UPGRADEABLE_RESULT(...) makedirty(self,...) end
-function module:GARRISON_MISSION_COMPLETE_RESPONSE(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_XP_CHANGED(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_UPGRADED(...) makedirty(self,...) end
-function module:GARRISON_FOLLOWER_DURABILITY_CHANGED(...) makedirty(self,...) end
-function module:SHIPMENT_CRAFTER_CLOSED(...) makedirty(self,...) end
+function addon:GARRISON_MISSION_LIST_UPDATE(...) makedirty(self,...) end
+function addon:GARRISON_MISSION_STARTED(...) makedirty(self,...)  end
+function addon:GARRISON_FOLLOWER_CATEGORIES_UPDATED(...) makedirty(self,...) end
+function addon:GARRISON_FOLLOWER_ADDED(...) makedirty(self,...) end
+function addon:GARRISON_FOLLOWER_REMOVED(...) makedirty(self,...) end
+function addon:GARRISON_FOLLOWER_LIST_UPDATED(...) makedirty(self,...) end
+function addon:GARRISON_LANDINGPAGE_SHIPMENTS(...) makedirty(self,...) end
+function addon:GARRISON_UPDATE(...) makedirty(self,...) end
+function addon:GARRISON_UPGRADEABLE_RESULT(...) makedirty(self,...) end
+function addon:GARRISON_MISSION_COMPLETE_RESPONSE(...) makedirty(self,...) end
+function addon:GARRISON_FOLLOWER_XP_CHANGED(...) makedirty(self,...) end
+function addon:GARRISON_FOLLOWER_UPGRADED(...) makedirty(self,...) end
+function addon:GARRISON_FOLLOWER_DURABILITY_CHANGED(...) makedirty(self,...) end
+function addon:SHIPMENT_CRAFTER_CLOSED(...) makedirty(self,...) end
+
+
+
+
 addon.Refresh=makedirty
 local tb={url=""}
 local artinfo='*' .. L["Artifact shown value is the base value without considering knowledge multiplier"]
@@ -334,12 +345,13 @@ function module:CheckShadow()
 		self:NoMartiniNoParty()
 	end
 end
+
 function module:OnSingleUpdate(frame)
 	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() and frame.info then
 		self:AdjustPosition(frame)
 		local full= not missionIDS[frame] or missionIDS[frame]~=frame.info.missionID
-		local blacklisted=addon.db.profile.blacklist[frame.info.missionID]		
-		if full and not blacklisted then
+		local blacklisted=addon:IsBlacklisted(frame.info.missionID)
+		if full and not blacklisted  then
 			self:AdjustMissionButton(frame)
 		end
 		missionIDS[frame]=frame.info.missionID
@@ -448,15 +460,17 @@ end
 function module:Menu()
 	local previous
 --@alpha@
-	local frame=CreateFrame("Frame",nil,menu)
-	frame.label=frame:CreateFontString(nil,"ARTWORK","GameFontNormalSmall")
+	local frame=CreateFrame("Frame",nil,menu,"TooltipBorderedFrameTemplate")
+	frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	frame.label:SetAllPoints(frame)
-	frame:SetPoint("TOPLEFT",menu,32,-30)
-	frame:SetPoint("TOPRIGHT",menu,-32,-30)
+	frame:SetPoint("TOPLEFT",menu,35,40)
 	frame.label:SetJustifyV("TOP")
-	frame.label:SetText("You are using an\r|cffff0000ALPHA VERSION|r.\n Code is NOT optimized and OHC could run REALLY slow.\n I appreciate if you test it and raise issues but if you dont like bugs please revert to a stable version :)")
-	frame:SetHeight(70)
-	previous=frame
+	frame.label:SetJustifyH("LEFT")
+	frame.label:SetText("You are using an\r|cffff0000ALPHA VERSION|r, things can and will break.")
+	frame.label:SetPoint("TOPLEFT",5,-5)
+	frame.label:SetPoint("BOTTOMRIGHT",-5,5)
+	frame:SetHeight(40)
+	frame:SetWidth(300)
 --@end-alpha@
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
@@ -506,36 +520,104 @@ function module:InitialSetup(this)
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
 	self:Unhook(this,"OnShow")
-	--self:SecureHookScript(this,"OnShow","MainOnShow")
-	--self:SecureHookScript(this,"OnHide","MainOnHide")
+	self:SecureHookScript(this,"OnShow","MainOnShow")
+	self:SecureHookScript(this,"OnHide","MainOnHide")
 	OHF.ChampionsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.ChampionsStatusInfo:SetPoint("TOPRIGHT",-45,-5)
 	OHF.ChampionsStatusInfo:SetText("")
 	OHF.TroopsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.TroopsStatusInfo:SetPoint("TOPLEFT",80,-5)
 	OHF.TroopsStatusInfo:SetText("")
-	local option1=addon:GetFactory():Button(OHFMissionScroll,L["Launch all ready missions"],L["For better experience, lock your desired follower to get filled only the missions you want"] .. "\n(Not Yet Implemented)",200)
+--@debug@
+	local option1=addon:GetFactory():Button(OHFMissionScroll,L["Quick start first mission"],L["Launch the first filled mission. You can lock mission composition clicking on champions' icons in buttons\n Keep shift pressed to actually launch, a simple click will only print what will be launched"],200)
+	option1:SetPoint("BOTTOMLEFT",200,-25)
+	option1.obj=module
+	option1:SetOnChange("RunMission")
+--@end-debug@	
 	local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower at once"])
-	option1:SetPoint("BOTTOMLEFT",200,-20)
-	option2:SetPoint("BOTTOMRIGHT",-200,-20)
+	option2:SetPoint("BOTTOMRIGHT",-200,-25)
 	option2:SetOnChange(function() addon:UnReserve() addon:RefreshMissions() end)
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
 	for _,mission in pairs(addon:GetMissionData()) do
 		addon:GetSelectedParty(mission.missionID)
 	end
+	self:EvOn()
 	self:MainOnShow()
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
 end
-function module:MainOnShow()
+local safeguard={}
+function module:Cleanup()
+	for followerID,missionID in pairs(safeguard) do
+		pcall(G.RemoveFollowerFromMission,missionID,followerID)
+	end
+end
+function module:GARRISON_MISSION_STARTED(event,missiontype,missionID)
+	self:UnregisterEvent("GARRISON_MISSION_STARTED")
+	self:Cleanup()
+end
+function module:RunMission()
+	local baseChance=addon:GetNumber('BASECHANCE')
+	wipe(safeguard)
+	for _,frame in pairs(OHFButtons) do
+		local mission=frame.info
+		local missionID=mission and mission.missionID
+		if missionID then
+			if not addon:IsBlacklisted(missionID) then
+				local key=missionKEYS[mission.missionID]
+				local party=addon:GetMissionParties(mission.missionID):GetSelectedParty(key)
+				local members = missionmembers[frame] 
+				if party.perc >= baseChance then
+					local info=""
+					local truerun=IsShiftKeyDown()
+					for _,member in pairs(members.Champions) do
+						local followerID=member:GetFollower()
+						if followerID then
+							safeguard[followerID]=missionID
+							local rc,res = pcall(G.AddFollowerToMission,missionID,member:GetFollower())
+							info=info .. G.GetFollowerName(followerID)
+						end
+						if truerun then
+							self:RegisterEvent("GARRISON_MISSION_STARTED")
+							G.StartMission(missionID)
+							OHF:UpdateMissions();
+							OHF.FollowerList:UpdateFollowers();							
+							PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_MISSION_START)
+						else
+							self:ScheduleTimer("GARRISON_MISSION_STARTED",0.2)
+							addon:Print("Autostarting ",mission.name," with ",info)
+							addon:Print("Shift-Click to actually start mission")
+						end
+					end
+					break
+				end
+			end
+		end
+	end
+end
+function module:EvOn()
 	for _,m in addon:IterateModules() do
 		if m.Events then m:Events() end
 	end
-	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
-	addon:GetResources(true)
 	self:SecureHook("Garrison_SortMissions","SortMissions")	
 	self:Hook(OHFMissions,"UpdateMissions","OnUpdateMissions",true)
-	self:SecureHook(OHFMissions,"Update","OnUpdate")
+	self:SecureHook(OHFMissions,"Update","OnUpdate")	--self:RawHook(OHFMissions,"Update","OnUpdate",true)
+end
+function module:EvOff()
+	for _,m in addon:IterateModules() do
+		if m.EventsOff then
+			m:EventsOff()
+		elseif m.UnregisterAllEvents then
+			m:UnregisterAllEvents()
+		end
+	end
+	self:Unhook("Garrison_SortMissions")	
+	self:Unhook(OHFMissions,"UpdateMissions")
+	self:Unhook(OHFMissions,"Update")
+end
+function module:MainOnShow()
+	addon:GetResources(true)
+	print(OHF.selectedTab)
 	--self:SecureHook(OHFMissions,"UpdateCombatAllyMission","OnUpdateMissions")	
 	--self:SecureHook("GarrisonMissionButton_SetRewards","OnSingleUpdate")
 	addon:RefreshFollowerStatus()
@@ -546,19 +628,8 @@ function module:MainOnShow()
 	OHF:SelectTab(OHF.selectedTab)
 end
 function module:MainOnHide()
-	for _,m in addon:IterateModules() do
-		if m.EventsOff then
-			m:EventsOff()
-		elseif m.UnregisterAllEvents then
-			m:UnregisterAllEvents()
-		end
-	end
+	collectgarbage()
 	addon:GetAutocompleteModule():AutoClose()
-	self:Unhook("Garrison_SortMissions")	
-	self:Unhook(OHFMissions,"UpdateMissions")
-	self:Unhook(OHFMissions,"Update")
-	--self:Unhook(OHFMissions,"UpdateCombatAllyMission")
-	--self:Unhook("GarrisonMissionButton_SetRewards")
 end
 function module:AdjustPosition(frame)
 	local mission=frame.info

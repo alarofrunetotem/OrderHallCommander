@@ -69,6 +69,11 @@ local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
+local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
+local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+--local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
+local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 
 
@@ -663,9 +668,9 @@ local function stringify(...)
 	return s
 end
 local function compose(f1,f2,f3)
-	if f3 then
+	if f3 and f3.isCollected then
 		return stringify(f1,f2,f3)
-	elseif f2 then
+	elseif f2 and f2.isCollected then
 		return stringify(f1,f2)
 	else
 		return stringify(f1)
@@ -699,14 +704,16 @@ function addon:GetFullPermutations(refill)
 		local appo=new()
 		local t=module:GetFollowerData()
 		for i=1,#t do
-			local s=compose(t[i])
-			if s then appo[s]=s end
-			for j=i+1,#t do
-				local s=compose(t[i],t[j])
-				if s then appo[s]=s 	end
-				for k=j+1,#t do
-					local s=compose(t[i],t[j],t[k])
+			if t[i].isCollected then
+				local s=compose(t[i])
+				if s then appo[s]=s end
+				for j=i+1,#t do
+					local s=compose(t[i],t[j])
 					if s then appo[s]=s 	end
+					for k=j+1,#t do
+						local s=compose(t[i],t[j],t[k])
+						if s then appo[s]=s 	end
+					end
 				end
 			end
 		end

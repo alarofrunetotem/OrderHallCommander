@@ -83,6 +83,11 @@ local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
+local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
+local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+--local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
+local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 
 
@@ -220,9 +225,6 @@ function MixinThreats:AddIcons(mechanics,biases)
 	local icons=OHF.abilityCountersForMechanicTypes
 	local frame=self:GetParent()
 	if not icons then
-		--@debug@
-		print("Empty icons")
-		--@end-debug@
 		return false
 	end
 	for i=1,#self.usedPool do
@@ -262,7 +264,9 @@ function MixinThreats:AddIcons(mechanics,biases)
 	end
 	return previous
 end
-
+function MixinFollowerIcon:GetFollower()
+	return self.followerID
+end
 function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	local info=addon:GetFollowerData(followerID)
 	if not info or not info.followerID then
@@ -320,6 +324,7 @@ function MixinFollowerIcon:SetEmpty(message)
 	end
 end
 local gft=GarrisonFollowerTooltip
+local gft2
 function MixinFollowerIcon:ShowTooltip()
 	if not self.followerID then
 --@debug@
@@ -357,11 +362,60 @@ function MixinFollowerIcon:ShowTooltip()
 		else
 			gft.Status:Hide()
 		end
+		if not gft2 then
+			gft2=CreateFrame("Frame","OHCGarrisonFollowerTooltip",gft,"TooltipBorderedFrameTemplate")
+			gft2:SetPoint("BOTTOMLEFT",gft,"BOTTOMRIGHT",0,0)
+			gft2.lines={}
+			gft2.w=0
+			gft2.h=0
+			gft2.Reset=function(this) wipe(this.lines) this.w=0 this.h=0 end
+			gft2:SetScript("OnShow",function(this) this:SetHeight(this.h+10) this:SetWidth(this.w+10) end )
+			gft2.AddLine=function(this,message,r,g,b,a)
+				 tinsert(this.lines,this:CreateFontString(nil, "ARTWORK", "GameFontHighlight"))
+				 local i=#this.lines
+				 local line=this.lines[i]
+				 line:SetJustifyH("LEFT")
+				 if i==1 then 
+				 	line:SetTextColor(GREEN_FONT_COLOR:GetRGBA())
+				 	line:SetPoint("TOPLEFT",5,-5) 
+				 	line:SetPoint("TOPRIGHT",5,-5) 
+				 else 
+				 	line:SetTextColor(YELLOW_FONT_COLOR:GetRGBA())
+				 	line:SetPoint("TOPLEFT",this.lines[i-1],"BOTTOMLEFT",0,-5) 
+				 	line:SetPoint("TOPRIGHT",this.lines[i-1],"BOTTOMRIGHT",0,-5) 
+				 end
+				 if (r and g and b) then
+				 	line:SetTextColor(r,g,b,a or 1)
+				 end				 	
+				 line:SetText(message)
+				 local w=line:GetStringWidth()
+				 if w > this.w then this.w = w end
+				 this.h=this.h+line:GetStringHeight()+5
+			end
+			gft2:AddLine("Finalize parties")
+			gft2:AddLine(KEY_BUTTON1 .. ' : ' .. L['Lock/Unlock this follower to this mission'])
+			gft2:AddLine(SHIFT_KEY_TEXT .. KEY_BUTTON1 .. ' : ' .. L['Lock all']) 
+			gft2:AddLine(SHIFT_KEY_TEXT .. KEY_BUTTON2 .. ' : ' .. L['Unlock all']) 
+			gft2:AddLine(L["Locked follower can not be used in other missions"],LIGHTBLUE_FONT_COLOR:GetRGBA())
+			gft2:Show()
+		end
 	end
 end
-function MixinFollowerIcon:Click()
+function MixinFollowerIcon:Click(button)
 	local missionID=self:GetParent():GetParent().info.missionID
-	if self.followerID then
+	if IsShiftKeyDown() then
+		local lockIt=button=="LeftButton"
+		for _,champion in	pairs(self:GetParent().Champions) do
+			if champion.followerID then
+				champion.locked=lockIt
+				if lockIt then
+					reservedFollowers[champion.followerID]=missionID
+				else
+					reservedFollowers[champion.followerID]=nil
+				end
+			end
+		end
+	elseif self.followerID then
 		if reservedFollowers[self.followerID] then
 			reservedFollowers[self.followerID]=nil
 			self.locked=nil
@@ -370,6 +424,8 @@ function MixinFollowerIcon:Click()
 			reservedFollowers[self.followerID]=missionID
 			self.locked=true
 		end
+	else
+		return
 	end
 	self:ShowLock()
 	self:ShowTooltip()
@@ -414,6 +470,9 @@ function MixinMembers:SetNotReady(show)
 	else
 		self.NotReady:Hide()
 	end
+end
+function MixinMembers:IsReady()
+	return not self.NotReady:IsShown()
 end
 function MixinMembers:Lock()
 	for i=1,3 do
