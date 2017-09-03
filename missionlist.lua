@@ -423,8 +423,10 @@ function module:SortMissions()
 			end
 --@end-debug@			
 		end
+--@debug@
 		_G.print("Sorting")
 		DevTools_Dump(sortKeys)
+--@end-debug@			
 		sort(OHFMissions.availableMissions,sortfuncAvailable)
 	end
 end
