@@ -20,12 +20,12 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=function() return {} end 
---local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
+local tonumber=tonumber
+local type=type
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -37,7 +37,6 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -53,6 +52,7 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 
+local todefault=addon:Wrap("todefault")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
@@ -71,9 +71,9 @@ local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
---local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
-local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+
+
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
@@ -111,7 +111,7 @@ local cachedFollowers={}
 local cachedMissions={}
 local categoryInfo
 local shipmentInfo={}
-local emptyTable={}
+local emptyTable=setmetatable({},{__newindex=function() end})
 local methods={available='GetAvailableMissions',inProgress='GetInProgressMissions',completed='GetCompleteMissions'}
 local catPool={}
 local function fillCachedMission(mission,time)
@@ -199,25 +199,6 @@ function module:BuildMission(missionID,followerID)
 			cachedFollowers[followerID]=data
 		elseif data then
 			del(data,true)
-		end
-	end
-end
-function module:refreshMission(data)
-	--local runtime,runtimesec,inProgress,duration,durationsec,bool1,string1=G.GetMissionTimes(data.missionID)
-end
-function module:xxxrefreshFollower(data)
-	if (data.lastUpdate or 0) < followersRefresh then
-		-- stale data, refresh volatile fields
-		local id=data.followerID
-		local rc,name=pcall(G.GetFollowerName,id)
-		if rc and name then
-			for field,func in pairs(volatile.followers) do
-				data[field]=func(id)
-			end
-			data.lastUpdate=followersRefresh
-		else
-			del(data,true)
-			data=nil
 		end
 	end
 end
@@ -309,8 +290,6 @@ end
 --	local list=inProgress and m.inProgressMissions or m.availableMissions
 -- OHF.MissionTab.MissionList
 local emptyMissions={}
-local missionCache
-local missionCacheIndex={}
 local function scanList(map,id)
 	if map=="completedMissions" then
 	end
@@ -336,6 +315,89 @@ local function getMissionFromBlizzardData(cache,missionID)
 	end
 	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) or emptyMissions
 end
+local classOrder={
+	[MONEY]=11,
+	Artifact=12,
+	Equipment=13,
+	Quest=14,
+	Upgrades=15,
+	Reputation=16,
+	PlayerXP=17,
+	FollowerXP=18,
+	Generic=99
+}
+local function GetItemQuality(itemid)
+	local _,_,quality=GetItemInfo(itemid)
+	return quality and quality or 0
+end
+local function Reward2Class(self,mission)	
+	if type(mission)=="number" then mission=addon:GetMissionData(mission) end
+	if not mission then return "Generic",0,0 end
+	local overReward=mission.overmaxRewards
+	if not overReward then overReward=mission.OverRewards end
+	local reward=mission.rewards
+	if not reward then reward=mission.Rewards end
+	if type(overReward)=="table" then
+		overReward=overReward[1]
+	else
+		overReward=emptyTable
+	end
+	if type(reward)=="table" then
+		reward=reward[1]
+	else
+		return "Generic",1 
+	end
+	if not overReward then overReward = emptyTable end
+	if reward.currencyID then
+		local name=GetCurrencyInfo(reward.currencyID)
+		if name=="" then name = MONEY end
+		return name,math.floor(reward.quantity/10000)
+	elseif reward.followerXP then
+			return "FollowerXp",reward.followerXP
+	elseif type(reward.itemID) == "number" then
+		local stringID=tostring(reward.itemID)
+		local artifact=self.allArtifactPower[stringID]
+		if artifact then
+			return "Artifact",artifact.Power or 1
+		elseif overReward.itemID==1447868 then
+			return "PlayerXP",1
+		elseif overReward.itemID==141344 then
+			return "Reputation",1
+		elseif tContains(self:GetData('Equipment'),reward.itemID) then
+			return "Equipment",GetItemInfo(reward.itemID) or 0
+		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
+			return "Upgrades",1
+		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
+			return "Upgrades2",2
+		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
+			return "Upgrades3",3
+		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
+			return "Upgrades4",4
+		else
+			local class,subclass=select(12,GetItemInfo(reward.itemID))
+			class=class or -1
+			if class==12 then
+				return "Quest",1
+			elseif class==7 then
+				return "Reagent",reward.quantity or 1
+			end
+		end
+	end
+	return "Generic",reward.quantity or 1
+end
+function addon:Reward2Class(mission)
+	local missionID=type(mission)=="table" and mission.missionID or mission
+	if not missionID then return "generic,0,99" end
+	local class,value=Reward2Class(self,mission)
+	return strjoin(',',tostringall(class,value,classOrder[class]))
+end
+local missionCacheIndex={}
+local missionCache=setmetatable({},{__index=
+		function(t,key)
+			return getMissionFromBlizzardData(t,key)
+		end
+	}
+)
 --- Retrieves mission data.
 -- Uses tables already loaded by Blizzard and works on both inProgress and availableMissions
 -- Possibile fields
@@ -368,22 +430,37 @@ end
 -- * rewards
 -- * mapPosX
 -- * requiredChampionCount
-function module:GetMissionData(missionID,field,defaultValue)
-	if not missionCache then missionCache=setmetatable({},{__index=
-		function(t,key)
-			return getMissionFromBlizzardData(t,key)
+-- Pseudo fields
+-- * class
+-- * classValue
+-- * classOrder
+-- * elite
+-- * baseXP
+-- * exhausting
+-- * enemies
+-- Calcolated field manager
+local mt={
+	__index=function(mission,field)
+		if field=="class" or field=='classValue' then
+			mission.class,mission.classValue=strsplit(',',addon:Reward2Class(mission.missionID))
+		elseif field=="classOrder" then
+			return classOrder[mission.class] 
+		elseif field=="elite" then 
+			mission.elite = empty(mission.overmaxRewards) 
+		elseif field=="baseXP" or field =="enemies" or field=="exhausting" then 
+			local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
+			mission.baseXP=addon:todefault(baseXP,0) 
 		end
-	})
+		return mission[field]
 	end
+}
+function module:GetMissionData(missionID,field,defaultValue)
 	if not missionID then return OHFMissions.availableMissions end
-	local mission=missionCache[missionID]
+	local mission=setmetatable(missionCache[missionID],mt)
 	if not field then return mission end
 	if field then 
 		if empty(mission[field]) then
-			if field=="class" then return addon:Reward2Class(missionID) -- not a scalar
-			elseif field=="elite" then mission[field] = empty(mission.overmaxRewards) 
-			else return defaultValue
-			end
+			return defaultValue
 		end 
 		return mission[field]
 	else

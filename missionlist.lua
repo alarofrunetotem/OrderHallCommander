@@ -24,13 +24,15 @@ local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
+local tonumber=tonumber
+local type=type
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
@@ -50,6 +52,7 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 
+local todefault=addon:Wrap("todefault")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
@@ -69,6 +72,7 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -103,7 +107,7 @@ local MAX=math.huge
 local OHFButtons=OHFMissions.listScroll.buttons
 local clean
 local function GetPerc(mission,realvalue)
-	if addon.db.profile.blacklist[mission.missionID] then return 0 end
+	if addon.IsBlacklisted(mission.missionID) then return 0 end
 	local p=addon:GetSelectedParty(mission.missionID)
 	local perc=-p.perc or 0
 	if realvalue then
@@ -112,42 +116,44 @@ local function GetPerc(mission,realvalue)
 		return addon:GetBoolean("IGNORELOW") and perc or 1
 	end
 end
+local function IsLow(mission)
+	if addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite') then return MAX end
+	if GetPerc(mission) == 0 then return MAX end
+end
+local function IsIgnored(mission)
+	return mission.class==MONEY
+	--return addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite')
+end
 local sorters={
 		Garrison_SortMissions_Original=nop,
 		Garrison_SortMissions_Chance=function(mission)
 			return GetPerc(mission,true)
 		end,
 		Garrison_SortMissions_Level=function(mission)
-			if addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite') then return MAX end
-			if GetPerc(mission) == 0 then return MAX end
+			if IsLow(mission) then return MAX end
 			return -mission.level * 1000 - (mission.iLevel or 0)
 		end,
 		Garrison_SortMissions_Age=function(mission)
-			if addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite') then return MAX end
-			if GetPerc(mission) == 0 then return MAX end
+			if IsLow(mission) then return MAX end
 			return mission.offerEndTime
 		end,
 		Garrison_SortMissions_Xp=function(mission)
-			if addon:GetBoolean("ELITEMODE") and not mission.elite then return MAX end
-			if GetPerc(mission) == 0 then return MAX end
+			if IsLow(mission) then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
 			return -p.totalXP or 0
 		end,
 		Garrison_SortMissions_HourlyXp=function(mission)
-			if addon:GetBoolean("ELITEMODE") and not mission.elite then return MAX end
-			if GetPerc(mission) == 0 then return MAX end
+			if IsLow(mission) then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
 			return (-p.totalXP or 0) * 60 /  (p.timeseconds or  mission.durationSeconds or 36000)
 		end,
 		Garrison_SortMissions_Duration=function(mission)
-			if addon:GetBoolean("ELITEMODE") and not mission.elite then return MAX end
-			if GetPerc(mission) == 0 then return MAX end
+			if IsLow(mission) then return MAX end
 			local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
 			return p.timeseconds or  mission.durationSeconds or 0
 		end,
 		Garrison_SortMissions_Class=function(mission)
-			if addon:GetBoolean("ELITEMODE") and not mission.elite then return MAX end
-			if GetPerc(mission) == 0 then return  MAX end
+			if IsLow(mission) then return MAX end
 			return select(3,addon:Reward2Class(mission))
 		end,
 }
@@ -395,7 +401,10 @@ function module:SortMissions()
 	else
 		if Current_Sorter=="Garrison_SortMissions_Original" then return end
 		local f=sorters[Current_Sorter]
-		for _,mission in pairs(OHFMissions.availableMissions) do
+		for k,mission in pairs(OHFMissions.availableMissions) do
+			if IsIgnored(mission) then
+				tremove(OHFMissions.availableMissions,k)
+			end 
 			local rc,result =pcall(f,mission)
 			sortKeys[mission.missionID]=rc and result or 0
 		end
@@ -713,11 +722,8 @@ function module:AdjustMissionButton(frame)
 	if not missionthreats[frame] then
 		missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
 	end
-	if addon;IsBlacklisdted(missionID]) then
-		self:Dim(frame)
+	if addon:IsBlacklisted(missionID) then
 		return
-	else
-		self:UnDim(frame)
 	end
 	self:AddMembers(frame)
 end
@@ -855,7 +861,7 @@ function module:AddThreats(frame,threats,party,missionID)
 				for counter,info in pairs(ability.counters) do
 					for _,mechanic in pairs(mechanics) do
 						if mechanic.id==counter and not biases[mechanic] then
-							biases[mechanic]=tonumber(bias)
+							biases[mechanic]=todefault(bias,0)
 							break
 						end
 					end
@@ -1013,7 +1019,7 @@ function module:AdjustMissionTooltip(this,...)
 			-- hasUncounterableSuccessChanceNegativeEffect
 		end
 	end
-	if (addon:IsBlacklisted(this.info.missionID) then
+	if addon:IsBlacklisted(this.info.missionID) then
 		tip:AddDoubleLine(L["Blacklisted"],L["Right-Click to remove from blacklist"],1,0.125,0.125,C:Green())
 		--GameTooltip:AddLine(L["Blacklisted missions are ignored in Mission Control"])
 	else

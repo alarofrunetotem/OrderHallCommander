@@ -20,12 +20,12 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=function() return {} end 
---local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
+local tonumber=tonumber
+local type=type
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -37,7 +37,6 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -53,6 +52,7 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 
+local todefault=addon:Wrap("todefault")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
@@ -71,9 +71,9 @@ local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
---local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
-local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+
+
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 addon.lastChange=GetTime()
@@ -103,7 +103,7 @@ local assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent=assert,ipairs,pairs,w
 local select,tinsert,format,pcall,setmetatable,coroutine=select,tinsert,format,pcall,setmetatable,coroutine
 local tostringall=tostringall
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
-local emptyTable={}
+local emptyTable=setmetatable({},{__newindex=function() end})
 local holdEvents
 local releaseEvents
 local events={stacklevel=0,frames={}} --#events
@@ -448,18 +448,17 @@ end
 function partyManager:Match()
 	local missionID=self.missionID
 	if not missionID then print("Missing missionID",self) return false end
-	local name=addon:GetMissionData(missionID,'name')
-	if not name then print("Missing name",self)return false end
-	self.name=name
+	local mission=addon:GetMissionData(missionID)
+	if not mission then print("Missing mission ",missionID,self)return false end
+	self.name=mission.name
 	wipe(self.candidates)
 	self.unique=0
 	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(missionID)
-	self.numFollowers=addon:GetMissionData(missionID,"numFollowers",0)
+	self.numFollowers=mission.numFollowers or 0
 	self.exhausting=exhausting
-	self.missionClass,self.missionValue,self.missionSort=addon:Reward2Class(missionID)
-	self.elite=addon:GetMissionData(missionID,'elite') or false
+	self.elite=mission.elite
 	self.baseXP=baseXP or 0
-	self.rewardXP=(self.missionClass=="FollowerXP" and self.missionValue) or 0
+	self.rewardXP=(mission.class=="FollowerXP" and mission.value) or 0
 	self.totalXP=self.baseXP+self.rewardXP
 	local n=self.numFollowers or 3
 	for _,tuple in pairs(addon:GetFullPermutations()) do
@@ -582,38 +581,3 @@ end
 function module:ProfileStats()
 	addon:LoadProfileData(partyManager,"Matchmaker")
 end
-function addon:Timings()
-	local AceGUI=LibStub("AceGUI-3.0",true)
-	if not AceGUI then error("Missing AceGUI") return end
-	local dbgFrame=AceGUI:Create("Window")
-	dbgFrame:SetTitle("Timings")
-	dbgFrame:SetPoint("RIGHT",-100,0)
-	dbgFrame:SetWidth(240)
-	dbgFrame:SetHeight(400)
-	dbgFrame:SetLayout("List")
-	local match,acquire,select=0,0,0
-	for k,v in pairs(timings) do
-		local Text=AceGUI:Create("Label")
-		Text:SetColor(1,1,0)
-		Text:SetFullWidth(true)
-		local a,m,s=tonumber(v.match) or 0,tonumber(v.acquire) or 0,tonumber(v.select) or 0
-		Text:SetText(format("%5d M:%f A:%f S:%f",k,a,m,s))
-		acquire=acquire + a
-		match=match+m
-		select=select+s
-		dbgFrame:AddChild(Text)
-		dbgFrame[k]=Text
-	end
-	local Text=AceGUI:Create("Label")
-	Text:SetColor(1,1,0)
-	Text:SetFullWidth(true)
-	Text:SetFormattedText("%20s M:%f A:%f S:%f","Total",v.match,v.acquire,v.select)
-	dbgFrame:AddChild(Text)
-	dbgFrame[i]=Text
-	dbgFrame:DoLayout()
-end
---@debug@
-function addon:SetDebug(id)
-	debugMission=id
-end
---@end-debug@

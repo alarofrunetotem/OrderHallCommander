@@ -20,12 +20,12 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=function() return {} end 
---local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
+local tonumber=tonumber
+local type=type
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -37,7 +37,6 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -53,6 +52,7 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 
+local todefault=addon:Wrap("todefault")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
@@ -71,9 +71,9 @@ local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
---local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
-local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+
+
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local CompleteButton=OHFMissions.CompleteDialog.BorderFrame.ViewButton
@@ -300,7 +300,7 @@ function module:MissionAutoComplete(event,...)
 	-- GARRISON_FOLLOWER_XP_CHANGED: followerType,followerID, xpGained, oldXp, oldLevel, oldQuality
 	if (event=="GARRISON_FOLLOWER_XP_CHANGED") then
 		local followerType,followerID, xpGained, oldXp, oldLevel, oldQuality=...
-		xpGained=addon:tonumber(xpGained,0)
+		xpGained=addon:todefault(xpGained,0)
 		if xpGained>0 then
 			rewards.followerXP[followerID]=rewards.followerXP[followerID]+xpGained
 		end
@@ -317,7 +317,7 @@ function module:MissionAutoComplete(event,...)
 	-- GARRISON_FOLLOWER_DURABILITY_CHANGED,followerType,followerID,number(Durability left?)
 	elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
 		local followerType,followerID,durabilityLeft=...
-		durabilityLeft=addon:tonumber(durabilityLeft)
+		durabilityLeft=addon:todefault(durabilityLeft,1)
 		if durabilityLeft<1 then
 			rewards.followerXP[followerID]=-1
 		end

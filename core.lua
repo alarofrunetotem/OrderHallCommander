@@ -20,12 +20,12 @@ local _
 local AceGUI=LibStub("AceGUI-3.0")
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
---local new=function() return {} end 
---local del=function(t) wipe(t) end
 local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
+local tonumber=tonumber
+local type=type
 local OHF=OrderHallMissionFrame
 local OHFMissionTab=OrderHallMissionFrame.MissionTab --Container for mission list and single mission
 local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderHallMissionFrameMissions Call Update on this to refresh Mission Listing
@@ -37,7 +37,6 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -53,6 +52,7 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 
+local todefault=addon:Wrap("todefault")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
@@ -71,12 +71,12 @@ local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
---local HELP_ICON = "\124TInterface\AddOns\MailCommander\helpItems.tga:256:64\124t"
-local HELP_ICON = "\124TInterface\\AddOns\\MailCommander\\helpItems.tga:64:256\124t"
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
+
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
---*BEGIN 
+--*BEGIN
+ 
 --local missionPanelMissionList=OrderHallMissionFrameMissions
 --[[
 Su OrderHallMissionFrameMissions viene chiamato Update() per aggiornare le missioni
@@ -94,10 +94,13 @@ OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 000000003
 OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 --]]
 -- Upvalued functions
---local I=LibStub("LibItemUpgradeInfo-1.0",true)
 local GetItemInfo=GetItemInfo
 --if I then GetItemInfo=I:GetCachingGetItemInfo() end
-local select,CreateFrame,pairs,type,tonumber,math=select,CreateFrame,pairs,type,tonumber,math
+local GetCurrencyInfo=GetCurrencyInfo
+local tostring=tostring
+local tostringall=tostringall
+local strjoin=strjoin
+local select,CreateFrame,pairs,type,todefault,math=select,CreateFrame,pairs,type,todefault,math
 local QuestDifficultyColors,GameTooltip=QuestDifficultyColors,GameTooltip
 local tinsert,tremove,tContains=tinsert,tremove,tContains
 local format=format
@@ -106,6 +109,7 @@ local colors=addon.colors
 local menu
 local menuType="OHCMenu"
 local menuOptions={mission={},follower={}}
+local _G=_G
 function addon:ApplyMOVEPANEL(value)
 	OHF:EnableMouse(value)
 	OHF:SetMovable(value)
@@ -165,20 +169,6 @@ end
 do
 
 end
--- my implementation of tonumber which accounts for nan and inf
-function addon:tonumber(value,default)
-	if value~=value then return default
-	elseif value==math.huge then return default
-	else return tonumber(value) or default
-	end
-end
--- my implementation of type which accounts for nan and inf
-function addon:type(value)
-	if value~=value then return nil
-	elseif value==math.huge then return nil
-	else return type(value)
-	end
-end
 function addon:ARTIFACT_UPDATE()
 	local kl=C_ArtifactUI.GetArtifactKnowledgeMultiplier()
 	if kl then
@@ -233,7 +223,7 @@ function addon:GetDifficultyColor(perc,usePurple)
 	end
 end
 function addon:GetAgeColor(age)
-		age=tonumber(age) or 0
+		age=todefault(age,0)
 		if age>GetTime() then age=age-GetTime() end
 		if age < 0 then age=0 end
 		local hours=floor(age/3600)
@@ -249,79 +239,6 @@ local function tContains(table, item)
 		index = index + 1;
 	end
 	return nil;
-end
-local emptyTable={}
-local cachedClassSortInfo=CreateObjectPool(
-	function(obj) return {class="none",classWeight=0,value=0} end,
-	function(obj,tbl) tbl.class="none" tbl.classWeight=0 tbl.value=0 end
-)
-local classSort={
-	[MONEY]=11,
-	Artifact=12,
-	Equipment=13,
-	Quest=14,
-	Upgrades=15,
-	Reputation=16,
-	PlayerXP=17,
-	FollowerXP=18,
-	Generic=19
-}
-local rewardCache={}
-local function Reward2Class(self,mission)	
-	local GetCurrencyInfo=GetCurrencyInfo
-	local tostring=tostring
-	if type(mission)=="number" then mission=addon:GetMissionData(mission) end
-	if not mission then return "Generic",0,0 end
-	local overReward=mission.overmaxRewards
-	if not overReward then overReward=mission.OverRewards end
-	local reward=mission.rewards
-	if not reward then reward=mission.Rewards end
-	if not overReward or not reward then
-		return "Generic",0
-	end
-	overReward=overReward[1]
-	reward=reward[1]
-	if not reward then return "Generic",0 end
-	if not overReward then overReward = emptyTable end
-	if reward.currencyID then
-		local name=GetCurrencyInfo(reward.currencyID)
-		if name=="" then name = MONEY end
-		return name,reward.quantity/10000
-	elseif reward.followerXP then
-			return "FollowerXp",reward.followerXP
-	elseif type(reward.itemID) == "number" then
-		local stringID=tostring(reward.itemID)
-		local artifact=self.allArtifactPower[stringID]
-		if artifact then
-			return "Artifact",artifact.Power or 0
-		elseif overReward.itemID==1447868 then
-			return "PlayerXP",0
-		elseif overReward.itemID==141344 then
-			return "Reputation",0
-		elseif tContains(self:GetData('Equipment'),reward.itemID) then
-			return "Equipment",0
-		elseif tContains(self:GetData("Upgrades"),reward.itemID) then
-			return "Upgrades",0
-		else
-			local class,subclass=select(12,GetItemInfo(reward.itemID))
-			class=class or -1
-			if class==12 then
-				return "Quest",0
-			elseif class==7 then
-				return "Reagent",reward.quantity or 1
-			end
-		end
-	end
-	return "Generic",reward.quantity or 1
-end
-function addon:Reward2Class(mission)
-	local missionID=type(mission)=="table" and mission.missionID or mission
-	if not missionID then return "generic",0 end
-	local cached=rewardCache[missionID]
-	if cached then return cached.class,cached.value,classSort[cached.class] or 0 end
-	local class,value=Reward2Class(self,mission)
-	rewardCache[missionID]={class=class,value=value}
-	return class,value,classSort[class] or 0
 end
 local newsframes={}
 function addon:MarkAsNew(obj,key,message,method)
