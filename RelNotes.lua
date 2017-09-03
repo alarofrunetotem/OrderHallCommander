@@ -17,6 +17,7 @@ typing /ohc silent in chat will eliminate every chat message from OrderHallComma
 self:RelNotes(1,5,"0-Alpha1",[[
 Feature: You can now set a minimum requested bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
 Feature: You can now set a minimum requested success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
+Feature: You can now set an absolute minimum chance under which ignore missions
 Feature: Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones
 Fix: #68 Initial lag when opening panels should be gone or at least greatly reduced. YMV
 Fix: #65 Errors from ACE when rapidly changing sliders
