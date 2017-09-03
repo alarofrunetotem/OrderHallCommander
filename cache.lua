@@ -83,6 +83,7 @@ local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
+local GARRISON_FOLLOWER_IN_PARTY=GARRISON_FOLLOWER_IN_PARTY
 local missionsRefresh,followersRefresh=0,0
 local volatile={
 followers={
@@ -290,6 +291,7 @@ end
 --	local list=inProgress and m.inProgressMissions or m.availableMissions
 -- OHF.MissionTab.MissionList
 local emptyMissions={}
+local missionCacheIndex={}
 local function scanList(map,id)
 	if map=="completedMissions" then
 	end
@@ -315,17 +317,32 @@ local function getMissionFromBlizzardData(cache,missionID)
 	end
 	return scanList("availableMissions",missionID) or scanList("inProgressMissions",missionID) or scanList("completedMissions",missionID) or emptyMissions
 end
-local classOrder={
-	[MONEY]=11,
-	Artifact=12,
-	Equipment=13,
-	Quest=14,
-	Upgrades=15,
-	Reputation=16,
-	PlayerXP=17,
-	FollowerXP=18,
-	Generic=99
-}
+local missionCache=setmetatable({},{__index=
+		function(t,key)
+			return getMissionFromBlizzardData(t,key)
+		end
+	}
+)
+local classOrder=setmetatable({
+	["0"]=10,
+	["1342"]=11,
+	Artifact=20,
+	Equipment=30,
+	Quest=40,
+	Upgrades=50,
+	Reputation=60,
+	PlayerXP=70,
+	FollowerXP=80,
+	Generic=99999
+},{
+	__index=function(t,k) if type(k)=="number" then
+		t[k]=k
+		return k % 100000 
+		else
+			return 99999
+		end
+	end
+})
 local function GetItemQuality(itemid)
 	local _,_,quality=GetItemInfo(itemid)
 	return quality and quality or 0
@@ -349,9 +366,8 @@ local function Reward2Class(self,mission)
 	end
 	if not overReward then overReward = emptyTable end
 	if reward.currencyID then
-		local name=GetCurrencyInfo(reward.currencyID)
-		if name=="" then name = MONEY end
-		return name,math.floor(reward.quantity/10000)
+		local qt=reward.currencyID==0 and reward.quantity/10000 or reward.quantity
+		return reward.currencyID,math.floor(qt)
 	elseif reward.followerXP then
 			return "FollowerXp",reward.followerXP
 	elseif type(reward.itemID) == "number" then
@@ -389,15 +405,8 @@ function addon:Reward2Class(mission)
 	local missionID=type(mission)=="table" and mission.missionID or mission
 	if not missionID then return "generic,0,99" end
 	local class,value=Reward2Class(self,mission)
-	return strjoin(',',tostringall(class,value,classOrder[class]))
+	return strjoin(',',tostringall(class,value,classOrder[tostring(class)]))
 end
-local missionCacheIndex={}
-local missionCache=setmetatable({},{__index=
-		function(t,key)
-			return getMissionFromBlizzardData(t,key)
-		end
-	}
-)
 --- Retrieves mission data.
 -- Uses tables already loaded by Blizzard and works on both inProgress and availableMissions
 -- Possibile fields
@@ -441,6 +450,8 @@ local missionCache=setmetatable({},{__index=
 -- Calcolated field manager
 local mt={
 	__index=function(mission,field)
+		local missionID=rawget(mission,'missionID')
+		if not missionID then return end
 		if field=="class" or field=='classValue' then
 			mission.class,mission.classValue=strsplit(',',addon:Reward2Class(mission.missionID))
 		elseif field=="classOrder" then
@@ -451,7 +462,7 @@ local mt={
 			local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
 			mission.baseXP=addon:todefault(baseXP,0) 
 		end
-		return mission[field]
+		return rawget(mission,field)
 	end
 }
 function module:GetMissionData(missionID,field,defaultValue)
@@ -755,9 +766,12 @@ function addon:GetTroop(missionID,followerID,durability,ignoreBusy)
 	for _,follower in pairs(self:GetFollowerData()) do
 		if follower.isTroop and follower.isCollected and follower.classSpec==classSpec then
 			local reserved=self:IsReserved(follower.followerID)
+			local status=G.GetFollowerStatus(followerID)
 			if reserved and reserved ~=missionID then
 				-- next one
-			elseif ignoreBusy and G.GetFollowerStatus(followerID) then
+			elseif ignoreBusy and status then
+				-- next one
+			elseif status == FOLLO then
 				-- next one
 			else
 				if not durability or durability==follower.durability then

@@ -291,6 +291,9 @@ GARRISON_FOLLOWER_LIST_UPDATE,followerType
 function module:MissionAutoComplete(event,...)
 -- C_Garrison.MarkMissionComplete Mark mission as complete and prepare it for bonus roll, da chiamare solo in caso di successo
 -- C_Garrison.MissionBonusRoll
+--@debug@
+	_G.print(event,...)
+--@end-debug@
 	if event=="LOOT" then
 		return self:MissionsPrintResults()
 	end

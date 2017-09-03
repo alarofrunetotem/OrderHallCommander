@@ -115,7 +115,7 @@
 		<Layers>
 			<Layer level="OVERLAY">
 				<!-- Texture parentKey="Lock" file="Interface/CHATFRAME/UI-ChatFrame-LockIcon"-->
-				<Texture parentKey="Lock" file="Interface/PETBATTLES/PetBattle-LockIcon">
+				<Texture parentKey="LockIcon" file="Interface/PETBATTLES/PetBattle-LockIcon">
 					<Anchors>
 						<Anchor point="TOPRIGHT" x="10" y="10"/>
 					</Anchors>
@@ -157,6 +157,7 @@
 	</Button>
 
 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="GarrisonUITemplate" virtual="true">
+<!-- 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="TooltipBorderedFrameTemplate" virtual="true"> -->
 		<Size x="200" y="30"/>
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
@@ -223,5 +224,42 @@
 	GarrisonFollowerXPBarTemplate
 	GarrisonFollowerLevelUpTemplate
 	-->
-
+	<Frame name="OHCFollowerTip" inherits="GarrisonFollowerTooltipTemplate" movable="false" toplevel="true">
+		<Size x="260" y="122"/>
+		<Anchors>
+			<Anchor point="BOTTOM" x="0" y="160"/>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Line1" inherits="GameFontNormal" justifyH="LEFT" text="-55 80">
+					<Size x="300" y="0"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="80"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Line2" inherits="GameFontNormal" justifyH="LEFT" text="Messaggio di help">
+					<Size x="300" y="0"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="60"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Line3" inherits="GameFontNormal" justifyH="LEFT" text="Messaggio di help">
+					<Size x="300" y="0"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="40"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Line4" inherits="GameFontNormal" justifyH="LEFT" text="Messaggio di help">
+					<Size x="300" y="40"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+			</OnLoad>
+		</Scripts>	
+	</Frame>
 </Ui>

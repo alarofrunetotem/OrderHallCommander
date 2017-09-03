@@ -99,7 +99,7 @@ function addon:MAXLEVEL()
 	return OHF.followerMaxLevel or 110
 end
 function addon:MAXQUALITY()
-	return OHF.followerMaxQuality or 4
+	return OHF.followerMaxQuality or 6
 end
 function addon:MAXQLEVEL()
 	return addon:MAXLEVEL()+addon:MAXQUALITY()
@@ -313,9 +313,9 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 end
 function MixinFollowerIcon:ShowLock()
 	if self.locked then 
-		self.Lock:Show()
+		self.LockIcon:Show()
 	else
-		self.Lock:Hide()
+		self.LockIcon:Hide()
 	end
 end
 function MixinFollowerIcon:SetEmpty(message)
@@ -323,14 +323,15 @@ function MixinFollowerIcon:SetEmpty(message)
 	self:SetLevel(message or MISSING)
 	self:SetPortraitIcon()
 	self:SetQuality(1)
-	self.Lock:Hide()
+	self.LockIcon:Hide()
 	if message ~=UNUSED then
 		self:GetParent():SetNotReady(true)
 	end
 end
-local gft=GarrisonFollowerTooltip
+local gft -- =GarrisonFollowerTooltip
 local gft2
 function MixinFollowerIcon:ShowTooltip()
+	if not gft then gft=OHCFollowerTip end
 	if not self.followerID then
 --@debug@
 		return self:Dump()
@@ -343,17 +344,15 @@ function MixinFollowerIcon:ShowTooltip()
 	if link then
 		local levelXP=G.GetFollowerLevelXP(self.followerID)
 		local xp=G.GetFollowerXP(self.followerID)
-		gft:ClearAllPoints()
-		gft:SetPoint("BOTTOM", self, "TOP")
 		local _, garrisonFollowerID, quality, level, itemLevel, ability1, ability2, ability3, ability4, trait1, trait2, trait3, trait4, spec1 = strsplit(":", link)
-		local locked=addon:IsReserved(self.followerID)
-		local lockreason=locked and LOCKED or ''
 		GarrisonFollowerTooltip_Show(
 			tonumber(garrisonFollowerID), true, tonumber(quality), tonumber(level), xp,levelXP,  tonumber(itemLevel), 
 			tonumber(spec1), tonumber(ability1), tonumber(ability2), tonumber(ability3), tonumber(ability4), 
 			tonumber(trait1), tonumber(trait2), tonumber(trait3), tonumber(trait4),
-			true,locked,lockreason
+			true,nil,nil,gft
 		)
+		gft:ClearAllPoints()
+		gft:SetPoint("BOTTOM", self, "TOP")
 		if not gft.Status then
 			gft.Status=gft:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 			gft.Status:SetPoint("BOTTOM",0,5)
@@ -367,14 +366,22 @@ function MixinFollowerIcon:ShowTooltip()
 		else
 			gft.Status:Hide()
 		end
+		if self.locked then
+			gft.Line1:SetText(KEY_BUTTON1 .. ' : ' .. C(L['Unlock this follower'],"Red"))
+		else
+			gft.Line1:SetText(KEY_BUTTON1 .. ' : ' .. C(L['Lock this follower'],"Green"))
+		end		
+		gft.Line2:SetText(SHIFT_KEY_TEXT .. KEY_BUTTON1 .. ' : ' .. L['Lock all']) 
+		gft.Line3:SetText(SHIFT_KEY_TEXT .. KEY_BUTTON2 .. ' : ' .. L['Unlock all']) 
+		gft.Line4:SetText(L["Locked follower are only used in this mission"])
+		gft.Line4:SetTextColor(LIGHTBLUE_FONT_COLOR:GetRGBA())
+		gft:SetHeight(gft:GetHeight()+80)
 		if not gft2 then
-			gft2=CreateFrame("Frame","OHCGarrisonFollowerTooltip",gft,"TooltipBorderedFrameTemplate")
-			gft2:SetPoint("BOTTOMLEFT",gft,"BOTTOMRIGHT",0,0)
+			gft2=CreateFrame("Frame","OHCGarrisonFollowerTooltip",gft)--,"TooltipBorderedFrameTemplate")
+			--gft2:SetPoint("BOTTOMLEFT",gft,"BOTTOMRIGHT",0,0)
+			gft2:SetPoint("BOTTOMLEFT")
+			gft2:SetPoint("BOTTOMRIGHT")
 			gft2.lines={}
-			gft2.w=0
-			gft2.h=0
-			gft2.Reset=function(this) wipe(this.lines) this.w=0 this.h=0 end
-			gft2:SetScript("OnShow",function(this) this:SetHeight(this.h+10) this:SetWidth(this.w+10) end )
 			gft2.AddLine=function(this,message,r,g,b,a)
 				 tinsert(this.lines,this:CreateFontString(nil, "ARTWORK", "GameFontHighlight"))
 				 local i=#this.lines
@@ -393,9 +400,6 @@ function MixinFollowerIcon:ShowTooltip()
 				 	line:SetTextColor(r,g,b,a or 1)
 				 end				 	
 				 line:SetText(message)
-				 local w=line:GetStringWidth()
-				 if w > this.w then this.w = w end
-				 this.h=this.h+line:GetStringHeight()+5
 			end
 			gft2:AddLine("Finalize parties")
 			gft2:AddLine(KEY_BUTTON1 .. ' : ' .. L['Lock/Unlock this follower to this mission'])
@@ -421,31 +425,38 @@ function MixinFollowerIcon:Click(button)
 			end
 		end
 	elseif self.followerID then
-		if reservedFollowers[self.followerID] then
-			reservedFollowers[self.followerID]=nil
-			self.locked=nil
 		-- we cant lock a busy follower or to a blacklisted mission
+		if reservedFollowers[self.followerID] then
+			self:Unlock()
 		elseif not G.GetFollowerStatus(self.followerID) and not addon.db.profile.blacklist[missionID] then
-			reservedFollowers[self.followerID]=missionID
-			self.locked=true
+			self:Lock(missionID)
 		end
 	else
 		return
 	end
-	self:ShowLock()
 	self:ShowTooltip()
 	addon:GetMissionlistModule():RefreshButtons()
+end
+function MixinFollowerIcon:Lock(missionID)
+	reservedFollowers[self.followerID]=missionID
+	self.locked=true
+	self:ShowLock()
+end
+function MixinFollowerIcon:Unlock()
+	print("Unlocking",self.followerID)
+	reservedFollowers[self.followerID]=nil
+	self.locked=nil
+	self:ShowLock()
 end
 function MixinFollowerIcon:HideTooltip()
 	gft:Hide()
 end
 function MixinMembers:Followers()
 	return 
-		function(t,i)
-			if not i then i=0 end
-			i=i+1
-			if i> 3 then return nil end
-			return i,t[i].followerID
+		function(t,index)
+			if not index then index =0 end
+			index=index+1
+			return index,t[index].followerID
 		end,
 		self.Champions,
 		nil
@@ -482,9 +493,9 @@ end
 function MixinMembers:Lock()
 	for i=1,3 do
 		if addon:IsReserved(self.Champions[i].followerID or "") then
-			self.Champions[i].Lock:Show()
+			self.Champions[i].LockIcon:Show()
 		else
-			self.Champions[i].Lock:Hide()
+			self.Champions[i].LockIcon:Hide()
 		end
 	end
 end

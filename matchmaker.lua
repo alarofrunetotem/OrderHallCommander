@@ -201,7 +201,6 @@ function partyManager:SatisfyCondition(candidate,index)
 		if followerID then candidate[index]=followerID return true,'OK' else return false,"NOAVAILABLETROOPS" end
 	else
 		local reserved=addon:IsReserved(followerID)
-		if reserved then print(missionID,reserved) end
 		if reserved and reserved ~= missionID then return self:Fail("RESERVED",G.GetFollowerName(followerID)) end
 		self.lastChecked=followerID
 	end
@@ -557,12 +556,10 @@ end
 --@end-debug@
 
 function addon:GetMissionParties(missionID)
-	local start=debugprofilestop()
 	if not missionParties[missionID] then
 		missionParties[missionID]=partiesPool:Acquire()
 		missionParties[missionID].missionID=missionID
 	end
-	timings.acquire[missionID]=start-debugprofilestop()
 	return missionParties[missionID]
 end
 function addon:GetAllMissionParties()

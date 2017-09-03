@@ -339,12 +339,15 @@ function addon:Resolve(frame)
 	return "unk"
 end
 local events=CreateFrame("Frame")
-addon.evt={} 
+addon.evt=setmetatable({},{__index=function(t,v) return 0 end})
+addon.evtCount=setmetatable({},{__index=function(t,v) return 0 end})
 events:RegisterAllEvents()
 events:SetScript("OnEvent", 
-	function(this,event)
+	function(this,event,...)
 		if event:find("GARRISON") then
-			addon.evt[event]=event
+			addon.evtCount[event]=addon.evtCount[event] +1
+			local signature=strjoin(' , ',event,tostringall(...))
+			addon.evt[signature]=addon.evt[signature] +1
 		end
 	end
 )
