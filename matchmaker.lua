@@ -263,14 +263,10 @@ function partyManager:CheckCaps(index)
 		end    
 	end
 end
-function partyManager:CheckParty(index)
-	local candidate=self.candidates[self.candidatesIndex[index]]
-	if not candidate then return end
+function partyManager:CheckParty(candidate)
 	candidate.good=false
 	local key,chance=candidate.key,candidate.perc
-	local print= (key==self.previouskey) and print or function() end 
 	local missionID=candidate.missionID
-	if candidate.champions > addon:GetNumber("MAXCHAMP") then self.lastreason=format("TOOMANYCHAMPIONS %d over %d",candidate.champions,addon:GetNumber("MAXCHAMP"))  return end
 	if not self.elite and chance < self.minChance then return end
 	if type(self.numFollowers) ~= "number" then
 		self.numFollowers=addon:GetMissionData(self,"numfollowers",3)
@@ -317,14 +313,25 @@ function partyManager:GetSelectedParty(key)
 		end
 	end
 	for i=1,#self.candidatesIndex do
-		local key = self:CheckParty(i) 
-		if key then
-			if not self.absolutebestkey then self.absolutebestkey=key end
-			if self.maximizeXp and self.candidates[key].totalXP >self.maxXp then self.xpkey=key end
-			if not self.bestkey then self.bestkey=self:CheckCaps(i) end
-			self.lastkey=key
+		local candidate=self.candidates[self.candidatesIndex[i]]
+		if candidate then
+			local key = candidate.key 
+			if self:CheckParty(candidate) then
+				if self.maximizeXP and candidate.totalXP >self.maxXp then 
+					self.maxXp=candidate.totalXP
+					self.xpkey=key 
+				end
+				if candidate.champions > addon:GetNumber("MAXCHAMP") then 
+					self.lastreason=format("TOOMANYCHAMPIONS %d over %d",candidate.champions,addon:GetNumber("MAXCHAMP"))
+				else
+					if not self.absolutebestkey then self.absolutebestkey=key end
+					if not self.bestkey then self.bestkey=self:CheckCaps(i) end
+					self.lastkey=key
+				end
+			end
+			if self.bestkey and not self.maximizeXP then break end
+			if candidate.perc < self.minChance then break end
 		end
-		if self.bestkey then break end
 	end -- for i,key in ipairs(self.candidatesIndex) do
 	del(self.mandatoryFollowers,false)
 	self.mandatoryFollowers=nil
@@ -344,8 +351,6 @@ function partyManager:GetSelectedParty(key)
 	end
 	self.bestChance=selected.perc or 0
 	self.bestTimeseconds=selected.timeseconds or 0
-	selected.totalXP=(self.baseXP or 0) + (self.rewardXP or 0)+(selected.bonusXP or 0)*(selected.xpGainers or 0)
-	self.totalXP=selected.totalXP
 	self.previouskey=selected.key
 	return selected,selected.key
 end
@@ -424,7 +429,7 @@ function partyManager:Build(...)
 	end
 	local missionEffects=self:GetEffects()
 	missionEffects.xpGainers=xpGainers
-	missionEffects.totalXP=(missionEffects.bonusXP or 0)*(missionEffects.xpGainers or 0)	
+	missionEffects.totalXP=(todefault(missionEffects.bonusXP,0) + todefault(self.baseXP,0))*(missionEffects.xpGainers or 0)	
 	missionEffects.champions=champions
 	if missionEffects.champions > 3 then print("Che cazzo succede",missionID,champions) end
 	self.unique=self.unique+1
