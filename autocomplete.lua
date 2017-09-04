@@ -199,6 +199,9 @@ function module:MissionComplete(this,button,skiprescheck)
 	missions=G.GetCompleteMissions(followerType)
 	fillMyStatus(mebefore)
 	if (missions and #missions > 0) then
+--@debug@
+		missions={missions[1]}
+--@end-debug@	
 		this:SetEnabled(false)
 		OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(false) -- Disabling standard Blizzard Completion
 		for k,v in pairs(rewards) do
@@ -304,7 +307,9 @@ function module:MissionAutoComplete(event,...)
 	local missionID=currentMission and currentMission.missionID or 0
 	-- GARRISON_FOLLOWER_XP_CHANGED: followerType,followerID, xpGained, oldXp, oldLevel, oldQuality
 	if (event=="GARRISON_FOLLOWER_XP_CHANGED") then
+		print(event,...)
 		local followerType,followerID, xpGained, oldXp, oldLevel, oldQuality=...
+		print("XP CHANGE ",G.GetFollowerName(followerID),xpGained)
 		xpGained=addon:todefault(xpGained,0)
 		if xpGained>0 then
 			rewards.followerXP[followerID]=rewards.followerXP[followerID]+xpGained
@@ -441,7 +446,7 @@ function module:MissionsPrintResults(success)
 	local reported
 	local followers
 	--@debug@
-	_G["testrewards"]=rewards
+	_G["OHCtestrewards"]=rewards
 	--@end-debug@
 	for k,v in pairs(rewards.currencies) do
 		reported=true
@@ -480,6 +485,8 @@ function module:MissionsPrintResults(success)
 		report:AddItem(itemid,qt,true)
 	end
 	del(items)
+	OHFFollowerList.dirtyList=true
+	OHFFollowerList:UpdateFollowers()							
 	for k,v in pairs(rewards.followerXP) do
 		reported=true
 		followers=true

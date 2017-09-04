@@ -103,12 +103,13 @@ function m:AddPlayerXP(xpgain)
 end
 function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 --@debug@
-	print("Called addfollower for",followerID)
+	print("Called addfollower for",followerID,xp,levelup,portrait,fullname)
 --@end-debug@
 	if xp < 0 then
 		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname))
 	end
-	local isMaxLevel=addon:GetFollowerData(followerID,'isMaxLevel',false)
+	if addon:GetFollowerData(followerID,'isTroop',false) then return end
+	local isMaxLevel=addon:GetFollowerData(followerID,'qLevel',0) >= addon:MAXQLEVEL()
 	if isMaxLevel and not levelup then
 --		return
 		return self:AddFollowerIcon(portrait,format("%s is already at maximum xp",fullname))
@@ -127,7 +128,7 @@ function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 	end
 	if levelXP > 0 then
 		message=message .. ' ' ..
-			GARRISON_FOLLOWER_XP_LEFT:format(levelXP-addon:GetFollowerData(followerID,'xp',levelXP)) ..
+			GARRISON_FOLLOWER_XP_LEFT:format(levelXP-XP) ..
 			' ' ..
 			(isMaxLevel and GARRISON_FOLLOWER_XP_UPGRADE_STRING or GARRISON_FOLLOWER_XP_STRING)
 	end		
