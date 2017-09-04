@@ -555,7 +555,6 @@ function module:InitialSetup(this)
 	option1:SetPoint("BOTTOMLEFT",200,-25)
 	option1.obj=module
 	option1:SetOnChange("RunMission")
---@end-debug@	
 	local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower at once"])
 	option2:SetPoint("BOTTOMRIGHT",-200,-25)
 	option2:SetOnChange(function() addon:UnReserve() addon:RefreshMissions() end)
