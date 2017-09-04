@@ -408,9 +408,6 @@ function module:SortMissions()
 	else
 		if Current_Sorter=="Garrison_SortMissions_Original" then return end
 		local f=sorters[Current_Sorter]
---@debug@
-		print("Sorting",#OHFMissions.availableMissions)
---@end-debug@			
 		for k=#OHFMissions.availableMissions,1,-1 do
 			local missionID=OHFMissions.availableMissions[k].missionID
 			local mission=addon:GetMissionData(missionID) -- we need the enriched version
@@ -425,10 +422,6 @@ function module:SortMissions()
 			end
 --@end-debug@			
 		end
---@debug@
-		_G.print("Sorting")
-		DevTools_Dump(sortKeys)
---@end-debug@			
 		sort(OHFMissions.availableMissions,sortfuncAvailable)
 	end
 end
@@ -445,7 +438,9 @@ function addon:ApplySORTMISSION(value)
 end
 function addon:ApplyELITEMODE(value)
 	OHFMissions:UpdateMissions()
-	
+end
+function addon:ApplyMAXIMIZEXP(value)
+	OHFMissions:UpdateMissions()
 end
 function addon:RefreshMissions()
 	module:RefreshButtons()
@@ -940,22 +935,24 @@ function module:MissionTip(this)
 end
 local bestTimes={}
 local bestTimesIndex={}
+local emptyTable={}
 function module:AdjustMissionTooltip(this,...)
 	local tip=GameTooltip
 	local missionID=this.info.missionID
 	local party=addon:GetMissionParties(missionID)
-	local key=missionKEYS[missionID]
+	local candidate,key=emptyTable, missionKEYS[missionID]
 --@debug@
 	tip:AddDoubleLine("MissionID",missionID)
 --@end-debug@
-	if this.info.inProgress or this.info.completed then return end
+	if this.info.inProgress or this.info.completed then tip:Show() return end
 	if not this.info.isRare then
 		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
 	tip:AddLine(me .. ' additions',C:Silver())
+
 	if party then
-		local candidate =party:GetSelectedParty(key)
+		candidate,key =party:GetSelectedParty(key)
 		if candidate then
 --@debug@
 			tip:AddDoubleLine("Base time",this.info.durationSeconds)
@@ -1048,16 +1045,32 @@ function module:AdjustMissionTooltip(this,...)
 			end
 		end
 	end
-	tip:AddDoubleLine("Max Chance",addon:GetMissionData(missionID,'maxChance'))
-	tip:AddDoubleLine("Best Key",party.bestkey)
-	tip:AddDoubleLine("Xp Key",party.xpkey)
-	tip:AddDoubleLine("Absolute Best Key",party.absolutebestkey)
-	tip:AddDoubleLine("Mandatory Key",party.mandatorykey)
-	if type(party.failed)=="table" then
-		for n,r in pairs(party.failed) do
-			tip:AddDoubleLine(n,r)
+--@debug@
+	tip:AddLine("Mission Data")
+	for k,v in kpairs(party) do
+		local color="Silver"
+		if type(v)=="number" then color="Cyan"
+		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
+		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
+		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+		else v=type(v) color="Blue"
 		end
+		if k=="description" then v =v:sub(1,10) end
+		tip:AddDoubleLine(k,v,addon.colors("Orange",color))
 	end
+	tip:AddLine("Candidate Data")
+	for k,v in kpairs(candidate) do
+		local color="Silver"
+		if type(v)=="number" then color="Cyan"
+		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
+		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
+		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+		else v=type(v) color="Blue"
+		end
+		if k=="description" then v =v:sub(1,10) end
+		tip:AddDoubleLine(k,v,addon.colors("Orange",color))
+	end
+--@end-debug@	
 	tip:Show()
 end
 function module:RawMissionClick(this,button)
