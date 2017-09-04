@@ -130,7 +130,8 @@ function module:RunMission(missionKEYS,missionmembers)
 						self:RegisterEvent("GARRISON_MISSION_STARTED")
 						G.StartMission(missionID)
 						OHF:UpdateMissions();
-						OHF.FollowerList:UpdateFollowers();							
+						OHFFollowerList.dirtyList=true
+						OHFFollowerList:UpdateFollowers();							
 						PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_MISSION_START)
 						--@debug@
 						print("Start done")
