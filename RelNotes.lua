@@ -14,7 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,5,"0-Alpha1",[[
+self:RelNotes(1,5,"0-Alpha-3",[[
+Known issues: In progress missions tooltip and button enrichment is broken for autostarted (see below) missino
+Feature: Autostart. Mission can be launched whith just one click via the "Quick start mission button". The first mission in the list is started.
+Blacklisted missions or missions which are aunder the "Absolute Minimum Chance" value are not autolaunched
 Feature: You can now set a minimum requested bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
 Feature: You can now set a minimum requested success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
 Feature: You can now set an absolute minimum chance under which ignore missions
