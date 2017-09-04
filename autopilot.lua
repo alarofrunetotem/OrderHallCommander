@@ -90,10 +90,10 @@ function module:Cleanup()
 	wipe(safeguard)
 end
 function module:GARRISON_MISSION_STARTED(event,missionType,missionID)
+	--@debug@
+	print("Event fired",event,missionType,missionID)
+	--@end-debug@
 	if missionType == LE_FOLLOWER_TYPE_GARRISON_7_0 then
-		--@debug@
-		print("Event fired",event,missionType,missionID)
-		--@end-debug@
 		self:UnregisterEvent("GARRISON_MISSION_STARTED")
 		self:Cleanup()
 	end
@@ -106,8 +106,8 @@ function module:RunMission(missionKEYS,missionmembers)
 		local missionID=mission and mission.missionID
 		if missionID then
 			if not addon:IsBlacklisted(missionID) then
-				local key=missionKEYS[mission.missionID]
-				local party=addon:GetMissionParties(mission.missionID):GetSelectedParty(key)
+				local key=missionKEYS[missionID]
+				local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
 				local members = missionmembers[frame] 
 				if party.perc >= baseChance then
 					local info=""
@@ -120,7 +120,7 @@ function module:RunMission(missionKEYS,missionmembers)
 							info=info .. G.GetFollowerName(followerID)
 						end
 					end
-					local timestring,timeseconds,timeImproved,chance,buffs,missionEffects,xpBonus,materials,gold=G.GetPartyMissionInfo(self.missionID)
+					local timestring,timeseconds,timeImproved,chance--[[,buffs,missionEffects,xpBonus,materials,gold--]]=G.GetPartyMissionInfo(missionID)
 					if party.perc < chance then
 						self:Print("Could not fulfill mission, aborting")
 						self:Cleanup()
@@ -139,10 +139,7 @@ function module:RunMission(missionKEYS,missionmembers)
 					else
 						addon:Print("Autostarting ",mission.name," with ",info)
 						addon:Print("Shift-Click to actually start mission")
-						--@debug@
-						DevTools_Dump({party.perc,G.GetPartyMissionInfo(missionID)})
-						--@end-debug@
-						self:ScheduleTimer("GARRISON_MISSION_STARTED",0.2)
+						self:Cleanup()
 					end
 					break
 				end
