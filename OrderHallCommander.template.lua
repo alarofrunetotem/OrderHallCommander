@@ -7,6 +7,9 @@ local new=addon:Wrap("NewTable")
 local del=addon:Wrap("DelTable")
 local kpairs=addon:Wrap("Kpairs")
 local empty=addon:Wrap("Empty")
+--*if-non-addon*
+local todefault=addon:Wrap("todefault")
+--*end-if-non-addon*
 local tonumber=tonumber
 local type=type
 local OHF=OrderHallMissionFrame
@@ -35,7 +38,6 @@ LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
 --*if-non-addon*
-local todefault=addon:Wrap("todefault")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 --*end-if-non-addon*
