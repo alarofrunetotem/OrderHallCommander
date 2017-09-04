@@ -414,6 +414,6 @@ function addon:Dump(title,data)
 	return scroll
 end
 --@end-do-not-package@
---@debug@
+if not _G.OHC then
 _G.OHC=addon
---@end-debug@
+end
