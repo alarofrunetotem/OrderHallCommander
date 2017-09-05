@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,4,3,[[
+Feature: updated equipment list
+]])
 self:RelNotes(1,4,2,[[
 Fix: Error when callong Playsound
 ]])

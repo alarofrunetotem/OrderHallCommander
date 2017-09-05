@@ -190,12 +190,22 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
 		end
 	end
-	if follower.iLevel <900 then
+	if follower.iLevel <880 then
 		for _,id in pairs(addon:GetData("Upgrades2")) do
 			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
 		end
 	end
-	if not follower.isMaxLevel or  follower.quality ~=LE_ITEM_QUALITY_EPIC then
+	if follower.iLevel <900 then
+		for _,id in pairs(addon:GetData("Upgrades3")) do
+			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
+		end
+	end
+	if follower.iLevel <950 then
+		for _,id in pairs(addon:GetData("Upgrades4")) do
+			uprevious=self:RenderUpgradeButton(id,uprevious,uleft)
+		end
+	end
+	if not follower.isMaxLevel or  follower.quality ~=6 then
 		for _,id in pairs(addon:GetData("Xp")) do
 			previous=self:RenderUpgradeButton(id,previous)
 		end
