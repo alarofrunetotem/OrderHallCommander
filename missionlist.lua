@@ -329,8 +329,9 @@ function module:OnUpdateMissions(frame)
 		wipe(missionIDS)
 		addon:GetPermutations(true)
 		addon:GetAllTroops(true)
+		local rc=addon:RefillParties()
 --@debug@
-		print(format("Refilled %d parties in %.3f",addon:RefillParties(),(debugprofilestop()-start)/1000))
+		print(format("Refilled %d parties in %.3f",rc,(debugprofilestop()-start)/1000))
 --@end-debug@	
 		clean=true
 	end
