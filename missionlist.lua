@@ -759,7 +759,7 @@ function module:AddMembers(frame)
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
 	end
 	local perc=party.perc or 0
-	local maxChance=addon:GetMissionData(missionID,'elite') and addon:GetNumber('ELITECHANCE') or addon:GetNumber('BASECHANCE') 
+	local maxChance=addon:GetNumber('MINCHANCE') 
 	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 	missionKEYS[missionID]=key
