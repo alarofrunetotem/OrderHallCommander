@@ -14,10 +14,11 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,4,3,[[
+self:RelNotes(1,4,4,[[
 Feature: updated equipment list
 Fix: "Not enough champions" warning now works. Give it a trt again
 Fix: #67 UI messed up on opening it after closing it with followers tab last opened
+Fix: The switch "Keep time very short" was not working
 ]])
 self:RelNotes(1,4,2,[[
 Fix: Error when callong Playsound
