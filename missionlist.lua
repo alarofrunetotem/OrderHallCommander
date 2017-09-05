@@ -262,16 +262,14 @@ function module:OnUpdateMissions()
 end
 function module:CheckShadow()
 	if not addon:GetBoolean("NOWARN") and not OHFMissions.showInProgress and not OHFCompleteDialog:IsVisible() and missionNonFilled then
-		local totChamps,totTroops,maxChamps=addon:GetTotFollowers('CHAMP_' .. AVAILABLE),addon:GetTotFollowers('TROOP_' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
+		local totChamps,maxChamps=addon:GetTotFollowers('CHAMP_' .. AVAILABLE),addon:GetNumber("MAXCHAMP")
 		--@debug@
-		print("Checking shadows for ",maxChamps,totChamps,totTroops)
+		print("Checking shadows for ",maxChamps,totChamps)
 		--@end-debug@
 		if totChamps==0 then
 			self:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-		elseif (maxChamps + totTroops < 3) and maxChamps < 3 then
-			self:NoMartiniNoParty(L["Not enough troops, raise maximum champions' number"])
-		elseif totTroops==0 then
-			self:NoMartiniNoParty(L["You have no troops"])
+		elseif maxChamps  < 3 then
+			self:NoMartiniNoParty(L["Unable to fill missions, raise maximum champions' number"])
 		else
 			self:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
 		end
@@ -478,6 +476,7 @@ function module:MainOnHide()
 	self:Unhook(OHFMissions,"UpdateMissions")
 	--self:Unhook(OHFMissions,"Update")
 	self:Unhook("GarrisonMissionButton_SetRewards")
+	OHF:SelectTab(OHF.selectedTab)	
 end
 function module:AdjustPosition(frame)
 	local mission=frame.info
