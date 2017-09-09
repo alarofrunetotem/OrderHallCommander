@@ -195,15 +195,22 @@ function partyManager:SatisfyCondition(candidate,index)
 	if not followerID then return self:Fail("No follower id for party slot",index) end
 
 	local follower=addon:GetFollowerData(followerID)
+	if not follower then return self:Fail("No follower for followerID",followerID) end
+
 	if follower.IsTroop then
-		if addon:GetBoolean("NOTROOPS") 	then return self:Fail("NOTROOPS") end
+		if self.npTroops then return self:Fail("NOTROOPS") end
 		local durability
-		if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect then durability =1 end
-		followerID=addon:GetTroop(missionID,followerID,durability,addon:GetBoolean('IGNOREBUSY'))
+		if self.saveTroops and candidate.hasKillTroopsEffect then durability =1 end
+		followerID=addon:GetTroop(missionID,followerID,self.lastTroop,durability,self.ignoreBusy)
+		self.lastTroop=followerID
 		if followerID then candidate[index]=followerID return true,'OK' else return false,"NOAVAILABLETROOPS" end
 	else
 		local reserved=addon:IsReserved(followerID)
-		if reserved and reserved ~= missionID then return self:Fail("RESERVED",G.GetFollowerName(followerID)) end
+		if reserved then
+			-- Always increment because, when reserved is not equal missionID we refuse the whole party
+			candidate.reservedChampions=candidate.reservedChampions +1 
+			return reserved==missionID
+		end
 		self.lastChecked=followerID
 	end
 	local status=G.GetFollowerStatus(followerID)
@@ -254,7 +261,7 @@ function partyManager:CheckCaps(index)
 				-- we are too low, so we need to go back in the chain and find someting better than baseChance even if over cap
 				for k=index-1,1,-1 do
 					local candidate=self.candidates[self.candidatesIndex[k]]
-					if candidate and candidate.good and candidate.perc >= self.baseChance then
+					if candidate and candidate.good and (self.maximizeXP or candidate.champions <= self.maxChampions) and candidate.perc >= self.baseChance then
 						return candidate.key
 					end
 				end
@@ -290,7 +297,10 @@ function partyManager:CheckParty(candidate)
 	self.candidates[key].good=true -- This party is good, we now check caps
 	return key
 end
-
+function partyManager:GetChanceForKey(key)
+	local candidate=self.candidates[key]
+	return candidate and candidate.perc or 0
+end
 function partyManager:GetSelectedParty(key)
 	-- When we receive a key we MUST return the selected party, no question asked
 	if type(key)=="string" and self.candidates[key] then
@@ -301,29 +311,31 @@ function partyManager:GetSelectedParty(key)
 	self.maximizeXP=addon:GetBoolean("MAXIMIZEXP")
 	self.minChance=addon:GetNumber("MINCHANCE")
 	self.baseChance=addon:GetNumber("BASECHANCE")
-	self.bonusChance=100 + (self.elite and 0 or addon:GetNumber("BONUSCHANCE"))
+	self.bonusChance=self.elite and 100 or addon:GetNumber("BONUSCHANCE")
+	self.ignoreBusy=addon:GetBoolean("IGNOREBUSY")
+	self.noTroops=addon:GetBoolean("NOTROOPS")
+	self.saveTroops=addon:GetBoolean("SAVETROOPS")
 	self.capChance=self.elite and 100 or 200
 	self.maxXp=0
-	self.bestkey,self.xpkey,self.absolutebestkey,self.lastkey=nil,nil,nil,nil
+	self.bestkey,self.xpkey,self.absolutebestkey,self.lastkey,self.uncappedkey=nil,nil,nil,nil,nil
 	self.mandatoryFollowers=new()
 	self.lastreason='GOOD'
-	for f,m in pairs(addon:IsReserved()) do
-		if m==missionID then
-			tinsert(self.mandatoryFollowers,f)
-		end
-	end
+	self.maxChampions=addon:GetNumber("MAXCHAMP")
+	self.mandatoryFollowers=addon:GetReservedFollowers(missionID)
 	for i=1,#self.candidatesIndex do
 		local candidate=self.candidates[self.candidatesIndex[i]]
 		if candidate then
 			local key = candidate.key 
+			candidate.reservedChampions=0
 			if self:CheckParty(candidate) then
 				if self.maximizeXP and candidate.totalXP >self.maxXp then 
 					self.maxXp=candidate.totalXP
 					self.xpkey=key 
 				end
-				if candidate.champions > addon:GetNumber("MAXCHAMP") then 
-					self.lastreason=format("TOOMANYCHAMPIONS %d over %d",candidate.champions,addon:GetNumber("MAXCHAMP"))
+				if candidate.champions > math.max(candidate.reservedChampions,self.maxChampions) then 
+					self.lastreason=format("TOOMANYCHAMPIONS %d over %d",candidate.champions,self.maxChampions)
 				else
+					if not self.uncappedkey then self.uncappedkey=key end
 					if not self.absolutebestkey then self.absolutebestkey=key end
 					if not self.bestkey then self.bestkey=self:CheckCaps(i) end
 					self.lastkey=key
@@ -357,7 +369,8 @@ end
 function partyManager:Remove(...)
 	local tbl=...
 	if type(tbl)=="table" then
-		for _,id in ipairs(tbl) do
+		for i =1,#tbl do
+			local id=tbl[i]
 			if type(id)=="table" then id=id.followerID end
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,id)
 		end
@@ -421,7 +434,10 @@ function partyManager:Build(...)
 							xpGainers=xpGainers+1
 						end
 					else
-						troopcost=troopcost + addon:GetFollowerData(followerID,"maxDurability") + addon:GetFollowerData(followerID,"quality")
+						local m=addon:GetFollowerData(followerID,"maxDurability",0)
+						local q=addon:GetFollowerData(followerID,"quality",0)
+						troopcost=troopcost + tonumber(m) or 0 + tonumber(q) or 0
+						
 					end
 				end
 			end
@@ -493,7 +509,7 @@ function module:OnInitialized()
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	addon:AddRange("MAXCHAMP",2,1,3,L["Max champions"],L["Use at most this many champions"],1)
 	addon:AddRange("MINCHANCE",5,5,100,L["Absolute Minimum Chance"],L["Dont bother filling missions under this success chance. (Can speed up the whole selection)."],5)
-	addon:AddRange("BONUSCHANCE",5,5,100,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to not overcap the mission."],5)
+	addon:AddRange("BONUSCHANCE",100,100,200,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to cap at 100. Ignored for elite missions."],5)
 	addon:AddRange("BASECHANCE",5,5,100,L["Base Chance"],L["When we cant achieve the requested bonus chance, we try to reach at least this one"],5)
 	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
@@ -557,7 +573,7 @@ function addon:TestParty(missionID)
 	self:Print(choosenkey)
 	if ViragDevTool_AddData then
 		ViragDevTool_AddData({_title=title,_key=choosenkey,data=parties.candidates},"Mission debug " .. title)
-		GetSelectedParty(parties,true)
+		parties:GetSelectedParty(true)
 	end
 end
 --@end-debug@
@@ -575,9 +591,9 @@ end
 function addon:RefillParties()
 	local i=0
 	holdEvents()
-	for _,mission in ipairs(OHFMissions.availableMissions) do
-		self:GetMissionParties(mission.missionID):Match()
-		i=_
+	for n=1,#OHFMissions.availableMissions do
+		self:GetMissionParties(OHFMissions.availableMissions[n].missionID):Match()
+		i=n
 	end
 	releaseEvents()
 	return i

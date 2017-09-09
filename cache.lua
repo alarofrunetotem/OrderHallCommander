@@ -131,7 +131,8 @@ local function getCachedMissions()
 		local time=GetTime()
 		for property,method in pairs(methods) do
 			local missions=G[method](followerType)
-			for _,mission in ipairs(missions) do
+			for i=1,#missions do
+				local mission=missions[i]
 				mission[property]=true
 				fillCachedMission(mission,time)
 				cachedMissions[mission.missionID]=mission
@@ -145,7 +146,8 @@ local function getCachedFollowers()
 		local followers=G.GetFollowers(followerType)
 		if type(followers)=="table" then
 			local time=GetTime()
-			for _,follower in ipairs(followers) do
+			for i=1,#followers do
+				local follower=followers[i]
 				if follower.isCollected and follower.status ~= GARRISON_FOLLOWER_INACTIVE then
 					cachedFollowers[follower.followerID]=follower
 					cachedFollowers[follower.followerID].lastUpdate=time
@@ -219,7 +221,7 @@ function module:GetFollower(key)
 end
 --@end-debug@
 local indexes={followers={},missions={}}
-local followerCache
+local followerCache={}
 local followerCacheUpdate=GetTime()
 local emptyFollower={}
 local function rebuildFollowerIndex()
@@ -230,8 +232,7 @@ local function rebuildFollowerIndex()
 	end
 end
 local function GetFollowers()
-	followerCacheUpdate=GetTime()
-	return C_Garrison.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0)
+	return OHFFollowerList.followers or G.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0) or emptyTable	
 end
 --- Return followerdata-
 -- Available fields:
@@ -264,19 +265,20 @@ end
 --
 --
 function module:GetFollowerData(followerID,field,defaultValue)
-	if empty(followerCache) or followerCacheUpdate < addon.lastChange then
-		followerCache=OHFFollowerList.followers or GetFollowers() or emptyTable
+	if empty(followerCache) then
+		followerCache=GetFollowers()
 	end
 	if not followerID then return followerCache  end
 	local followerIndex=indexes.followers[followerID]
 	local pointer=followerCache[followerIndex]
 	if not pointer or pointer.followerID~=followerID then
+		followerCache=GetFollowers()
 		rebuildFollowerIndex()
 	end
 	followerIndex=indexes.followers[followerID]
 	pointer=followerCache[followerIndex] or emptyFollower
 	if empty(pointer) then
-		return field and defaultValue or emptyFollower
+		return field and defaultValue or nil
 	end
 	if not field then return pointer end
 	if pointer[field] then
@@ -546,7 +548,8 @@ function module:ParseFollowers()
 	local numCategories = #categoryInfo;
 	local prevCategory, firstCategory;
 	local xSpacing = 20;	-- space between categories
-	for i, category in ipairs(categoryInfo) do
+	for i=1,#categoryInfo do
+		local category=categoryInfo[i]
 		local index=category.classSpec
 		if not catPool[index] then
 			catPool[index]=CreateFrame("Frame","FollowerIcon",main,"OrderHallClassSpecCategoryTemplate")
@@ -627,6 +630,7 @@ function module:Refresh(event,...)
 	--elseif event=="GARRISON_FOLLOWER_UPGRADED"then
 	--elseif event=="GARRISON_FOLLOWER_DURABILITY_CHANGED" then
 	elseif event=="GARRISON_FOLLOWER_LIST_UPDATE" or event=="GARRISON_MISSION_STARTED" or event=="GARRISON_MISSION_FINISHED" or event=="GARRISON_MISSION_LIST_UPDATE" then
+		wipe(followerCache)
 		rebuildFollowerIndex()
 	elseif event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
 		rebuildFollowerIndex()
@@ -762,29 +766,32 @@ local function compose(f1,f2,f3)
 		return stringify(f1)
 	end
 end	
-function addon:GetTroop(missionID,followerID,durability,ignoreBusy)
-	local notsobad=nil
+---
+
+local function isGood(missionID,follower,durability,ignoreBusy)
+	local followerID=follower.followerID
+	local reserved=addon:IsReserved(followerID)
+	if reserved then return reserved==missionID end
+	if ignoreBusy then 
+		if G.GetFollowerStatus(followerID) then
+			return false
+		end
+	end
+	if not durability or durability==follower.durability then return true end
+	return false
+	
+end
+function addon:GetTroop(missionID,followerID,ignoreID,durability,ignoreBusy)
 	local classSpec=self:GetFollowerData(followerID,'classSpec')
+	if isGood(followerID,self:GetFollowerData(missionID,followerID),durability,ignoreBusy) then return followerID end
 	for _,follower in pairs(self:GetFollowerData()) do
 		if follower.isTroop and follower.isCollected and follower.classSpec==classSpec then
-			local reserved=self:IsReserved(follower.followerID)
-			local status=G.GetFollowerStatus(followerID)
-			if reserved and reserved ~=missionID then
-				-- next one
-			elseif ignoreBusy and status then
-				-- next one
-			elseif status == FOLLO then
-				-- next one
-			else
-				if not durability or durability==follower.durability then
-					return follower.followerID
-				else
-					notsobad=follower.followerID
-				end
+			if follower.followerID ~= followerID and follower.followerID ~=ignoreID and isGood(missionID,follower,durability,ignoreBusy) then 
+				return follower.followerID 
 			end
 		end
 	end
-	return notsobad
+	return false
 end
 function addon:GetFullPermutations(refill)
 	if refill or empty(fullPermutations) then
@@ -922,4 +929,9 @@ function addon:GetTotFollowers(status)
 	else
 		return s[status] or 0
 	end
+end
+local startedCacheMission
+function addon:CacheStartedMission(missionID,t)
+	
+	
 end

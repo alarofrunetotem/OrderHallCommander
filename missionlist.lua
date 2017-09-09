@@ -78,6 +78,8 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+local UNCAPPED_PERC=PERCENTAGE_STRING
+local CAPPED_PERC=PERCENTAGE_STRING .. "**"
 local Dialog = LibStub("LibDialog-1.0")
 local missionNonFilled=true
 local wipe=wipe
@@ -257,9 +259,9 @@ function module:LoadButtons(...)
 		self:SecureHookScript(b.Rewards[1],"OnEnter","rwWarning")
 	end
 end
-local function makedirty(self,event,missionType,missionID)
+local function makedirty(self,event,missionType,missionID,...)
 --@debug@
-	print("Set Dirty state",self,event,missionType,missionID)
+	print("Set Dirty state",self,event,missionType,missionID,...)
 --@end-debug@
 	if event=="GARRISON_MISSION_LIST_UPDATE" or
 		event=="GARRISON_MISSION_STARTED" then
@@ -552,7 +554,9 @@ function module:InitialSetup(this)
 	OHF.TroopsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.TroopsStatusInfo:SetPoint("TOPLEFT",80,-5)
 	OHF.TroopsStatusInfo:SetText("")
-	local option1=addon:GetFactory():Button(OHFMissionScroll,L["Quick start first mission"],L["Launch the first filled mission. You can lock mission composition clicking on champions' icons in buttons\n Keep shift pressed to actually launch, a simple click will only print what will be launched"],200)
+	local option1=addon:GetFactory():Button(OHFMissionScroll,
+	L["Quick start first mission"],
+	L["Launch the first filled mission with at least one locked follower.\nKeep SHIFT pressed to actually launch, a simple click will only print mission name with its followers list"],200)
 	option1:SetPoint("BOTTOMLEFT",200,-25)
 	option1.obj=module
 	option1:SetOnChange("RunMission")
@@ -579,11 +583,29 @@ function module:InitialSetup(this)
 	frame:SetHeight(frame.label:GetStringHeight()+15)
 	frame:SetWidth(OHF:GetWidth())
 	frame.label:SetPoint("CENTER")
+	if true then return end
 --@end-alpha@
+	local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
+	frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
+	frame.label:SetAllPoints(frame)
+	frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
+	frame.label:SetWidth(OHF:GetWidth()-10)
+	frame.label:SetText("You are using an\r|cffff0000BETA VERSION|r.\nIf something doesnt work usually typing /reload will fix it.")
+	frame.label:SetJustifyV("CENTER")
+	frame.label:SetJustifyH("CENTER")
+	frame:SetHeight(frame.label:GetStringHeight()+15)
+	frame:SetWidth(OHF:GetWidth())
+	frame.label:SetPoint("CENTER")
 	
 end
+function addon:GetMissionKey(missionID)
+	return missionID and missionKEYS[missionID] or missionKEYS
+end
+function addon:GetMembersFrame(frame)
+	return missionmembers[frame]
+end
 function module:RunMission()
-	return addon:GetAutopilotModule():RunMission(missionIDS,missionmembers)
+	return addon:GetAutopilotModule():RunMission()
 end
 function module:EvOn()
 	for _,m in addon:IterateModules() do
@@ -751,16 +773,21 @@ function module:AddMembers(frame)
 		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 		return
 	end
-
 	local lastkey=missionKEYS[missionID]
-	local party,key=addon:GetSelectedParty(missionID,lastkey)
+	local parties=addon:GetMissionParties(missionID)	
+	local party,key=parties:GetSelectedParty(lastkey)
+	local ps=UNCAPPED_PERC
+	if key ~= parties.xpkey then
+		local bestchance,uncappedchance=parties:GetChanceForKey(key),parties:GetChanceForKey(parties.uncappedkey)
+		ps=(bestchance==uncappedchance) and UNCAPPED_PERC or CAPPED_PERC
+	end
 	if party.timeseconds ~= mission.durationSeconds then
 		local color=party.timeseconds > mission.durationSeconds and RED_FONT_COLOR_CODE or GREEN_FONT_COLOR_CODE
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
 	end
 	local perc=party.perc or 0
 	local maxChance=addon:GetNumber('MINCHANCE') 
-	stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
+	stats.Chance:SetFormattedText(ps,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 	missionKEYS[missionID]=key
 	local emptymarker=UNUSED
@@ -911,9 +938,6 @@ function module:MissionTip(this)
 	local dataclass=addon:GetData('Troops')
 	for i,id in ipairs(candidate) do
 		local rc,name = pcall(G.GetFollowerName,id)
-		if rc and addon:GetFollowerData(id,'isTroop') then
-			name=name .. ' ' .. addon:GetFollowerData(id,'garrFollowerID')
-		end
 		tip:AddDoubleLine(id,name)
 	end
 	tip:AddLine("Rewards")
@@ -939,24 +963,34 @@ local emptyTable={}
 function module:AdjustMissionTooltip(this,...)
 	local tip=GameTooltip
 	local missionID=this.info.missionID
-	local party=addon:GetMissionParties(missionID)
-	local candidate,key=emptyTable, missionKEYS[missionID]
 --@debug@
 	tip:AddDoubleLine("MissionID",missionID)
 --@end-debug@
 	if this.info.inProgress or this.info.completed then tip:Show() return end
+	local party=addon:GetMissionParties(missionID)
+	local candidate,key=emptyTable,missionKEYS[missionID]
 	if not this.info.isRare then
 		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
 	tip:AddLine(me .. ' additions',C:Silver())
-
+	if key ~= party.xpkey then
+		local bestchance,uncappedchance=party:GetChanceForKey(key),party:GetChanceForKey(party.uncappedkey)
+		if (not addon:GetMissionData(missionID,"elite",false) and bestchance < uncappedchance) then
+			tip:AddDoubleLine(L["Mission was capped due to total chance less than"],addon:GetNumber("BONUSCHANCE"))
+			tip:AddDoubleLine("Maximum chance was",uncappedchance,nil,nil,nil,addon:GetDifficultyColors(uncappedchance,true))
+		end
+	end
 	if party then
 		candidate,key =party:GetSelectedParty(key)
 		if candidate then
 --@debug@
 			tip:AddDoubleLine("Base time",this.info.durationSeconds)
 			tip:AddDoubleLine("Party time",candidate.timeseconds)
+			tip:AddDoubleLine("Best Key",party.bestkey)
+			tip:AddDoubleLine("Xp Key",party.xpkey)
+			tip:AddDoubleLine("Uncapped Key",party.uncappedkey)
+			tip:AddDoubleLine("Selected Key",key)
 --@end-debug@
 			if candidate.hasBonusLootNegativeEffect then
 				tip:AddLine(nobonusloot,C:Red())

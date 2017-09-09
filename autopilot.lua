@@ -90,61 +90,93 @@ function module:Cleanup()
 	wipe(safeguard)
 end
 function module:GARRISON_MISSION_STARTED(event,missionType,missionID)
-	--@debug@
-	print("Event fired",event,missionType,missionID)
-	--@end-debug@
 	if missionType == LE_FOLLOWER_TYPE_GARRISON_7_0 then
 		self:UnregisterEvent("GARRISON_MISSION_STARTED")
+		local mission=G.GetBasicMissionInfo(missionID)
+		addon:UnReserveMission(missionID)
+		-- Remove used followers from safeguad
+		for i=1,#mission.followers do
+			safeguard[mission.followers[i]]=nil
+		end
+		-- safeguard should be empty now
 		self:Cleanup()
 	end
 end
-function module:RunMission(missionKEYS,missionmembers)
+local truerun
+local multiple
+function module:RunMission()
+	truerun=IsShiftKeyDown() or IsControlKeyDown()
+	multiple=IsControlKeyDown()
+	return self:DoRunMissions()
+end
+function module:DoRunMissions()
 	local baseChance=addon:GetNumber('BASECHANCE')
 	wipe(safeguard)
-	for _,frame in pairs(OHFButtons) do
+	local nothing=true
+	for i=1,#OHFButtons do
+		local frame=OHFButtons[i]
 		local mission=frame.info
 		local missionID=mission and mission.missionID
 		if missionID then
-			if not addon:IsBlacklisted(missionID) then
-				local key=missionKEYS[missionID]
+			if not addon:IsBlacklisted(missionID) and addon:HasReservedFollowers(missionID) then
+				nothing=false
+				local key=addon:GetMissionKey(missionID)
 				local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
-				local members = missionmembers[frame] 
+				local members = addon:GetMembersFrame(frame)
+				addon:Print(format(L["Attempting %s"],C(mission.name,'orange')))
+				 
 				if party.perc >= baseChance then
 					local info=""
-					local truerun=IsShiftKeyDown()
-					for _,member in pairs(members.Champions) do
-						local followerID=member:GetFollower()
+					for i=1,#members.Champions do
+						local followerID=members.Champions[i]:GetFollower()
 						if followerID then
 							safeguard[followerID]=missionID
-							local rc,res = pcall(G.AddFollowerToMission,missionID,member:GetFollower())
-							info=info .. G.GetFollowerName(followerID)
+							local rc,res = pcall(G.AddFollowerToMission,missionID,followerID)
+							if rc then
+								info=info .. G.GetFollowerLink(followerID)
+							else
+								addon:Print(C(L["Unable to start mission, aborting"],"red"))
+								self:Cleanup()
+								break
+							end
 						end
 					end
 					local timestring,timeseconds,timeImproved,chance--[[,buffs,missionEffects,xpBonus,materials,gold--]]=G.GetPartyMissionInfo(missionID)
 					if party.perc < chance then
-						self:Print("Could not fulfill mission, aborting")
+						addon:Print(C(L["Could not fulfill mission, aborting"],"red"))
 						self:Cleanup()
 						break
 					end
+					nothing=false
 					if truerun then
 						self:RegisterEvent("GARRISON_MISSION_STARTED")
-						G.StartMission(missionID)
-						OHF:UpdateMissions();
+						G.StartMission(missionID)						
+						addon:Print(C(L["Started with "],"green") ..info)
+						PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_MISSION_START)
+						OHF:UpdateMissions()
 						OHFFollowerList.dirtyList=true
 						OHFFollowerList:UpdateFollowers();							
-						PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_MISSION_START)
 						--@debug@
 						print("Start done")
 						--@end-debug@
+						if multiple then
+							self:Schedule("DoRunMissions",1)
+						end
+						break
 					else
-						addon:Print("Autostarting ",mission.name," with ",info)
-						addon:Print("Shift-Click to actually start mission")
+						addon:Print(C(L["Would start with "],"green") ..info)
+						addon:Print(C("Shift-Click to actually start mission","green"))
 						self:Cleanup()
 					end
-					break
+				else
+					addon:Print(C(format(L["%1$d%% lower than %2$d%%. Lower %s"],party.perc,baseChance,L["Base Chance"]),"red"))
 				end
 			end
 		end
 	end
+	if nothing then
+		addon:Print(C(L["No suitable missions. Have you reserved at least one follower?"],"red"))
+	end
+	multiple=true
 end
 
