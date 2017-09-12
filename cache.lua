@@ -609,7 +609,10 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS(...)
 	end
 
 end
-
+function module:RefreshClean(...)
+	addon:GetFullPermutations(true)
+	return module:Refresh(...)
+end
 function module:Refresh(event,...)
 --@debug@
 	print(event,...)
@@ -625,6 +628,7 @@ function module:Refresh(event,...)
 	elseif event=="GARRISON_FOLLOWER_CATEGORIES_UPDATED" then
 		return self:ParseFollowers()
 	elseif event=="GARRISON_FOLLOWER_ADDED" then
+		
 		return self:ParseFollowers()
 	--elseif event=="GARRISON_FOLLOWER_XP_CHANGED"  then
 	--elseif event=="GARRISON_FOLLOWER_UPGRADED"then
@@ -647,11 +651,10 @@ function module:OnInitialized()
 end
 function module:Events()
 	self:RegisterEvent("CURRENCY_DISPLAY_UPDATE","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","Refresh")
+	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","RefreshClean")
+	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","RefreshClean")
+	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","RefreshClean")
+	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","RefreshClean")
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
@@ -793,9 +796,10 @@ function addon:GetTroop(missionID,followerID,ignoreID,durability,ignoreBusy)
 	end
 	return false
 end
-function addon:GetFullPermutations(refill)
-	if refill or empty(fullPermutations) then
-		wipe(fullPermutations)
+function addon:GetFullPermutations(dowipe)
+	if dowipe then wipe(fullPermutations) end
+	if empty(fullPermutations) then
+		wipe(fullPermutations) -- better safe than sorry
 		wipe(troopsSeen)
 		local appo=new()
 		local t=module:GetFollowerData()
