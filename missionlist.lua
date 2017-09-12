@@ -126,8 +126,8 @@ local function IsLow(mission)
 		(addon:IsBlacklisted(mission.missionID))
 end
 local function IsIgnored(mission)
-	return addon:GetBoolean("ELITEMODE") and mission.class=="0"
-	--return addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite')
+	--return addon:GetBoolean("ELITEMODE") and mission.class=="0"
+	return addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite')
 end
 local sorters={
 		Garrison_SortMissions_Original=nop,
@@ -322,6 +322,9 @@ end
 -- calls Update
 -- 
 function module:OnUpdateMissions(frame)
+--@debug@
+	print("Called OnUpdateMissions with " .. (clean and "full refresh" or "simple refresh"))
+--@end-debug@	
 	if not clean then
 --@debug@
 		local start=debugprofilestop()
@@ -329,8 +332,6 @@ function module:OnUpdateMissions(frame)
 		missionNonFilled=false
 		wipe(missionKEYS)
 		wipe(missionIDS)
-		addon:GetPermutations(true)
-		addon:GetAllTroops(true)
 		local rc=addon:RefillParties()
 --@debug@
 		print(format("Refilled %d parties in %.3f",rc,(debugprofilestop()-start)/1000))
@@ -1127,6 +1128,9 @@ function module:RawMissionClick(this,button)
 		else
 			self:UnDim(this)
 		end
+--@debug@
+		print("Calling OHF:UpdateMissions")  
+--@end-debug@
 		OHF:UpdateMissions()
 		this:GetScript("OnEnter")(this)
 --@debug@
