@@ -153,15 +153,18 @@ function module:DoRunMissions()
 						G.StartMission(missionID)						
 						addon:Print(C(L["Started with "],"green") ..info)
 						PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_MISSION_START)
-						OHF:UpdateMissions()
-						OHFFollowerList.dirtyList=true
-						OHFFollowerList:UpdateFollowers();							
+						addon:Refresh()
 						--@debug@
-						print("Start done")
+						dprint("Calling OHF:UpdateMissions")  
 						--@end-debug@
+						OHF:UpdateMissions()						
+						OHFFollowerList.dirtyList=true
+						OHFFollowerList:UpdateFollowers();	
+						--@debug@												
 						if multiple then
-							self:Schedule("DoRunMissions",1)
+							self:ScheduleTimer("DoRunMissions",1)
 						end
+						--@end-debug@
 						break
 					else
 						addon:Print(C(L["Would start with "],"green") ..info)
