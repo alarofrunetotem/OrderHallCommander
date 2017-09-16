@@ -1,8 +1,8 @@
 local me,ns = ...
 
-ns.wowhead_update=1493124560
--- DataMined from WowHead other-consumables?filter=224;1;0 on 25/04/2017
--- Contains 457 items
+ns.wowhead_update=1505585229
+-- DataMined from WowHead other-consumables?filter=224;1;0 on 16/09/2017
+-- Contains 538 items
 ns.allArtifactPower=
 {
   ["140410"] = {
@@ -11,23 +11,23 @@ ns.allArtifactPower=
     },
     Power = 1000
   },
-  ["146125"] = {
+  ["140492"] = {
     name = {
-      "6Legion Mark of Command"
+      "6Gleaming Glacial Pebble"
     },
-    Power = 225
+    Power = 150
   },
-  ["142006"] = {
+  ["139614"] = {
     name = {
-      "5Ceremonial Warden Glaive"
+      "6Azsharan Manapearl"
     },
-    Power = 400
+    Power = 175
   },
-  ["141707"] = {
+  ["143749"] = {
     name = {
-      "5Smuggled Magical Supplies"
+      "4Corrupted Nightborne Matrix"
     },
-    Power = 520
+    Power = 1000
   },
   ["130144"] = {
     name = {
@@ -35,23 +35,11 @@ ns.allArtifactPower=
     },
     Power = 0
   },
-  ["142555"] = {
+  ["141940"] = {
     name = {
-      "4Aoire's Crook"
+      "5Starsong's Bauble"
     },
     Power = 300
-  },
-  ["141701"] = {
-    name = {
-      "5Selfless Glory"
-    },
-    Power = 100
-  },
-  ["141386"] = {
-    name = {
-      "5Giant Pearl Scepter"
-    },
-    Power = 100
   },
   ["143486"] = {
     name = {
@@ -59,17 +47,17 @@ ns.allArtifactPower=
     },
     Power = 250
   },
-  ["141706"] = {
+  ["140359"] = {
     name = {
-      "6Carved Oaken Windchimes"
-    },
-    Power = 210
-  },
-  ["140471"] = {
-    name = {
-      "6Lord Shalzaru's Relic"
+      "6Darkened Eyeball"
     },
     Power = 150
+  },
+  ["151698"] = {
+    name = {
+      "5Sinister Signet Ring"
+    },
+    Power = 300
   },
   ["147201"] = {
     name = {
@@ -77,15 +65,9 @@ ns.allArtifactPower=
     },
     Power = 240
   },
-  ["132923"] = {
+  ["146320"] = {
     name = {
-      "5Hrydshal Etching"
-    },
-    Power = 0
-  },
-  ["141671"] = {
-    name = {
-      "5Moon Guard Focusing Stone"
+      "5Faded Green Gem"
     },
     Power = 300
   },
@@ -95,17 +77,11 @@ ns.allArtifactPower=
     },
     Power = 150
   },
-  ["141896"] = {
+  ["147718"] = {
     name = {
-      "5Nashal's Spyglass"
+      "5Master's Symbol"
     },
-    Power = 45
-  },
-  ["141670"] = {
-    name = {
-      "5Arcane Trap Power Core"
-    },
-    Power = 300
+    Power = 1200
   },
   ["147399"] = {
     name = {
@@ -125,12 +101,6 @@ ns.allArtifactPower=
     },
     Power = 2000
   },
-  ["140237"] = {
-    name = {
-      "5Iadreth's Enchanted Birthstone"
-    },
-    Power = 350
-  },
   ["138487"] = {
     name = {
       "6Shinfel's Staff of Torment"
@@ -143,35 +113,11 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["140490"] = {
+  ["153223"] = {
     name = {
-      "6Wooden Snow Shoes"
+      "5Shed Antlers of Elkeirnir"
     },
-    Power = 150
-  },
-  ["147466"] = {
-    name = {
-      "4Chi-Ji Tailfeather"
-    },
-    Power = 750
-  },
-  ["143715"] = {
-    name = {
-      "5Gladiator's Revelry"
-    },
-    Power = 180
-  },
-  ["138732"] = {
-    name = {
-      "6History of the Blade"
-    },
-    Power = 10
-  },
-  ["141388"] = {
-    name = {
-      "5Warden's Boon"
-    },
-    Power = 100
+    Power = 640
   },
   ["147198"] = {
     name = {
@@ -179,17 +125,17 @@ ns.allArtifactPower=
     },
     Power = 200
   },
+  ["152939"] = {
+    name = {
+      "5Mark of the Triumvirate Warriors"
+    },
+    Power = 600
+  },
   ["141393"] = {
     name = {
       "5Onyx Arrowhead"
     },
     Power = 100
-  },
-  ["141943"] = {
-    name = {
-      "5Moon Guard Power Gem"
-    },
-    Power = 300
   },
   ["140478"] = {
     name = {
@@ -203,17 +149,11 @@ ns.allArtifactPower=
     },
     Power = 250
   },
-  ["143741"] = {
+  ["151697"] = {
     name = {
-      "4Blessed Kaldorei Banner"
+      "5Chromie's Eighth Spare Pocketwatch"
     },
-    Power = 250
-  },
-  ["146321"] = {
-    name = {
-      "5Fossilized Succubus Horn"
-    },
-    Power = 400
+    Power = 300
   },
   ["140508"] = {
     name = {
@@ -221,23 +161,11 @@ ns.allArtifactPower=
     },
     Power = 100
   },
-  ["141314"] = {
+  ["141946"] = {
     name = {
-      "4Treemender's Beacon"
+      "5Trident of Sashj'tar"
     },
-    Power = 500
-  },
-  ["140487"] = {
-    name = {
-      "6War-Damaged Vrykul Helmet"
-    },
-    Power = 100
-  },
-  ["139506"] = {
-    name = {
-      "4Greater Glory of the Order"
-    },
-    Power = 1000
+    Power = 300
   },
   ["138782"] = {
     name = {
@@ -245,11 +173,11 @@ ns.allArtifactPower=
     },
     Power = 100
   },
-  ["141877"] = {
+  ["151918"] = {
     name = {
-      "5Coura's Ancient Scepter"
+      "6Gladiator's Perseverance"
     },
-    Power = 40
+    Power = 60
   },
   ["143740"] = {
     name = {
@@ -263,24 +191,6 @@ ns.allArtifactPower=
     },
     Power = 120
   },
-  ["138885"] = {
-    name = {
-      "6Treasure of the Ages"
-    },
-    Power = 95
-  },
-  ["141676"] = {
-    name = {
-      "4The Valewatcher's Boon"
-    },
-    Power = 1000
-  },
-  ["130165"] = {
-    name = {
-      "5Heathrow Keepsake"
-    },
-    Power = 0
-  },
   ["147409"] = {
     name = {
       "5Greater Champion's Symbol"
@@ -293,29 +203,17 @@ ns.allArtifactPower=
     },
     Power = 35
   },
-  ["147457"] = {
+  ["151914"] = {
     name = {
-      "4Spurs of the Risen Horsemen"
+      "6Gladiator's Perseverance"
     },
-    Power = 800
+    Power = 20
   },
-  ["141383"] = {
+  ["140370"] = {
     name = {
-      "5Crystallized Moon Drop"
+      "6Amber Shard"
     },
-    Power = 100
-  },
-  ["147581"] = {
-    name = {
-      "5Depleted Azsharan Seal"
-    },
-    Power = 500
-  },
-  ["138881"] = {
-    name = {
-      "5Soldier's Glory"
-    },
-    Power = 400
+    Power = 150
   },
   ["140357"] = {
     name = {
@@ -323,59 +221,35 @@ ns.allArtifactPower=
     },
     Power = 150
   },
-  ["143333"] = {
+  ["140368"] = {
     name = {
-      "4Badge of Vengeance"
-    },
-    Power = 500
-  },
-  ["141389"] = {
-    name = {
-      "5Stareye Gem"
+      "6Tarnished Engagement Ring"
     },
     Power = 100
   },
-  ["144270"] = {
+  ["140176"] = {
     name = {
-      "6Fel-Scarred Tomb Stone"
+      "5Accolade of Victory"
     },
-    Power = 250
+    Power = 400
   },
-  ["147548"] = {
+  ["140532"] = {
     name = {
-      "5Champion's Trophy"
+      "6Inscribed Vrykul Runestone"
     },
-    Power = 3125
+    Power = 150
   },
-  ["147407"] = {
+  ["152710"] = {
     name = {
-      "5Greater Adventurer's Symbol"
-    },
-    Power = 600
-  },
-  ["147463"] = {
-    name = {
-      "4Skyhorn Ritual Drum"
+      "5Ruined Conservatory Emblem"
     },
     Power = 750
   },
-  ["141681"] = {
+  ["153259"] = {
     name = {
-      "4Valewalker Talisman"
+      "4Legion General's Medallion of Command"
     },
-    Power = 1000
-  },
-  ["139616"] = {
-    name = {
-      "5Dropper of Nightwell Liquid"
-    },
-    Power = 475
-  },
-  ["138816"] = {
-    name = {
-      "5Adventurer's Glory"
-    },
-    Power = 100
+    Power = 850
   },
   ["141709"] = {
     name = {
@@ -383,11 +257,11 @@ ns.allArtifactPower=
     },
     Power = 550
   },
-  ["141677"] = {
+  ["143869"] = {
     name = {
-      "4Key to the Bazaar"
+      "5Accolade of Victory"
     },
-    Power = 800
+    Power = 400
   },
   ["147462"] = {
     name = {
@@ -400,24 +274,6 @@ ns.allArtifactPower=
       "4Fel-Dipped Blade"
     },
     Power = 500
-  },
-  ["143747"] = {
-    name = {
-      "4Key to the Nighthold"
-    },
-    Power = 800
-  },
-  ["140466"] = {
-    name = {
-      "6Corroded Eternium Rose"
-    },
-    Power = 100
-  },
-  ["140517"] = {
-    name = {
-      "4Glory of the Order"
-    },
-    Power = 300
   },
   ["142455"] = {
     name = {
@@ -436,18 +292,6 @@ ns.allArtifactPower=
       "6Burrowing Worm Mandible"
     },
     Power = 180
-  },
-  ["141890"] = {
-    name = {
-      "6Petrified Acorn"
-    },
-    Power = 50
-  },
-  ["127999"] = {
-    name = {
-      "6Shard of Potentiation"
-    },
-    Power = 0
   },
   ["140251"] = {
     name = {
@@ -473,17 +317,11 @@ ns.allArtifactPower=
     },
     Power = 250
   },
-  ["131732"] = {
+  ["152706"] = {
     name = {
-      "4Purple Hills of Mac'Aree"
+      "5Sanctified Warrior Memento"
     },
-    Power = 1000
-  },
-  ["140469"] = {
-    name = {
-      "6Felslate Arrowhead"
-    },
-    Power = 100
+    Power = 650
   },
   ["147458"] = {
     name = {
@@ -491,33 +329,21 @@ ns.allArtifactPower=
     },
     Power = 800
   },
-  ["140532"] = {
+  ["151243"] = {
     name = {
-      "6Inscribed Vrykul Runestone"
+      "6Soulgorged Felglobe"
     },
-    Power = 150
+    Power = 315
   },
-  ["143742"] = {
+  ["141942"] = {
     name = {
-      "4Scepter of Kerxan"
+      "5Managazer's Petrifying Eye"
     },
-    Power = 250
+    Power = 350
   },
-  ["141387"] = {
+  ["140322"] = {
     name = {
-      "5Emerald Bloom"
-    },
-    Power = 100
-  },
-  ["147469"] = {
-    name = {
-      "4Blessed Sculpture of Tyr"
-    },
-    Power = 800
-  },
-  ["138784"] = {
-    name = {
-      "5Questor's Glory"
+      "6Trainer's Insight"
     },
     Power = 100
   },
@@ -527,107 +353,35 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["141680"] = {
-    name = {
-      "4Titan-Forged Locket"
-    },
-    Power = 450
-  },
-  ["140358"] = {
-    name = {
-      "6Eredar Armor Clasp"
-    },
-    Power = 150
-  },
-  ["140530"] = {
-    name = {
-      "6Opalescent Shell"
-    },
-    Power = 150
-  },
   ["138813"] = {
     name = {
       "5Adventurer's Resounding Renown"
     },
     Power = 100
   },
-  ["140685"] = {
+  ["140392"] = {
     name = {
-      "5Enchanted Sunrunner Kidney"
-    },
-    Power = 25
-  },
-  ["140252"] = {
-    name = {
-      "5Tel'anor Ancestral Tablet"
-    },
-    Power = 300
-  },
-  ["140386"] = {
-    name = {
-      "5Inquisitor's Shadow Orb"
-    },
-    Power = 40
-  },
-  ["141397"] = {
-    name = {
-      "5The Spiritwalker's Wisdom"
-    },
-    Power = 100
-  },
-  ["140528"] = {
-    name = {
-      "6Dalaran Wine Glass"
+      "6Safety Valve"
     },
     Power = 150
   },
-  ["142004"] = {
+  ["147483"] = {
     name = {
-      "5Nar'thalas Research Tome"
+      "6Defiled Moonborn Statuette"
     },
-    Power = 400
+    Power = 255
   },
-  ["132361"] = {
+  ["130159"] = {
     name = {
-      "5Petrified Arkhana"
+      "5Ravencrest Shield"
     },
     Power = 0
-  },
-  ["140524"] = {
-    name = {
-      "6Sharp Twilight Tooth"
-    },
-    Power = 150
-  },
-  ["141944"] = {
-    name = {
-      "5Empowered Half-Shell"
-    },
-    Power = 300
-  },
-  ["140523"] = {
-    name = {
-      "6Crimson Cavern Mushroom"
-    },
-    Power = 150
-  },
-  ["140522"] = {
-    name = {
-      "6Petrified Spiderweb"
-    },
-    Power = 150
   },
   ["140238"] = {
     name = {
       "5Scavenged Felstone"
     },
     Power = 300
-  },
-  ["138864"] = {
-    name = {
-      "6Skirmisher's Advantage"
-    },
-    Power = 50
   },
   ["141699"] = {
     name = {
@@ -641,11 +395,11 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["143744"] = {
+  ["151245"] = {
     name = {
-      "4Blessed Ravencrest Blades"
+      "5Novitiate's Tarnished Arcanoscope"
     },
-    Power = 250
+    Power = 520
   },
   ["141310"] = {
     name = {
@@ -659,29 +413,17 @@ ns.allArtifactPower=
     },
     Power = 250
   },
-  ["140473"] = {
+  ["138865"] = {
     name = {
-      "6Night-forged Halberd"
+      "6Gladiator's Triumph"
     },
-    Power = 100
+    Power = 60
   },
-  ["143540"] = {
+  ["151241"] = {
     name = {
-      "4Undertuned Attunement Crystal"
+      "6Blistering Infernal Fragment"
     },
-    Power = 500
-  },
-  ["140519"] = {
-    name = {
-      "6Whispering Totem"
-    },
-    Power = 100
-  },
-  ["140518"] = {
-    name = {
-      "6Bottled Lightning"
-    },
-    Power = 100
+    Power = 330
   },
   ["138785"] = {
     name = {
@@ -689,71 +431,29 @@ ns.allArtifactPower=
     },
     Power = 400
   },
-  ["140516"] = {
-    name = {
-      "6Elemental Bracers"
-    },
-    Power = 100
-  },
   ["141399"] = {
     name = {
       "5Overcharged Stormscale"
     },
     Power = 100
   },
-  ["147406"] = {
+  ["140310"] = {
     name = {
-      "5Greater Pathfinder's Symbol"
+      "6Crude Statuette"
     },
-    Power = 375
+    Power = 25
   },
-  ["146315"] = {
+  ["152654"] = {
     name = {
-      "5Moon-Rune of Elune"
+      "5Lesser Unity of the Orders"
     },
-    Power = 400
-  },
-  ["140513"] = {
-    name = {
-      "6Dreadlord's Commendation"
-    },
-    Power = 150
+    Power = 200
   },
   ["147456"] = {
     name = {
       "4Frostbound Sinew"
     },
     Power = 750
-  },
-  ["139509"] = {
-    name = {
-      "6Worldtree Bloom"
-    },
-    Power = 245
-  },
-  ["140479"] = {
-    name = {
-      "6Broken Legion Communicator"
-    },
-    Power = 150
-  },
-  ["131808"] = {
-    name = {
-      "5Engraved Bloodtotem Armlet"
-    },
-    Power = 25
-  },
-  ["143749"] = {
-    name = {
-      "4Corrupted Nightborne Matrix"
-    },
-    Power = 1000
-  },
-  ["141024"] = {
-    name = {
-      "5Seal of Leadership"
-    },
-    Power = 500
   },
   ["142534"] = {
     name = {
@@ -764,20 +464,7 @@ ns.allArtifactPower=
   ["138781"] = {
     name = {
       "5Brief History of the Aeons"
-    },
-    Power = 75
-  },
-  ["146322"] = {
-    name = {
-      "4Fel Toast"
-    },
-    Power = 750
-  },
-  ["140509"] = {
-    name = {
-      "6Demon-Scrawled Drawing"
-    },
-    Power = 150
+    }
   },
   ["142002"] = {
     name = {
@@ -785,47 +472,11 @@ ns.allArtifactPower=
     },
     Power = 400
   },
-  ["140507"] = {
-    name = {
-      "6Unlabeled Potion"
-    },
-    Power = 100
-  },
-  ["147400"] = {
-    name = {
-      "5Lesser Hero's Symbol"
-    },
-    Power = 325
-  },
   ["147476"] = {
     name = {
       "4Everburning Smolderon Ember"
     },
     Power = 750
-  },
-  ["131778"] = {
-    name = {
-      "5Woodcarved Rabbit"
-    },
-    Power = 0
-  },
-  ["146309"] = {
-    name = {
-      "6Expended Spell Reagents"
-    },
-    Power = 85
-  },
-  ["140504"] = {
-    name = {
-      "6Kvaldir Anchor Line"
-    },
-    Power = 100
-  },
-  ["141705"] = {
-    name = {
-      "6Disorganized Ravings"
-    },
-    Power = 205
   },
   ["141396"] = {
     name = {
@@ -839,53 +490,23 @@ ns.allArtifactPower=
     },
     Power = 35
   },
-  ["141945"] = {
-    name = {
-      "5Magically-Fortified Vial"
-    },
-    Power = 300
-  },
   ["140374"] = {
     name = {
       "6Jagged Worgen Fang"
     },
     Power = 150
   },
-  ["140498"] = {
+  ["140509"] = {
     name = {
-      "6Legion Admirer's Note"
+      "6Demon-Scrawled Drawing"
     },
     Power = 150
   },
-  ["141921"] = {
+  ["141405"] = {
     name = {
-      "6Dessicated Blue Dragonscale"
-    },
-    Power = 170
-  },
-  ["141853"] = {
-    name = {
-      "5Accolade of Myth"
-    },
-    Power = 600
-  },
-  ["140459"] = {
-    name = {
-      "6Moon Lily"
+      "5Senegos' Favor"
     },
     Power = 100
-  },
-  ["140494"] = {
-    name = {
-      "6Eredar Tail-Cuff"
-    },
-    Power = 150
-  },
-  ["140396"] = {
-    name = {
-      "5Friendly Brawler's Wager"
-    },
-    Power = 40
   },
   ["147444"] = {
     name = {
@@ -893,71 +514,17 @@ ns.allArtifactPower=
     },
     Power = 1000
   },
-  ["140492"] = {
-    name = {
-      "6Gleaming Glacial Pebble"
-    },
-    Power = 150
-  },
-  ["142001"] = {
-    name = {
-      "5Antler of Cenarius"
-    },
-    Power = 400
-  },
-  ["140388"] = {
-    name = {
-      "5Falanaar Gemstone"
-    },
-    Power = 40
-  },
   ["147199"] = {
     name = {
       "6Gladiator's Triumph"
     },
     Power = 125
   },
-  ["140489"] = {
-    name = {
-      "6Ettin Toe Ring"
-    },
-    Power = 150
-  },
-  ["140488"] = {
-    name = {
-      "6Huge Blacksmith's Hammer"
-    },
-    Power = 100
-  },
   ["147472"] = {
     name = {
       "4Blessed Brooch of the Conclave"
     },
     Power = 750
-  },
-  ["143716"] = {
-    name = {
-      "4Soldier's Legacy"
-    },
-    Power = 800
-  },
-  ["140486"] = {
-    name = {
-      "6Storm Drake Scale"
-    },
-    Power = 100
-  },
-  ["141384"] = {
-    name = {
-      "5Emblem of the Dark Covenant"
-    },
-    Power = 100
-  },
-  ["140485"] = {
-    name = {
-      "6Duskpelt Fang"
-    },
-    Power = 100
   },
   ["141703"] = {
     name = {
@@ -971,59 +538,29 @@ ns.allArtifactPower=
     },
     Power = 300
   },
-  ["142454"] = {
+  ["142450"] = {
     name = {
-      "4Viz'aduum's Eye"
-    },
-    Power = 500
-  },
-  ["141690"] = {
-    name = {
-      "5Symbol of Victory"
-    },
-    Power = 35
-  },
-  ["140467"] = {
-    name = {
-      "6Fel-Infused Shell"
+      "5Ley to Fel Power Converter"
     },
     Power = 100
   },
-  ["141685"] = {
+  ["141392"] = {
     name = {
-      "4The Valewalker's Blessing"
-    },
-    Power = 2500
-  },
-  ["141936"] = {
-    name = {
-      "5Petrified Fel-Heart"
-    },
-    Power = 350
-  },
-  ["140474"] = {
-    name = {
-      "6Nar'thalas Pottery Fragment"
+      "5Fragment of the Soulcage"
     },
     Power = 100
+  },
+  ["139611"] = {
+    name = {
+      "6Primitive Roggtotem"
+    },
+    Power = 165
   },
   ["147484"] = {
     name = {
       "6Sightless Tormentor's Tome"
     },
     Power = 175
-  },
-  ["140482"] = {
-    name = {
-      "6Storm Drake Fang"
-    },
-    Power = 150
-  },
-  ["134118"] = {
-    name = {
-      "4Cluster of Potentiation"
-    },
-    Power = 0
   },
   ["140409"] = {
     name = {
@@ -1037,29 +574,11 @@ ns.allArtifactPower=
     },
     Power = 1200
   },
-  ["140481"] = {
-    name = {
-      "6Shimmering Hourglass"
-    },
-    Power = 150
-  },
   ["143745"] = {
     name = {
       "4Ley-Syphoner's Focus"
     },
     Power = 500
-  },
-  ["140480"] = {
-    name = {
-      "6Drained Construct Core"
-    },
-    Power = 150
-  },
-  ["140512"] = {
-    name = {
-      "6Oversized Drinking Mug"
-    },
-    Power = 150
   },
   ["147818"] = {
     name = {
@@ -1073,77 +592,23 @@ ns.allArtifactPower=
     },
     Power = 220
   },
-  ["143487"] = {
-    name = {
-      "4Enchanted Dusk Lily"
-    },
-    Power = 800
-  },
   ["147467"] = {
     name = {
       "4Marble Niuzao Effigy"
     },
     Power = 800
   },
-  ["140477"] = {
+  ["153009"] = {
     name = {
-      "6Inert Ashes"
+      "5Brazier of the Faithful"
     },
-    Power = 100
+    Power = 600
   },
-  ["140476"] = {
+  ["140306"] = {
     name = {
-      "6Astranaar Globe"
+      "5Mark of the Valorous"
     },
-    Power = 100
-  },
-  ["140422"] = {
-    name = {
-      "4Moonglow Idol"
-    },
-    Power = 750
-  },
-  ["140475"] = {
-    name = {
-      "6Morning Glory Vine"
-    },
-    Power = 100
-  },
-  ["140520"] = {
-    name = {
-      "6Amethyst Geode"
-    },
-    Power = 100
-  },
-  ["140470"] = {
-    name = {
-      "6Ancient Gilnean Locket"
-    },
-    Power = 100
-  },
-  ["140254"] = {
-    name = {
-      "5The Seawarden's Beacon"
-    },
-    Power = 350
-  },
-  ["140468"] = {
-    name = {
-      "6Eagle Eggshell Fragment"
-    },
-    Power = 100
-  },
-  ["140373"] = {
-    name = {
-      "6Ornamented Boot Strap"
-    },
-    Power = 150
-  },
-  ["141704"] = {
-    name = {
-      "6Forgotten Offering"
-    },
-    Power = 210
+    Power = 1000
   },
   ["144266"] = {
     name = {
@@ -1151,35 +616,17 @@ ns.allArtifactPower=
     },
     Power = 175
   },
-  ["140484"] = {
+  ["151919"] = {
     name = {
-      "6Well-Used Drinking Horn"
+      "6Gladiator's Perseverance"
     },
-    Power = 100
+    Power = 70
   },
   ["141954"] = {
     name = {
       "4'Borrowed' Highborne Magi's Chalice"
     },
     Power = 650
-  },
-  ["140491"] = {
-    name = {
-      "6Stolen Pearl Ring"
-    },
-    Power = 150
-  },
-  ["140462"] = {
-    name = {
-      "6Draketaming Spurs"
-    },
-    Power = 100
-  },
-  ["140461"] = {
-    name = {
-      "6Battered Trophy"
-    },
-    Power = 100
   },
   ["142005"] = {
     name = {
@@ -1193,17 +640,11 @@ ns.allArtifactPower=
     },
     Power = 450
   },
-  ["141872"] = {
+  ["153047"] = {
     name = {
-      "5Artisan's Handiwork"
+      "5Talbuk Bridle"
     },
-    Power = 150
-  },
-  ["141937"] = {
-    name = {
-      "5Eredari Ignition Crystal"
-    },
-    Power = 350
+    Power = 600
   },
   ["140497"] = {
     name = {
@@ -1211,47 +652,17 @@ ns.allArtifactPower=
     },
     Power = 100
   },
-  ["141023"] = {
+  ["142535"] = {
     name = {
-      "5Seal of Victory"
+      "4Soulcatcher of the Encroaching Mist"
     },
-    Power = 150
-  },
-  ["140393"] = {
-    name = {
-      "6Repentia's Whip"
-    },
-    Power = 150
+    Power = 200
   },
   ["131795"] = {
     name = {
       "5Nar'thalasian Corsage"
     },
     Power = 35
-  },
-  ["147464"] = {
-    name = {
-      "4Scroll of Tirisgarde Arcana"
-    },
-    Power = 800
-  },
-  ["140392"] = {
-    name = {
-      "6Safety Valve"
-    },
-    Power = 150
-  },
-  ["141667"] = {
-    name = {
-      "4Ancient Keeper's Brooch"
-    },
-    Power = 800
-  },
-  ["140391"] = {
-    name = {
-      "6Argussian Diamond"
-    },
-    Power = 150
   },
   ["143536"] = {
     name = {
@@ -1265,71 +676,23 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["140389"] = {
-    name = {
-      "6Petrified Flame"
-    },
-    Power = 150
-  },
-  ["138886"] = {
-    name = {
-      "5Favor of Valarjar"
-    },
-    Power = 150
-  },
-  ["140387"] = {
-    name = {
-      "6Bracer Gemstone"
-    },
-    Power = 150
-  },
-  ["140385"] = {
-    name = {
-      "6Legion Pamphlet"
-    },
-    Power = 100
-  },
-  ["140383"] = {
-    name = {
-      "6Glowing Cave Mushroom"
-    },
-    Power = 100
-  },
   ["141947"] = {
     name = {
       "5Mark of Lunastre"
     },
     Power = 300
   },
-  ["141702"] = {
+  ["153159"] = {
     name = {
-      "6Spoiled Manawine Dregs"
+      "6Void-Swallowed Memento"
     },
-    Power = 200
+    Power = 90
   },
-  ["147482"] = {
+  ["153246"] = {
     name = {
-      "6Contorted Eredar Bangle"
+      "6Strangely-Flawed Gemstone"
     },
-    Power = 255
-  },
-  ["140380"] = {
-    name = {
-      "6Swiftflight's Tail Feather"
-    },
-    Power = 100
-  },
-  ["140379"] = {
-    name = {
-      "6Broken Warden Glaive Blade"
-    },
-    Power = 100
-  },
-  ["140377"] = {
-    name = {
-      "6Broken Medallion of Karabor"
-    },
-    Power = 100
+    Power = 50
   },
   ["144268"] = {
     name = {
@@ -1343,29 +706,11 @@ ns.allArtifactPower=
     },
     Power = 800
   },
-  ["139508"] = {
+  ["153266"] = {
     name = {
-      "6Dried Worldtree Seeds"
+      "4Undulating Orb of Fel Inferno"
     },
-    Power = 160
-  },
-  ["144267"] = {
-    name = {
-      "6Bloodied Horde Axe Head"
-    },
-    Power = 195
-  },
-  ["140370"] = {
-    name = {
-      "6Amber Shard"
-    },
-    Power = 150
-  },
-  ["140847"] = {
-    name = {
-      "5Ancient Workshop Focusing Crystal"
-    },
-    Power = 300
+    Power = 850
   },
   ["141928"] = {
     name = {
@@ -1379,12 +724,6 @@ ns.allArtifactPower=
     },
     Power = 1500
   },
-  ["141855"] = {
-    name = {
-      "5History of the Aeons"
-    },
-    Power = 125
-  },
   ["140384"] = {
     name = {
       "5Azsharan Court Scepter"
@@ -1397,17 +736,11 @@ ns.allArtifactPower=
     },
     Power = 500
   },
-  ["142007"] = {
+  ["147842"] = {
     name = {
-      "5Omnibus: The Schools of Arcane Magic"
+      "5Unity of the Orders"
     },
     Power = 400
-  },
-  ["141403"] = {
-    name = {
-      "5Tablet of Tyr"
-    },
-    Power = 100
   },
   ["141638"] = {
     name = {
@@ -1421,29 +754,11 @@ ns.allArtifactPower=
     },
     Power = 0
   },
-  ["140368"] = {
+  ["143757"] = {
     name = {
-      "6Tarnished Engagement Ring"
+      "4Headpiece of the Shadow Council"
     },
-    Power = 100
-  },
-  ["140367"] = {
-    name = {
-      "6Tattered Sheet Music"
-    },
-    Power = 100
-  },
-  ["140366"] = {
-    name = {
-      "6Scarlet Hymnal"
-    },
-    Power = 100
-  },
-  ["140445"] = {
-    name = {
-      "4Arcfruit"
-    },
-    Power = 875
+    Power = 3000
   },
   ["140525"] = {
     name = {
@@ -1451,35 +766,17 @@ ns.allArtifactPower=
     },
     Power = 150
   },
-  ["140364"] = {
-    name = {
-      "6Frostwyrm Bone Fragment"
-    },
-    Power = 100
-  },
   ["138786"] = {
     name = {
       "5Talisman of Victory"
     },
     Power = 200
   },
-  ["141674"] = {
+  ["152712"] = {
     name = {
-      "5Brand of a Blood Brother"
+      "4Sanctified Prayer Effigy"
     },
-    Power = 300
-  },
-  ["141940"] = {
-    name = {
-      "5Starsong's Bauble"
-    },
-    Power = 300
-  },
-  ["147203"] = {
-    name = {
-      "4Soldier's Legacy"
-    },
-    Power = 1600
+    Power = 1000
   },
   ["147721"] = {
     name = {
@@ -1487,29 +784,11 @@ ns.allArtifactPower=
     },
     Power = 5000
   },
-  ["140359"] = {
+  ["128022"] = {
     name = {
-      "6Darkened Eyeball"
+      "6Treasured Coin"
     },
-    Power = 150
-  },
-  ["138480"] = {
-    name = {
-      "6Black Harvest Tome"
-    },
-    Power = 100
-  },
-  ["146329"] = {
-    name = {
-      "6Jar of Ashes"
-    },
-    Power = 85
-  },
-  ["143870"] = {
-    name = {
-      "5Accolade of Heroism"
-    },
-    Power = 500
+    Power = 0
   },
   ["132897"] = {
     name = {
@@ -1517,41 +796,11 @@ ns.allArtifactPower=
     },
     Power = 45
   },
-  ["147814"] = {
+  ["140489"] = {
     name = {
-      "5Lesser Expert's Bounty"
+      "6Ettin Toe Ring"
     },
-    Power = 250
-  },
-  ["146324"] = {
-    name = {
-      "6Ossified Roc Feather"
-    },
-    Power = 115
-  },
-  ["146323"] = {
-    name = {
-      "6Cracked Kobold Skull"
-    },
-    Power = 85
-  },
-  ["146319"] = {
-    name = {
-      "6Doom Dust"
-    },
-    Power = 115
-  },
-  ["141711"] = {
-    name = {
-      "5Ancient Druidic Carving"
-    },
-    Power = 515
-  },
-  ["130153"] = {
-    name = {
-      "5Godafoss Essence"
-    },
-    Power = 0
+    Power = 150
   },
   ["141675"] = {
     name = {
@@ -1559,23 +808,11 @@ ns.allArtifactPower=
     },
     Power = 300
   },
-  ["140304"] = {
-    name = {
-      "5Activated Essence"
-    },
-    Power = 250
-  },
   ["146129"] = {
     name = {
       "6Demonic Whetstone"
     },
     Power = 285
-  },
-  ["146313"] = {
-    name = {
-      "6Highborne Pottery Shards"
-    },
-    Power = 115
   },
   ["130149"] = {
     name = {
@@ -1583,101 +820,35 @@ ns.allArtifactPower=
     },
     Power = 0
   },
-  ["147812"] = {
-    name = {
-      "5Greater Expert's Bounty"
-    },
-    Power = 625
-  },
-  ["146325"] = {
-    name = {
-      "5Worm-Eaten Grain Pouch"
-    },
-    Power = 300
-  },
-  ["146320"] = {
-    name = {
-      "5Faded Green Gem"
-    },
-    Power = 300
-  },
-  ["146314"] = {
-    name = {
-      "5Marble Arrowhead"
-    },
-    Power = 300
-  },
-  ["141891"] = {
-    name = {
-      "5Branch of Shaladrassil"
-    },
-    Power = 45
-  },
-  ["132950"] = {
-    name = {
-      "5Petrified Snake"
-    },
-    Power = 35
-  },
-  ["131802"] = {
-    name = {
-      "5Offering to Ram'Pag"
-    },
-    Power = 45
-  },
-  ["141935"] = {
-    name = {
-      "5Enchrgled Mlrgmlrg of Enderglment"
-    },
-    Power = 300
-  },
   ["138812"] = {
     name = {
       "5Adventurer's Wisdom"
     },
     Power = 35
   },
-  ["141857"] = {
+  ["141394"] = {
     name = {
-      "6Soldier's Exertion"
-    },
-    Power = 150
-  },
-  ["142451"] = {
-    name = {
-      "5Overcharged Ward Focus"
+      "5Plume of the Great Eagle"
     },
     Power = 100
   },
-  ["141948"] = {
+  ["152504"] = {
     name = {
-      "5Token of a Master Cultivator"
+      "4Shattered Seal of the Unrepentant Guardian"
     },
-    Power = 300
+    Power = 3500
   },
-  ["141934"] = {
+  ["153160"] = {
     name = {
-      "5Partially Enchanted Nightborne Coin"
+      "6Crude Effigy of Despair"
     },
-    Power = 100
+    Power = 60
   },
-  ["140365"] = {
+  ["152713"] = {
     name = {
-      "6Dried Stratholme Lily"
+      "4Discarded Remnant of the Void"
     },
-    Power = 100
-  },
-  ["141941"] = {
-    name = {
-      "5Crystallized Sablehorn Antler"
-    },
-    Power = 350
-  },
-  ["131789"] = {
-    name = {
-      "5Handmade Mobile"
-    },
-    Power = 0
+    Power = 1250
   },
   ["140255"] = {
     name = {
@@ -1685,23 +856,11 @@ ns.allArtifactPower=
     },
     Power = 100
   },
-  ["131784"] = {
+  ["152431"] = {
     name = {
-      "5Left Half of a Locket"
+      "4Shadowguard Harvester"
     },
-    Power = 0
-  },
-  ["140505"] = {
-    name = {
-      "6Sweaty Bandanna"
-    },
-    Power = 100
-  },
-  ["131758"] = {
-    name = {
-      "5Oversized Acorn"
-    },
-    Power = 0
+    Power = 1200
   },
   ["146126"] = {
     name = {
@@ -1709,41 +868,11 @@ ns.allArtifactPower=
     },
     Power = 600
   },
-  ["147579"] = {
-    name = {
-      "5Tome of the Legionfall Magi"
-    },
-    Power = 400
-  },
-  ["141923"] = {
-    name = {
-      "6Petrified Axe Haft"
-    },
-    Power = 195
-  },
-  ["131753"] = {
-    name = {
-      "5Prayers to the Earthmother"
-    },
-    Power = 35
-  },
-  ["130159"] = {
-    name = {
-      "5Ravencrest Shield"
-    },
-    Power = 0
-  },
   ["146318"] = {
     name = {
       "6Imp's Femur"
     },
     Power = 85
-  },
-  ["147486"] = {
-    name = {
-      "6Legionfall Vanguard Battle Standard"
-    },
-    Power = 245
   },
   ["140381"] = {
     name = {
@@ -1763,63 +892,15 @@ ns.allArtifactPower=
     },
     Power = 300
   },
-  ["147485"] = {
+  ["147811"] = {
     name = {
-      "6Wicked Wyrmtongue Fetish"
+      "5Expert's Bounty"
     },
-    Power = 160
+    Power = 500
   },
-  ["147483"] = {
+  ["141404"] = {
     name = {
-      "6Defiled Moonborn Statuette"
-    },
-    Power = 255
-  },
-  ["146127"] = {
-    name = {
-      "5Shard of a Dead World"
-    },
-    Power = 650
-  },
-  ["147719"] = {
-    name = {
-      "5Lesser Master's Symbol"
-    },
-    Power = 725
-  },
-  ["146124"] = {
-    name = {
-      "6Exhausted Portal Key"
-    },
-    Power = 270
-  },
-  ["140244"] = {
-    name = {
-      "5Jandvik Jarl's Pendant Stone"
-    },
-    Power = 350
-  },
-  ["140247"] = {
-    name = {
-      "4Mornath's Enchanted Statue"
-    },
-    Power = 350
-  },
-  ["144271"] = {
-    name = {
-      "6Searing Hellion Claw"
-    },
-    Power = 155
-  },
-  ["141672"] = {
-    name = {
-      "5Insignia of the Nightborne Commander"
-    },
-    Power = 300
-  },
-  ["141402"] = {
-    name = {
-      "5Odyn's Watchful Gaze"
+      "5Insignia of the Second Command"
     },
     Power = 100
   },
@@ -1829,35 +910,11 @@ ns.allArtifactPower=
     },
     Power = 500
   },
-  ["144269"] = {
-    name = {
-      "6Vacant Soul Shard"
-    },
-    Power = 240
-  },
   ["141401"] = {
     name = {
       "5Renewed Lifeblood"
     },
     Power = 100
-  },
-  ["143677"] = {
-    name = {
-      "6Gladiator's Exultation"
-    },
-    Power = 90
-  },
-  ["140322"] = {
-    name = {
-      "6Trainer's Insight"
-    },
-    Power = 100
-  },
-  ["141931"] = {
-    name = {
-      "6Tattered Farondis Heraldry"
-    },
-    Power = 215
   },
   ["140444"] = {
     name = {
@@ -1871,17 +928,11 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["141859"] = {
+  ["147812"] = {
     name = {
-      "5Soldier's Splendor"
+      "5Greater Expert's Bounty"
     },
-    Power = 250
-  },
-  ["141930"] = {
-    name = {
-      "6Smolderhide Spirit Beads"
-    },
-    Power = 175
+    Power = 625
   },
   ["141673"] = {
     name = {
@@ -1895,11 +946,11 @@ ns.allArtifactPower=
     },
     Power = 35
   },
-  ["140349"] = {
+  ["144269"] = {
     name = {
-      "5Spare Arcane Ward"
+      "6Vacant Soul Shard"
     },
-    Power = 100
+    Power = 240
   },
   ["147405"] = {
     name = {
@@ -1913,23 +964,17 @@ ns.allArtifactPower=
     },
     Power = 300
   },
-  ["141883"] = {
+  ["153201"] = {
     name = {
-      "6Azsharan Keepsake"
+      "5Glinting Aurinor Dewdrops"
     },
-    Power = 50
+    Power = 630
   },
-  ["134133"] = {
+  ["147809"] = {
     name = {
-      "4Jewel of Brilliance"
+      "5Adept's Spoils"
     },
-    Power = 0
-  },
-  ["147551"] = {
-    name = {
-      "5Pathfinder's Trophy"
-    },
-    Power = 1250
+    Power = 100
   },
   ["140529"] = {
     name = {
@@ -1937,23 +982,17 @@ ns.allArtifactPower=
     },
     Power = 150
   },
-  ["141924"] = {
+  ["146325"] = {
     name = {
-      "6Broken Control Mechanism"
+      "5Worm-Eaten Grain Pouch"
     },
-    Power = 185
+    Power = 300
   },
-  ["139609"] = {
+  ["151699"] = {
     name = {
-      "6Depleted Cadet's Wand"
+      "5Scrimshawed Dragonbone Paperweight"
     },
-    Power = 235
-  },
-  ["141395"] = {
-    name = {
-      "5Stonedark's Pledge"
-    },
-    Power = 100
+    Power = 700
   },
   ["131728"] = {
     name = {
@@ -1967,41 +1006,11 @@ ns.allArtifactPower=
     },
     Power = 50
   },
-  ["141888"] = {
+  ["152708"] = {
     name = {
-      "6Discarded Aristocrat's Censer"
+      "5[PH] Lightly Roasted Artifact Power"
     },
-    Power = 50
-  },
-  ["141887"] = {
-    name = {
-      "6Lucky Brulstone"
-    },
-    Power = 50
-  },
-  ["147811"] = {
-    name = {
-      "5Expert's Bounty"
-    },
-    Power = 500
-  },
-  ["141858"] = {
-    name = {
-      "6Soldier's Worth"
-    },
-    Power = 100
-  },
-  ["141929"] = {
-    name = {
-      "6Hippogryph Plumage"
-    },
-    Power = 220
-  },
-  ["140382"] = {
-    name = {
-      "6Tiny War Drum"
-    },
-    Power = 100
+    Power = 200
   },
   ["141956"] = {
     name = {
@@ -2021,12 +1030,6 @@ ns.allArtifactPower=
     },
     Power = 450
   },
-  ["140310"] = {
-    name = {
-      "6Crude Statuette"
-    },
-    Power = 25
-  },
   ["146122"] = {
     name = {
       "5Warden's Lantern"
@@ -2038,18 +1041,6 @@ ns.allArtifactPower=
       "5Soldier's Grit"
     },
     Power = 200
-  },
-  ["139615"] = {
-    name = {
-      "6Untapped Mana Gem"
-    },
-    Power = 230
-  },
-  ["141679"] = {
-    name = {
-      "4Cobalt Amber Crystal"
-    },
-    Power = 800
   },
   ["143533"] = {
     name = {
@@ -2063,65 +1054,17 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["139614"] = {
+  ["147549"] = {
     name = {
-      "6Azsharan Manapearl"
+      "5Hero's Trophy"
     },
-    Power = 175
+    Power = 2150
   },
-  ["139612"] = {
+  ["151240"] = {
     name = {
-      "6Highmountain Mystic's Totem"
+      "6Corroded Hologram Crystal"
     },
-    Power = 210
-  },
-  ["147404"] = {
-    name = {
-      "5Hero's Symbol"
-    },
-    Power = 540
-  },
-  ["139608"] = {
-    name = {
-      "6Brittle Spelltome"
-    },
-    Power = 150
-  },
-  ["139611"] = {
-    name = {
-      "6Primitive Roggtotem"
-    },
-    Power = 165
-  },
-  ["140371"] = {
-    name = {
-      "6Letter from Exarch Maladaar"
-    },
-    Power = 150
-  },
-  ["147200"] = {
-    name = {
-      "5Soldier's Glory"
-    },
-    Power = 600
-  },
-  ["147474"] = {
-    name = {
-      "4Uncrowned Poison Set"
-    },
-    Power = 750
-  },
-  ["138865"] = {
-    name = {
-      "6Gladiator's Triumph"
-    },
-    Power = 60
-  },
-  ["141678"] = {
-    name = {
-      "4Night Devint: The Perfection of Arcwine"
-    },
-    Power = 650
+    Power = 75
   },
   ["139413"] = {
     name = {
@@ -2135,53 +1078,17 @@ ns.allArtifactPower=
     },
     Power = 150
   },
-  ["138839"] = {
-    name = {
-      "6Valiant's Glory"
-    },
-    Power = 20
-  },
-  ["140369"] = {
-    name = {
-      "6Scrawled Recipe"
-    },
-    Power = 150
-  },
-  ["138783"] = {
-    name = {
-      "6Glittering Memento"
-    },
-    Power = 50
-  },
   ["143713"] = {
     name = {
       "5Skirmisher's Mastery"
     },
     Power = 100
   },
-  ["140176"] = {
-    name = {
-      "5Accolade of Victory"
-    },
-    Power = 400
-  },
   ["141391"] = {
     name = {
       "5Ashildir's Unending Courage"
     },
     Power = 100
-  },
-  ["128022"] = {
-    name = {
-      "6Treasured Coin"
-    },
-    Power = 0
-  },
-  ["147842"] = {
-    name = {
-      "5Unity of the Orders"
-    },
-    Power = 400
   },
   ["139610"] = {
     name = {
@@ -2213,29 +1120,11 @@ ns.allArtifactPower=
     },
     Power = 50
   },
-  ["143869"] = {
+  ["131778"] = {
     name = {
-      "5Accolade of Victory"
+      "5Woodcarved Rabbit"
     },
-    Power = 400
-  },
-  ["147809"] = {
-    name = {
-      "5Adept's Spoils"
-    },
-    Power = 100
-  },
-  ["142535"] = {
-    name = {
-      "4Soulcatcher of the Encroaching Mist"
-    },
-    Power = 200
-  },
-  ["141398"] = {
-    name = {
-      "5Blessing of the Watchers"
-    },
-    Power = 100
+    Power = 0
   },
   ["146128"] = {
     name = {
@@ -2243,23 +1132,11 @@ ns.allArtifactPower=
     },
     Power = 235
   },
-  ["140241"] = {
-    name = {
-      "5Enchanted Moonfall Text"
-    },
-    Power = 300
-  },
   ["141689"] = {
     name = {
       "5Jewel of Victory"
     },
     Power = 55
-  },
-  ["147718"] = {
-    name = {
-      "5Master's Symbol"
-    },
-    Power = 1200
   },
   ["130160"] = {
     name = {
@@ -2267,71 +1144,11 @@ ns.allArtifactPower=
     },
     Power = 0
   },
-  ["141942"] = {
-    name = {
-      "5Managazer's Petrifying Eye"
-    },
-    Power = 350
-  },
-  ["143739"] = {
-    name = {
-      "4Mark of the Soulcleaver"
-    },
-    Power = 500
-  },
-  ["147549"] = {
-    name = {
-      "5Hero's Trophy"
-    },
-    Power = 2150
-  },
-  ["141668"] = {
-    name = {
-      "5The Arcanist's Codex"
-    },
-    Power = 300
-  },
-  ["147513"] = {
-    name = {
-      "5Contorted Eredar Bangle"
-    },
-    Power = 230
-  },
-  ["141949"] = {
-    name = {
-      "5Everburning Arcane Glowlamp"
-    },
-    Power = 300
-  },
   ["141951"] = {
     name = {
       "4Spellbound Jewelry Box"
     },
     Power = 600
-  },
-  ["139510"] = {
-    name = {
-      "5Black Rook Soldier's Insignia"
-    },
-    Power = 480
-  },
-  ["140250"] = {
-    name = {
-      "5Ingested Legion Stabilizer"
-    },
-    Power = 350
-  },
-  ["141390"] = {
-    name = {
-      "5The Corruptor's Totem"
-    },
-    Power = 100
-  },
-  ["143680"] = {
-    name = {
-      "5Soldier's Esteem"
-    },
-    Power = 400
   },
   ["141708"] = {
     name = {
@@ -2345,41 +1162,11 @@ ns.allArtifactPower=
     },
     Power = 465
   },
-  ["141946"] = {
-    name = {
-      "5Trident of Sashj'tar"
-    },
-    Power = 300
-  },
-  ["147408"] = {
-    name = {
-      "5Greater Hero's Symbol"
-    },
-    Power = 675
-  },
-  ["143757"] = {
-    name = {
-      "4Headpiece of the Shadow Council"
-    },
-    Power = 3000
-  },
   ["147477"] = {
     name = {
       "4Council-Empowered Riftcrystal"
     },
     Power = 800
-  },
-  ["141925"] = {
-    name = {
-      "6Pruned Nightmare Shoot"
-    },
-    Power = 190
-  },
-  ["147403"] = {
-    name = {
-      "5Adventurer's Symbol"
-    },
-    Power = 475
   },
   ["147473"] = {
     name = {
@@ -2387,77 +1174,23 @@ ns.allArtifactPower=
     },
     Power = 800
   },
-  ["141394"] = {
-    name = {
-      "5Plume of the Great Eagle"
-    },
-    Power = 100
-  },
-  ["140511"] = {
-    name = {
-      "6Soul Shackle"
-    },
-    Power = 150
-  },
-  ["142450"] = {
-    name = {
-      "5Ley to Fel Power Converter"
-    },
-    Power = 100
-  },
-  ["146123"] = {
-    name = {
-      "5Enchanted Vault Cell Key"
-    },
-    Power = 380
-  },
   ["128021"] = {
     name = {
       "5Scroll of Enlightenment"
     },
     Power = 0
   },
-  ["138814"] = {
+  ["153161"] = {
     name = {
-      "6Adventurer's Renown"
+      "6Incomprehensible Scribbling"
     },
-    Power = 35
+    Power = 75
   },
-  ["143868"] = {
+  ["140470"] = {
     name = {
-      "5Accolade of Achievement"
-    },
-    Power = 250
-  },
-  ["142054"] = {
-    name = {
-      "5Enchanted Nightborne Coin"
+      "6Ancient Gilnean Locket"
     },
     Power = 100
-  },
-  ["144272"] = {
-    name = {
-      "5Seal of Bravery"
-    },
-    Power = 500
-  },
-  ["143871"] = {
-    name = {
-      "5Accolade of Myth"
-    },
-    Power = 600
-  },
-  ["147480"] = {
-    name = {
-      "4Valajar-Sanctified Weapon Polish"
-    },
-    Power = 750
-  },
-  ["147461"] = {
-    name = {
-      "4Unblemished Leaf of Shaladrassil"
-    },
-    Power = 800
   },
   ["147398"] = {
     name = {
@@ -2471,6 +1204,1757 @@ ns.allArtifactPower=
     },
     Power = 125
   },
+  ["141710"] = {
+    name = {
+      "5Discontinued Suramar City Key"
+    },
+    Power = 530
+  },
+  ["144297"] = {
+    name = {
+      "5Talisman of Victory"
+    },
+    Power = 200
+  },
+  ["142449"] = {
+    name = {
+      "5Unearthed Staff Headpiece"
+    },
+    Power = 100
+  },
+  ["139612"] = {
+    name = {
+      "6Highmountain Mystic's Totem"
+    },
+    Power = 210
+  },
+  ["151561"] = {
+    name = {
+      "5Bauble of the Triumphant"
+    },
+    Power = 250
+  },
+  ["143871"] = {
+    name = {
+      "5Accolade of Myth"
+    },
+    Power = 600
+  },
+  ["141889"] = {
+    name = {
+      "4Glory of the Melee"
+    },
+    Power = 500
+  },
+  ["141854"] = {
+    name = {
+      "5Accolade of Achievement"
+    },
+    Power = 250
+  },
+  ["140380"] = {
+    name = {
+      "6Swiftflight's Tail Feather"
+    },
+    Power = 100
+  },
+  ["140503"] = {
+    name = {
+      "6Blank To-Do List"
+    },
+    Power = 100
+  },
+  ["151789"] = {
+    name = {
+      "4Defense Construct Identifier"
+    },
+    Power = 800
+  },
+  ["141863"] = {
+    name = {
+      "5Daglop's Precious"
+    },
+    Power = 20
+  },
+  ["147550"] = {
+    name = {
+      "5Adventurer's Trophy"
+    },
+    Power = 1925
+  },
+  ["147819"] = {
+    name = {
+      "5Adept's Medal"
+    },
+    Power = 400
+  },
+  ["141684"] = {
+    name = {
+      "4Residual Manastorm Energy"
+    },
+    Power = 875
+  },
+  ["143498"] = {
+    name = {
+      "4Charged Construct's Finger"
+    },
+    Power = 500
+  },
+  ["153222"] = {
+    name = {
+      "5Hallowed Glade Pinecone"
+    },
+    Power = 560
+  },
+  ["146125"] = {
+    name = {
+      "6Legion Mark of Command"
+    },
+    Power = 225
+  },
+  ["153225"] = {
+    name = {
+      "5Naigtal Shambler Eye"
+    },
+    Power = 575
+  },
+  ["140461"] = {
+    name = {
+      "6Battered Trophy"
+    },
+    Power = 100
+  },
+  ["141707"] = {
+    name = {
+      "5Smuggled Magical Supplies"
+    },
+    Power = 520
+  },
+  ["141701"] = {
+    name = {
+      "5Selfless Glory"
+    },
+    Power = 100
+  },
+  ["141386"] = {
+    name = {
+      "5Giant Pearl Scepter"
+    },
+    Power = 100
+  },
+  ["141706"] = {
+    name = {
+      "6Carved Oaken Windchimes"
+    },
+    Power = 210
+  },
+  ["153008"] = {
+    name = {
+      "5Timeworn Amethyst Figurine"
+    },
+    Power = 500
+  },
+  ["141668"] = {
+    name = {
+      "5The Arcanist's Codex"
+    },
+    Power = 300
+  },
+  ["141896"] = {
+    name = {
+      "5Nashal's Spyglass"
+    },
+    Power = 45
+  },
+  ["141670"] = {
+    name = {
+      "5Arcane Trap Power Core"
+    },
+    Power = 300
+  },
+  ["141949"] = {
+    name = {
+      "5Everburning Arcane Glowlamp"
+    },
+    Power = 300
+  },
+  ["141858"] = {
+    name = {
+      "6Soldier's Worth"
+    },
+    Power = 100
+  },
+  ["153218"] = {
+    name = {
+      "5Primordial Giant's Heart"
+    },
+    Power = 555
+  },
+  ["140486"] = {
+    name = {
+      "6Storm Drake Scale"
+    },
+    Power = 100
+  },
+  ["140490"] = {
+    name = {
+      "6Wooden Snow Shoes"
+    },
+    Power = 150
+  },
+  ["131784"] = {
+    name = {
+      "5Left Half of a Locket"
+    },
+    Power = 0
+  },
+  ["143715"] = {
+    name = {
+      "5Gladiator's Revelry"
+    },
+    Power = 180
+  },
+  ["140473"] = {
+    name = {
+      "6Night-forged Halberd"
+    },
+    Power = 100
+  },
+  ["141388"] = {
+    name = {
+      "5Warden's Boon"
+    },
+    Power = 100
+  },
+  ["140383"] = {
+    name = {
+      "6Glowing Cave Mushroom"
+    },
+    Power = 100
+  },
+  ["147579"] = {
+    name = {
+      "5Tome of the Legionfall Magi"
+    },
+    Power = 400
+  },
+  ["143741"] = {
+    name = {
+      "4Blessed Kaldorei Banner"
+    },
+    Power = 250
+  },
+  ["151619"] = {
+    name = {
+      "5Prize of the Triumphant"
+    },
+    Power = 450
+  },
+  ["153162"] = {
+    name = {
+      "6Unattuned Portal Stones"
+    },
+    Power = 90
+  },
+  ["146321"] = {
+    name = {
+      "5Fossilized Succubus Horn"
+    },
+    Power = 400
+  },
+  ["141314"] = {
+    name = {
+      "4Treemender's Beacon"
+    },
+    Power = 500
+  },
+  ["140487"] = {
+    name = {
+      "6War-Damaged Vrykul Helmet"
+    },
+    Power = 100
+  },
+  ["139506"] = {
+    name = {
+      "4Greater Glory of the Order"
+    },
+    Power = 1000
+  },
+  ["141877"] = {
+    name = {
+      "5Coura's Ancient Scepter"
+    },
+    Power = 40
+  },
+  ["140513"] = {
+    name = {
+      "6Dreadlord's Commendation"
+    },
+    Power = 150
+  },
+  ["138885"] = {
+    name = {
+      "6Treasure of the Ages"
+    },
+    Power = 95
+  },
+  ["141676"] = {
+    name = {
+      "4The Valewatcher's Boon"
+    },
+    Power = 1000
+  },
+  ["130165"] = {
+    name = {
+      "5Heathrow Keepsake"
+    },
+    Power = 0
+  },
+  ["151700"] = {
+    name = {
+      "5Wayfinder's Sundial"
+    },
+    Power = 1000
+  },
+  ["141383"] = {
+    name = {
+      "5Crystallized Moon Drop"
+    },
+    Power = 100
+  },
+  ["153220"] = {
+    name = {
+      "5Blood Drainer Globe"
+    },
+    Power = 550
+  },
+  ["152700"] = {
+    name = {
+      "5Krokul Battle Horn"
+    },
+    Power = 900
+  },
+  ["151244"] = {
+    name = {
+      "6Legion Doom-Horn"
+    },
+    Power = 305
+  },
+  ["143333"] = {
+    name = {
+      "4Badge of Vengeance"
+    },
+    Power = 500
+  },
+  ["144270"] = {
+    name = {
+      "6Fel-Scarred Tomb Stone"
+    },
+    Power = 250
+  },
+  ["147548"] = {
+    name = {
+      "5Champion's Trophy"
+    },
+    Power = 3125
+  },
+  ["151620"] = {
+    name = {
+      "5Humming Shard"
+    },
+    Power = 125
+  },
+  ["147463"] = {
+    name = {
+      "4Skyhorn Ritual Drum"
+    },
+    Power = 750
+  },
+  ["141681"] = {
+    name = {
+      "4Valewalker Talisman"
+    },
+    Power = 1000
+  },
+  ["139616"] = {
+    name = {
+      "5Dropper of Nightwell Liquid"
+    },
+    Power = 475
+  },
+  ["138816"] = {
+    name = {
+      "5Adventurer's Glory"
+    },
+    Power = 100
+  },
+  ["141677"] = {
+    name = {
+      "4Key to the Bazaar"
+    },
+    Power = 800
+  },
+  ["143743"] = {
+    name = {
+      "4Highly Charged Mana Clog"
+    },
+    Power = 250
+  },
+  ["141855"] = {
+    name = {
+      "5History of the Aeons"
+    },
+    Power = 125
+  },
+  ["143747"] = {
+    name = {
+      "4Key to the Nighthold"
+    },
+    Power = 800
+  },
+  ["151242"] = {
+    name = {
+      "6Pious Anchorite's Breviary"
+    },
+    Power = 350
+  },
+  ["153200"] = {
+    name = {
+      "5Shimmering Floatroot"
+    },
+    Power = 570
+  },
+  ["152984"] = {
+    name = {
+      "4Blessing of the Pantheon"
+    },
+    Power = 10000
+  },
+  ["141890"] = {
+    name = {
+      "6Petrified Acorn"
+    },
+    Power = 50
+  },
+  ["127999"] = {
+    name = {
+      "6Shard of Potentiation"
+    },
+    Power = 0
+  },
+  ["151696"] = {
+    name = {
+      "5Crumbling Bust"
+    },
+    Power = 300
+  },
+  ["140469"] = {
+    name = {
+      "6Felslate Arrowhead"
+    },
+    Power = 100
+  },
+  ["143742"] = {
+    name = {
+      "4Scepter of Kerxan"
+    },
+    Power = 250
+  },
+  ["141387"] = {
+    name = {
+      "5Emerald Bloom"
+    },
+    Power = 100
+  },
+  ["144271"] = {
+    name = {
+      "6Searing Hellion Claw"
+    },
+    Power = 155
+  },
+  ["140358"] = {
+    name = {
+      "6Eredar Armor Clasp"
+    },
+    Power = 150
+  },
+  ["140685"] = {
+    name = {
+      "5Enchanted Sunrunner Kidney"
+    },
+    Power = 25
+  },
+  ["140366"] = {
+    name = {
+      "6Scarlet Hymnal"
+    },
+    Power = 100
+  },
+  ["153165"] = {
+    name = {
+      "6Krokul Remembrance-Crystal"
+    },
+    Power = 345
+  },
+  ["142004"] = {
+    name = {
+      "5Nar'thalas Research Tome"
+    },
+    Power = 400
+  },
+  ["141944"] = {
+    name = {
+      "5Empowered Half-Shell"
+    },
+    Power = 300
+  },
+  ["139512"] = {
+    name = {
+      "5Sigilstone of Tribute"
+    },
+    Power = 490
+  },
+  ["143744"] = {
+    name = {
+      "4Blessed Ravencrest Blades"
+    },
+    Power = 250
+  },
+  ["141934"] = {
+    name = {
+      "5Partially Enchanted Nightborne Coin"
+    },
+    Power = 100
+  },
+  ["131802"] = {
+    name = {
+      "5Offering to Ram'Pag"
+    },
+    Power = 45
+  },
+  ["140488"] = {
+    name = {
+      "6Huge Blacksmith's Hammer"
+    },
+    Power = 100
+  },
+  ["141702"] = {
+    name = {
+      "6Spoiled Manawine Dregs"
+    },
+    Power = 200
+  },
+  ["146315"] = {
+    name = {
+      "5Moon-Rune of Elune"
+    },
+    Power = 400
+  },
+  ["150931"] = {
+    name = {
+      "5Seal of Authority"
+    },
+    Power = 600
+  },
+  ["139509"] = {
+    name = {
+      "6Worldtree Bloom"
+    },
+    Power = 245
+  },
+  ["131808"] = {
+    name = {
+      "5Engraved Bloodtotem Armlet"
+    },
+    Power = 25
+  },
+  ["141024"] = {
+    name = {
+      "5Seal of Leadership"
+    },
+    Power = 500
+  },
+  ["146322"] = {
+    name = {
+      "4Fel Toast"
+    },
+    Power = 750
+  },
+  ["153052"] = {
+    name = {
+      "5Depleted Pylon Core"
+    },
+    Power = 750
+  },
+  ["152653"] = {
+    name = {
+      "5Virtue of the Light"
+    },
+    Power = 500
+  },
+  ["147400"] = {
+    name = {
+      "5Lesser Hero's Symbol"
+    },
+    Power = 325
+  },
+  ["146309"] = {
+    name = {
+      "6Expended Spell Reagents"
+    },
+    Power = 85
+  },
+  ["153163"] = {
+    name = {
+      "6Gruesome Wind Chime"
+    },
+    Power = 60
+  },
+  ["141705"] = {
+    name = {
+      "6Disorganized Ravings"
+    },
+    Power = 205
+  },
+  ["153164"] = {
+    name = {
+      "6Otherworldy Trophy"
+    },
+    Power = 75
+  },
+  ["151556"] = {
+    name = {
+      "5Spoils of the Triumphant"
+    },
+    Power = 750
+  },
+  ["141921"] = {
+    name = {
+      "6Dessicated Blue Dragonscale"
+    },
+    Power = 170
+  },
+  ["141853"] = {
+    name = {
+      "5Accolade of Myth"
+    },
+    Power = 600
+  },
+  ["153046"] = {
+    name = {
+      "5Duskcloak Dorsal Plate"
+    },
+    Power = 450
+  },
+  ["140388"] = {
+    name = {
+      "5Falanaar Gemstone"
+    },
+    Power = 40
+  },
+  ["143716"] = {
+    name = {
+      "4Soldier's Legacy"
+    },
+    Power = 800
+  },
+  ["138864"] = {
+    name = {
+      "6Skirmisher's Advantage"
+    },
+    Power = 50
+  },
+  ["141690"] = {
+    name = {
+      "5Symbol of Victory"
+    },
+    Power = 35
+  },
+  ["141685"] = {
+    name = {
+      "4The Valewalker's Blessing"
+    },
+    Power = 2500
+  },
+  ["141936"] = {
+    name = {
+      "5Petrified Fel-Heart"
+    },
+    Power = 350
+  },
+  ["140474"] = {
+    name = {
+      "6Nar'thalas Pottery Fragment"
+    },
+    Power = 100
+  },
+  ["132361"] = {
+    name = {
+      "5Petrified Arkhana"
+    },
+    Power = 0
+  },
+  ["134118"] = {
+    name = {
+      "4Cluster of Potentiation"
+    },
+    Power = 0
+  },
+  ["140512"] = {
+    name = {
+      "6Oversized Drinking Mug"
+    },
+    Power = 150
+  },
+  ["143487"] = {
+    name = {
+      "4Enchanted Dusk Lily"
+    },
+    Power = 800
+  },
+  ["140422"] = {
+    name = {
+      "4Moonglow Idol"
+    },
+    Power = 750
+  },
+  ["151920"] = {
+    name = {
+      "6Gladiator's Perseverance"
+    },
+    Power = 80
+  },
+  ["140520"] = {
+    name = {
+      "6Amethyst Geode"
+    },
+    Power = 100
+  },
+  ["140373"] = {
+    name = {
+      "6Ornamented Boot Strap"
+    },
+    Power = 150
+  },
+  ["141704"] = {
+    name = {
+      "6Forgotten Offering"
+    },
+    Power = 210
+  },
+  ["140484"] = {
+    name = {
+      "6Well-Used Drinking Horn"
+    },
+    Power = 100
+  },
+  ["140491"] = {
+    name = {
+      "6Stolen Pearl Ring"
+    },
+    Power = 150
+  },
+  ["141937"] = {
+    name = {
+      "5Eredari Ignition Crystal"
+    },
+    Power = 350
+  },
+  ["141023"] = {
+    name = {
+      "5Seal of Victory"
+    },
+    Power = 150
+  },
+  ["147464"] = {
+    name = {
+      "4Scroll of Tirisgarde Arcana"
+    },
+    Power = 800
+  },
+  ["141667"] = {
+    name = {
+      "4Ancient Keeper's Brooch"
+    },
+    Power = 800
+  },
+  ["140507"] = {
+    name = {
+      "6Unlabeled Potion"
+    },
+    Power = 100
+  },
+  ["151917"] = {
+    name = {
+      "6Gladiator's Perseverance"
+    },
+    Power = 50
+  },
+  ["138886"] = {
+    name = {
+      "5Favor of Valarjar"
+    },
+    Power = 150
+  },
+  ["153007"] = {
+    name = {
+      "5Rite-Blessed Sheath"
+    },
+    Power = 550
+  },
+  ["147482"] = {
+    name = {
+      "6Contorted Eredar Bangle"
+    },
+    Power = 255
+  },
+  ["151915"] = {
+    name = {
+      "6Gladiator's Perseverance"
+    },
+    Power = 30
+  },
+  ["144267"] = {
+    name = {
+      "6Bloodied Horde Axe Head"
+    },
+    Power = 195
+  },
+  ["140847"] = {
+    name = {
+      "5Ancient Workshop Focusing Crystal"
+    },
+    Power = 300
+  },
+  ["142007"] = {
+    name = {
+      "5Omnibus: The Schools of Arcane Magic"
+    },
+    Power = 400
+  },
+  ["141403"] = {
+    name = {
+      "5Tablet of Tyr"
+    },
+    Power = 100
+  },
+  ["140250"] = {
+    name = {
+      "5Ingested Legion Stabilizer"
+    },
+    Power = 350
+  },
+  ["152937"] = {
+    name = {
+      "5Dendrite Flux"
+    },
+    Power = 400
+  },
+  ["140389"] = {
+    name = {
+      "6Petrified Flame"
+    },
+    Power = 150
+  },
+  ["152651"] = {
+    name = {
+      "5Crumbling Chronicles of Argus"
+    },
+    Power = 500
+  },
+  ["147203"] = {
+    name = {
+      "4Soldier's Legacy"
+    },
+    Power = 1600
+  },
+  ["147814"] = {
+    name = {
+      "5Lesser Expert's Bounty"
+    },
+    Power = 250
+  },
+  ["153199"] = {
+    name = {
+      "5Chillward Brazier"
+    },
+    Power = 565
+  },
+  ["140304"] = {
+    name = {
+      "5Activated Essence"
+    },
+    Power = 250
+  },
+  ["131732"] = {
+    name = {
+      "4Purple Hills of Mac'Aree"
+    },
+    Power = 1000
+  },
+  ["141883"] = {
+    name = {
+      "6Azsharan Keepsake"
+    },
+    Power = 50
+  },
+  ["140530"] = {
+    name = {
+      "6Opalescent Shell"
+    },
+    Power = 150
+  },
+  ["140528"] = {
+    name = {
+      "6Dalaran Wine Glass"
+    },
+    Power = 150
+  },
+  ["140524"] = {
+    name = {
+      "6Sharp Twilight Tooth"
+    },
+    Power = 150
+  },
+  ["153221"] = {
+    name = {
+      "5Congealed Animus Plasma"
+    },
+    Power = 650
+  },
+  ["140523"] = {
+    name = {
+      "6Crimson Cavern Mushroom"
+    },
+    Power = 150
+  },
+  ["141680"] = {
+    name = {
+      "4Titan-Forged Locket"
+    },
+    Power = 450
+  },
+  ["141948"] = {
+    name = {
+      "5Token of a Master Cultivator"
+    },
+    Power = 300
+  },
+  ["140522"] = {
+    name = {
+      "6Petrified Spiderweb"
+    },
+    Power = 150
+  },
+  ["140365"] = {
+    name = {
+      "6Dried Stratholme Lily"
+    },
+    Power = 100
+  },
+  ["141941"] = {
+    name = {
+      "5Crystallized Sablehorn Antler"
+    },
+    Power = 350
+  },
+  ["140519"] = {
+    name = {
+      "6Whispering Totem"
+    },
+    Power = 100
+  },
+  ["140518"] = {
+    name = {
+      "6Bottled Lightning"
+    },
+    Power = 100
+  },
+  ["140516"] = {
+    name = {
+      "6Elemental Bracers"
+    },
+    Power = 100
+  },
+  ["140505"] = {
+    name = {
+      "6Sweaty Bandanna"
+    },
+    Power = 100
+  },
+  ["141674"] = {
+    name = {
+      "5Brand of a Blood Brother"
+    },
+    Power = 300
+  },
+  ["140504"] = {
+    name = {
+      "6Kvaldir Anchor Line"
+    },
+    Power = 100
+  },
+  ["140498"] = {
+    name = {
+      "6Legion Admirer's Note"
+    },
+    Power = 150
+  },
+  ["147466"] = {
+    name = {
+      "4Chi-Ji Tailfeather"
+    },
+    Power = 750
+  },
+  ["131753"] = {
+    name = {
+      "5Prayers to the Earthmother"
+    },
+    Power = 35
+  },
+  ["140494"] = {
+    name = {
+      "6Eredar Tail-Cuff"
+    },
+    Power = 150
+  },
+  ["142006"] = {
+    name = {
+      "5Ceremonial Warden Glaive"
+    },
+    Power = 400
+  },
+  ["147408"] = {
+    name = {
+      "5Greater Hero's Symbol"
+    },
+    Power = 675
+  },
+  ["142555"] = {
+    name = {
+      "4Aoire's Crook"
+    },
+    Power = 300
+  },
+  ["142003"] = {
+    name = {
+      "5Talisman of the Ascended"
+    },
+    Power = 400
+  },
+  ["140482"] = {
+    name = {
+      "6Storm Drake Fang"
+    },
+    Power = 150
+  },
+  ["132923"] = {
+    name = {
+      "5Hrydshal Etching"
+    },
+    Power = 0
+  },
+  ["141671"] = {
+    name = {
+      "5Moon Guard Focusing Stone"
+    },
+    Power = 300
+  },
+  ["146127"] = {
+    name = {
+      "5Shard of a Dead World"
+    },
+    Power = 650
+  },
+  ["152711"] = {
+    name = {
+      "5Light-Smoted Skullplate"
+    },
+    Power = 600
+  },
+  ["140485"] = {
+    name = {
+      "6Duskpelt Fang"
+    },
+    Power = 100
+  },
+  ["140244"] = {
+    name = {
+      "5Jandvik Jarl's Pendant Stone"
+    },
+    Power = 350
+  },
+  ["141385"] = {
+    name = {
+      "5Tidestone Sliver"
+    },
+    Power = 100
+  },
+  ["140237"] = {
+    name = {
+      "5Iadreth's Enchanted Birthstone"
+    },
+    Power = 350
+  },
+  ["144272"] = {
+    name = {
+      "5Seal of Bravery"
+    },
+    Power = 500
+  },
+  ["141402"] = {
+    name = {
+      "5Odyn's Watchful Gaze"
+    },
+    Power = 100
+  },
+  ["151921"] = {
+    name = {
+      "6Gladiator's Perseverance"
+    },
+    Power = 90
+  },
+  ["138732"] = {
+    name = {
+      "6History of the Blade"
+    },
+    Power = 10
+  },
+  ["152435"] = {
+    name = {
+      "4Aranasi Mandible"
+    },
+    Power = 1200
+  },
+  ["140481"] = {
+    name = {
+      "6Shimmering Hourglass"
+    },
+    Power = 150
+  },
+  ["140480"] = {
+    name = {
+      "6Drained Construct Core"
+    },
+    Power = 150
+  },
+  ["141943"] = {
+    name = {
+      "5Moon Guard Power Gem"
+    },
+    Power = 300
+  },
+  ["140479"] = {
+    name = {
+      "6Broken Legion Communicator"
+    },
+    Power = 150
+  },
+  ["140477"] = {
+    name = {
+      "6Inert Ashes"
+    },
+    Power = 100
+  },
+  ["140475"] = {
+    name = {
+      "6Morning Glory Vine"
+    },
+    Power = 100
+  },
+  ["140471"] = {
+    name = {
+      "6Lord Shalzaru's Relic"
+    },
+    Power = 150
+  },
+  ["140468"] = {
+    name = {
+      "6Eagle Eggshell Fragment"
+    },
+    Power = 100
+  },
+  ["140467"] = {
+    name = {
+      "6Fel-Infused Shell"
+    },
+    Power = 100
+  },
+  ["140349"] = {
+    name = {
+      "5Spare Arcane Ward"
+    },
+    Power = 100
+  },
+  ["140466"] = {
+    name = {
+      "6Corroded Eternium Rose"
+    },
+    Power = 100
+  },
+  ["142001"] = {
+    name = {
+      "5Antler of Cenarius"
+    },
+    Power = 400
+  },
+  ["141931"] = {
+    name = {
+      "6Tattered Farondis Heraldry"
+    },
+    Power = 215
+  },
+  ["141876"] = {
+    name = {
+      "5Soul-Powered Containment Unit"
+    },
+    Power = 25
+  },
+  ["147551"] = {
+    name = {
+      "5Pathfinder's Trophy"
+    },
+    Power = 1250
+  },
+  ["140462"] = {
+    name = {
+      "6Draketaming Spurs"
+    },
+    Power = 100
+  },
+  ["141953"] = {
+    name = {
+      "4Nightglow Energy Vessel"
+    },
+    Power = 1000
+  },
+  ["139609"] = {
+    name = {
+      "6Depleted Cadet's Wand"
+    },
+    Power = 235
+  },
+  ["140459"] = {
+    name = {
+      "6Moon Lily"
+    },
+    Power = 100
+  },
+  ["140393"] = {
+    name = {
+      "6Repentia's Whip"
+    },
+    Power = 150
+  },
+  ["141857"] = {
+    name = {
+      "6Soldier's Exertion"
+    },
+    Power = 150
+  },
+  ["147457"] = {
+    name = {
+      "4Spurs of the Risen Horsemen"
+    },
+    Power = 800
+  },
+  ["140391"] = {
+    name = {
+      "6Argussian Diamond"
+    },
+    Power = 150
+  },
+  ["147581"] = {
+    name = {
+      "5Depleted Azsharan Seal"
+    },
+    Power = 500
+  },
+  ["140387"] = {
+    name = {
+      "6Bracer Gemstone"
+    },
+    Power = 150
+  },
+  ["141929"] = {
+    name = {
+      "6Hippogryph Plumage"
+    },
+    Power = 220
+  },
+  ["140382"] = {
+    name = {
+      "6Tiny War Drum"
+    }
+  },
+  ["138881"] = {
+    name = {
+      "5Soldier's Glory"
+    },
+    Power = 400
+  },
+  ["147406"] = {
+    name = {
+      "5Greater Pathfinder's Symbol"
+    },
+    Power = 375
+  },
+  ["141389"] = {
+    name = {
+      "5Stareye Gem"
+    },
+    Power = 100
+  },
+  ["147407"] = {
+    name = {
+      "5Greater Adventurer's Symbol"
+    },
+    Power = 600
+  },
+  ["140379"] = {
+    name = {
+      "6Broken Warden Glaive Blade"
+    },
+    Power = 100
+  },
+  ["141945"] = {
+    name = {
+      "5Magically-Fortified Vial"
+    },
+    Power = 300
+  },
+  ["152962"] = {
+    name = {
+      "4Voidcore Control Rod"
+    },
+    Power = 875
+  },
+  ["141679"] = {
+    name = {
+      "4Cobalt Amber Crystal"
+    },
+    Power = 800
+  },
+  ["140377"] = {
+    name = {
+      "6Broken Medallion of Karabor"
+    },
+    Power = 100
+  },
+  ["130153"] = {
+    name = {
+      "5Godafoss Essence"
+    },
+    Power = 0
+  },
+  ["140517"] = {
+    name = {
+      "4Glory of the Order"
+    },
+    Power = 300
+  },
+  ["147465"] = {
+    name = {
+      "4Mage-Guard Dueling Wand"
+    },
+    Power = 750
+  },
+  ["147404"] = {
+    name = {
+      "5Hero's Symbol"
+    },
+    Power = 540
+  },
+  ["139608"] = {
+    name = {
+      "6Brittle Spelltome"
+    },
+    Power = 150
+  },
+  ["128000"] = {
+    name = {
+      "5Crystal of Ensoulment"
+    },
+    Power = 0
+  },
+  ["140371"] = {
+    name = {
+      "6Letter from Exarch Maladaar"
+    },
+    Power = 150
+  },
+  ["147200"] = {
+    name = {
+      "5Soldier's Glory"
+    },
+    Power = 600
+  },
+  ["147719"] = {
+    name = {
+      "5Lesser Master's Symbol"
+    },
+    Power = 725
+  },
+  ["140367"] = {
+    name = {
+      "6Tattered Sheet Music"
+    },
+    Power = 100
+  },
+  ["141678"] = {
+    name = {
+      "4Night Devint: The Perfection of Arcwine"
+    },
+    Power = 650
+  },
+  ["140364"] = {
+    name = {
+      "6Frostwyrm Bone Fragment"
+    },
+    Power = 100
+  },
+  ["147469"] = {
+    name = {
+      "4Blessed Sculpture of Tyr"
+    },
+    Power = 800
+  },
+  ["138784"] = {
+    name = {
+      "5Questor's Glory"
+    },
+    Power = 100
+  },
+  ["140369"] = {
+    name = {
+      "6Scrawled Recipe"
+    },
+    Power = 150
+  },
+  ["140361"] = {
+    name = {
+      "6Pulsating Runestone"
+    },
+    Power = 150
+  },
+  ["147485"] = {
+    name = {
+      "6Wicked Wyrmtongue Fetish"
+    },
+    Power = 160
+  },
+  ["138480"] = {
+    name = {
+      "6Black Harvest Tome"
+    },
+    Power = 100
+  },
+  ["140386"] = {
+    name = {
+      "5Inquisitor's Shadow Orb"
+    },
+    Power = 40
+  },
+  ["141397"] = {
+    name = {
+      "5The Spiritwalker's Wisdom"
+    },
+    Power = 100
+  },
+  ["146329"] = {
+    name = {
+      "6Jar of Ashes"
+    },
+    Power = 85
+  },
+  ["146324"] = {
+    name = {
+      "6Ossified Roc Feather"
+    },
+    Power = 115
+  },
+  ["146323"] = {
+    name = {
+      "6Cracked Kobold Skull"
+    },
+    Power = 85
+  },
+  ["146319"] = {
+    name = {
+      "6Doom Dust"
+    },
+    Power = 115
+  },
+  ["153224"] = {
+    name = {
+      "5Luminescent Moonshroom"
+    },
+    Power = 625
+  },
+  ["146313"] = {
+    name = {
+      "6Highborne Pottery Shards"
+    },
+    Power = 115
+  },
+  ["147474"] = {
+    name = {
+      "4Uncrowned Poison Set"
+    },
+    Power = 750
+  },
+  ["141923"] = {
+    name = {
+      "6Petrified Axe Haft"
+    },
+    Power = 195
+  },
+  ["143540"] = {
+    name = {
+      "4Undertuned Attunement Crystal"
+    },
+    Power = 500
+  },
+  ["141398"] = {
+    name = {
+      "5Blessing of the Watchers"
+    },
+    Power = 100
+  },
+  ["140385"] = {
+    name = {
+      "6Legion Pamphlet"
+    },
+    Power = 100
+  },
+  ["140241"] = {
+    name = {
+      "5Enchanted Moonfall Text"
+    },
+    Power = 300
+  },
+  ["146314"] = {
+    name = {
+      "5Marble Arrowhead"
+    },
+    Power = 300
+  },
+  ["141891"] = {
+    name = {
+      "5Branch of Shaladrassil"
+    },
+    Power = 45
+  },
+  ["132950"] = {
+    name = {
+      "5Petrified Snake"
+    },
+    Power = 35
+  },
+  ["140396"] = {
+    name = {
+      "5Friendly Brawler's Wager"
+    },
+    Power = 40
+  },
+  ["152938"] = {
+    name = {
+      "5Emblazoned Shadowguard Insignia"
+    },
+    Power = 400
+  },
+  ["131789"] = {
+    name = {
+      "5Handmade Mobile"
+    },
+    Power = 0
+  },
+  ["141384"] = {
+    name = {
+      "5Emblem of the Dark Covenant"
+    },
+    Power = 100
+  },
+  ["142454"] = {
+    name = {
+      "4Viz'aduum's Eye"
+    },
+    Power = 500
+  },
+  ["141872"] = {
+    name = {
+      "5Artisan's Handiwork"
+    },
+    Power = 150
+  },
+  ["131758"] = {
+    name = {
+      "5Oversized Acorn"
+    },
+    Power = 0
+  },
+  ["134133"] = {
+    name = {
+      "4Jewel of Brilliance"
+    },
+    Power = 0
+  },
+  ["139510"] = {
+    name = {
+      "5Black Rook Soldier's Insignia"
+    },
+    Power = 480
+  },
+  ["140254"] = {
+    name = {
+      "5The Seawarden's Beacon"
+    },
+    Power = 350
+  },
+  ["143680"] = {
+    name = {
+      "5Soldier's Esteem"
+    },
+    Power = 400
+  },
+  ["151922"] = {
+    name = {
+      "6Gladiator's Perseverance"
+    },
+    Power = 100
+  },
+  ["151916"] = {
+    name = {
+      "6Gladiator's Perseverance"
+    },
+    Power = 40
+  },
+  ["146124"] = {
+    name = {
+      "6Exhausted Portal Key"
+    },
+    Power = 270
+  },
+  ["152432"] = {
+    name = {
+      "4Stasis Core Crystal"
+    },
+    Power = 1200
+  },
+  ["147486"] = {
+    name = {
+      "6Legionfall Vanguard Battle Standard"
+    },
+    Power = 245
+  },
+  ["141935"] = {
+    name = {
+      "5Enchrgled Mlrgmlrg of Enderglment"
+    },
+    Power = 300
+  },
+  ["141925"] = {
+    name = {
+      "6Pruned Nightmare Shoot"
+    },
+    Power = 190
+  },
+  ["143677"] = {
+    name = {
+      "6Gladiator's Exultation"
+    },
+    Power = 90
+  },
+  ["140445"] = {
+    name = {
+      "4Arcfruit"
+    },
+    Power = 875
+  },
+  ["141930"] = {
+    name = {
+      "6Smolderhide Spirit Beads"
+    },
+    Power = 175
+  },
+  ["140511"] = {
+    name = {
+      "6Soul Shackle"
+    },
+    Power = 150
+  },
+  ["141682"] = {
+    name = {
+      "4Free Floating Ley Spark"
+    },
+    Power = 500
+  },
+  ["141924"] = {
+    name = {
+      "6Broken Control Mechanism"
+    },
+    Power = 185
+  },
+  ["139508"] = {
+    name = {
+      "6Dried Worldtree Seeds"
+    },
+    Power = 160
+  },
+  ["138814"] = {
+    name = {
+      "6Adventurer's Renown"
+    },
+    Power = 35
+  },
+  ["143868"] = {
+    name = {
+      "5Accolade of Achievement"
+    },
+    Power = 250
+  },
+  ["143870"] = {
+    name = {
+      "5Accolade of Heroism"
+    },
+    Power = 500
+  },
+  ["141888"] = {
+    name = {
+      "6Discarded Aristocrat's Censer"
+    },
+    Power = 50
+  },
+  ["141887"] = {
+    name = {
+      "6Lucky Brulstone"
+    },
+    Power = 50
+  },
+  ["147480"] = {
+    name = {
+      "4Valajar-Sanctified Weapon Polish"
+    },
+    Power = 750
+  },
+  ["140252"] = {
+    name = {
+      "5Tel'anor Ancestral Tablet"
+    },
+    Power = 300
+  },
+  ["147403"] = {
+    name = {
+      "5Adventurer's Symbol"
+    },
+    Power = 475
+  },
+  ["141711"] = {
+    name = {
+      "5Ancient Druidic Carving"
+    },
+    Power = 515
+  },
   ["140531"] = {
     name = {
       "6Ravencrest Family Seal"
@@ -2483,11 +2967,11 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["141710"] = {
+  ["139615"] = {
     name = {
-      "5Discontinued Suramar City Key"
+      "6Untapped Mana Gem"
     },
-    Power = 530
+    Power = 230
   },
   ["140460"] = {
     name = {
@@ -2495,11 +2979,11 @@ ns.allArtifactPower=
     },
     Power = 100
   },
-  ["147465"] = {
+  ["152434"] = {
     name = {
-      "4Mage-Guard Dueling Wand"
+      "4Praetorium Edict"
     },
-    Power = 750
+    Power = 1200
   },
   ["141852"] = {
     name = {
@@ -2507,11 +2991,11 @@ ns.allArtifactPower=
     },
     Power = 500
   },
-  ["144297"] = {
+  ["138839"] = {
     name = {
-      "5Talisman of Victory"
+      "6Valiant's Glory"
     },
-    Power = 200
+    Power = 20
   },
   ["141926"] = {
     name = {
@@ -2525,11 +3009,11 @@ ns.allArtifactPower=
     },
     Power = 500
   },
-  ["142003"] = {
+  ["138783"] = {
     name = {
-      "5Talisman of the Ascended"
+      "6Glittering Memento"
     },
-    Power = 400
+    Power = 50
   },
   ["141400"] = {
     name = {
@@ -2537,15 +3021,15 @@ ns.allArtifactPower=
     },
     Power = 100
   },
-  ["142449"] = {
+  ["140247"] = {
     name = {
-      "5Unearthed Staff Headpiece"
+      "4Mornath's Enchanted Statue"
     },
-    Power = 100
+    Power = 350
   },
-  ["147470"] = {
+  ["147459"] = {
     name = {
-      "4Silver Hand Aspirant's Codex"
+      "4Reclaimed Ashtongue Feltome"
     },
     Power = 750
   },
@@ -2573,17 +3057,17 @@ ns.allArtifactPower=
     },
     Power = 800
   },
-  ["141889"] = {
+  ["140476"] = {
     name = {
-      "4Glory of the Melee"
+      "6Astranaar Globe"
     },
-    Power = 500
+    Power = 100
   },
-  ["141854"] = {
+  ["153198"] = {
     name = {
-      "5Accolade of Achievement"
+      "5Rimy Hailstone"
     },
-    Power = 250
+    Power = 635
   },
   ["138726"] = {
     name = {
@@ -2591,17 +3075,17 @@ ns.allArtifactPower=
     },
     Power = 0
   },
-  ["141682"] = {
+  ["152433"] = {
     name = {
-      "4Free Floating Ley Spark"
+      "4Smoldering Infernal Stone"
     },
-    Power = 500
+    Power = 1200
   },
-  ["141404"] = {
+  ["153217"] = {
     name = {
-      "5Insignia of the Second Command"
+      "5Emblazoned Fire Core"
     },
-    Power = 100
+    Power = 645
   },
   ["141669"] = {
     name = {
@@ -2609,11 +3093,11 @@ ns.allArtifactPower=
     },
     Power = 300
   },
-  ["140503"] = {
+  ["141859"] = {
     name = {
-      "6Blank To-Do List"
+      "5Soldier's Splendor"
     },
-    Power = 100
+    Power = 250
   },
   ["147481"] = {
     name = {
@@ -2633,17 +3117,17 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["140361"] = {
+  ["152430"] = {
     name = {
-      "6Pulsating Runestone"
+      "4Krokul Enclave Chronicle"
     },
-    Power = 150
+    Power = 1200
   },
-  ["141953"] = {
+  ["152709"] = {
     name = {
-      "4Nightglow Energy Vessel"
+      "5Partially Charged Conduit"
     },
-    Power = 1000
+    Power = 550
   },
   ["131763"] = {
     name = {
@@ -2651,11 +3135,11 @@ ns.allArtifactPower=
     },
     Power = 35
   },
-  ["141863"] = {
+  ["141395"] = {
     name = {
-      "5Daglop's Precious"
+      "5Stonedark's Pledge"
     },
-    Power = 20
+    Power = 100
   },
   ["146316"] = {
     name = {
@@ -2663,41 +3147,11 @@ ns.allArtifactPower=
     },
     Power = 750
   },
-  ["147550"] = {
+  ["151246"] = {
     name = {
-      "5Adventurer's Trophy"
+      "5Fel-Imbued Artillery Catalyst"
     },
-    Power = 1925
-  },
-  ["141876"] = {
-    name = {
-      "5Soul-Powered Containment Unit"
-    },
-    Power = 25
-  },
-  ["139512"] = {
-    name = {
-      "5Sigilstone of Tribute"
-    },
-    Power = 490
-  },
-  ["147819"] = {
-    name = {
-      "5Adept's Medal"
-    },
-    Power = 400
-  },
-  ["128000"] = {
-    name = {
-      "5Crystal of Ensoulment"
-    },
-    Power = 0
-  },
-  ["141405"] = {
-    name = {
-      "5Senegos' Favor"
-    },
-    Power = 100
+    Power = 535
   },
   ["139617"] = {
     name = {
@@ -2705,47 +3159,77 @@ ns.allArtifactPower=
     },
     Power = 350
   },
-  ["141684"] = {
+  ["146123"] = {
     name = {
-      "4Residual Manastorm Energy"
+      "5Enchanted Vault Cell Key"
     },
-    Power = 875
+    Power = 380
   },
-  ["141392"] = {
+  ["141672"] = {
     name = {
-      "5Fragment of the Soulcage"
+      "5Insignia of the Nightborne Commander"
+    },
+    Power = 300
+  },
+  ["142451"] = {
+    name = {
+      "5Overcharged Ward Focus"
     },
     Power = 100
   },
-  ["141385"] = {
+  ["142054"] = {
     name = {
-      "5Tidestone Sliver"
+      "5Enchanted Nightborne Coin"
     },
     Power = 100
   },
-  ["140306"] = {
+  ["153278"] = {
     name = {
-      "5Mark of the Valorous"
+      "4Vile Temptresses' Aphrodisiac"
     },
-    Power = 1000
+    Power = 850
   },
-  ["143498"] = {
+  ["141390"] = {
     name = {
-      "4Charged Construct's Finger"
+      "5The Corruptor's Totem"
+    },
+    Power = 100
+  },
+  ["151247"] = {
+    name = {
+      "5Lightguard Battle Medal"
+    },
+    Power = 625
+  },
+  ["143739"] = {
+    name = {
+      "4Mark of the Soulcleaver"
     },
     Power = 500
   },
-  ["147459"] = {
+  ["152707"] = {
     name = {
-      "4Reclaimed Ashtongue Feltome"
+      "5Lightforged Cannon Projectile"
+    },
+    Power = 800
+  },
+  ["147461"] = {
+    name = {
+      "4Unblemished Leaf of Shaladrassil"
+    },
+    Power = 800
+  },
+  ["153048"] = {
+    name = {
+      "4Phial of 'Sacred' Fel Liquid"
+    },
+    Power = 1000
+  },
+  ["147470"] = {
+    name = {
+      "4Silver Hand Aspirant's Codex"
     },
     Power = 750
-  },
-  ["143743"] = {
-    name = {
-      "4Highly Charged Mana Clog"
-    },
-    Power = 250
   }
 }
 
