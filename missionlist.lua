@@ -110,6 +110,7 @@ local sortKeys={}
 local MAX=math.huge
 local OHFButtons=OHFMissions.listScroll.buttons
 local clean
+local displayClean
 local function GetPerc(mission,realvalue)
 	local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
 	local perc=-p.perc or 0
@@ -178,6 +179,7 @@ function module:OnInitialized()
 		Garrison_SortMissions_Duration=L["Duration Time"],
 		Garrison_SortMissions_Class=L["Reward type"],
 	}
+	
 --@debug@
 	addon:AddBoolean("ELITEMODE",false,L["Elites mission mode"],L["Only consider elite missions"])
 --@end-debug@	
@@ -259,15 +261,26 @@ function module:LoadButtons(...)
 		self:SecureHookScript(b.Rewards[1],"OnEnter","rwWarning")
 	end
 end
+local currentFollowerString=""
 local function makedirty(self,event,missionType,missionID,...)
---@debug@
-	print("Set Dirty state",self,event,missionType,missionID,...)
---@end-debug@
 	if event=="GARRISON_MISSION_LIST_UPDATE" or
 		event=="GARRISON_MISSION_STARTED" then
 		if missionType ~= LE_FOLLOWER_TYPE_GARRISON_7_0 then return end
 	end
-	clean=false
+	if event=="GARRISON_FOLLOWER_CATEGORIES_UPDATED"
+		or event=="GARRISON_FOLLOWER_ADDED"
+		or event=="GARRISON_FOLLOWER_REMOVED"
+		or event=="GARRISON_FOLLOWER_LIST_UPDATED"
+		or event=="GARRISON_FOLLOWER_XP_CHANGED"
+		or event=="GARRISON_FOLLOWER_UPGRADED"
+		or event=="GARRISON_FOLLOWER_DURABILITY_CHANGED"
+	then
+		clean=false
+	end
+	displayClean=false			
+--@debug@
+	print("Set Dirty state",event,clean,displayClean)
+--@end-debug@
 end
 function addon:GARRISON_MISSION_LIST_UPDATE(...) makedirty(self,...) end
 function addon:GARRISON_MISSION_STARTED(...) makedirty(self,...)  end
@@ -283,11 +296,6 @@ function addon:GARRISON_FOLLOWER_XP_CHANGED(...) makedirty(self,...) end
 function addon:GARRISON_FOLLOWER_UPGRADED(...) makedirty(self,...) end
 function addon:GARRISON_FOLLOWER_DURABILITY_CHANGED(...) makedirty(self,...) end
 function addon:SHIPMENT_CRAFTER_CLOSED(...) makedirty(self,...) end
-
-
-
-
-addon.Refresh=makedirty
 local tb={url=""}
 local artinfo='*' .. L["Artifact shown value is the base value without considering knowledge multiplier"]
 
@@ -323,20 +331,24 @@ end
 -- 
 function module:OnUpdateMissions(frame)
 --@debug@
-	print("Called OnUpdateMissions with " .. (clean and "full refresh" or "simple refresh"))
+	print("Called OnUpdateMissions with ",clean,displayClean)
 --@end-debug@	
-	if not clean then
+	if not clean or not displayClean then
 --@debug@
 		local start=debugprofilestop()
 --@end-debug@	
 		missionNonFilled=false
 		wipe(missionKEYS)
 		wipe(missionIDS)
-		local rc=addon:RefillParties()
+		if not clean then
+			addon:GetFullPermutations(true)
+			local rc=addon:RefillParties()
 --@debug@
-		print(format("Refilled %d parties in %.3f",rc,(debugprofilestop()-start)/1000))
+			print(format("Refilled %d parties in %.3f",rc,(debugprofilestop()-start)/1000))
 --@end-debug@	
+		end
 		clean=true
+		displayClean=true
 	end
 	return 
 end
@@ -368,6 +380,13 @@ function module:CheckShadow()
 		self:NoMartiniNoParty()
 	end
 end
+function addon:ClearMissionsCache()
+		wipe(missionKEYS)
+		wipe(missionIDS)
+end
+function addon:Redraw()
+	self:ApplySORTMISSION(Current_Sorter)
+end
 function module:OnSingleUpdate(frame)
 	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() and frame.info then
 		self:AdjustPosition(frame)
@@ -377,8 +396,7 @@ function module:OnSingleUpdate(frame)
 		if full and not blacklisted  then
 			self:AdjustMissionButton(frame)
 		end
-			missionIDS[frame]=frame.info.missionID
-		--end
+		missionIDS[frame]=frame.info.missionID
 		local mission=addon:GetMissionData(frame.info.missionID)
 		if blacklisted then
 			self:Dim(frame)
@@ -397,7 +415,8 @@ local pcall=pcall
 local sort=table.sort
 local strcmputf8i=strcmputf8i
 local function sortfuncProgress(a,b)
-	return a.timeLeftSeconds < b.timeLeftSeconds
+	--return a.timeLeftSeconds < b.timeLeftSeconds
+		return strcmputf8i(a.name, b.name) < 0
 end
 local function sortfuncAvailable(a,b)
 	if sortKeys[a.missionID] ~= sortKeys[b.missionID] then
@@ -407,27 +426,24 @@ local function sortfuncAvailable(a,b)
 	end
 end
 function module:SortMissions()
-	if OHFMissions.inProgress then
-		pcall(sort,OHFMissions.inProgressMissions,sortfuncProgress)
-	else
-		if Current_Sorter=="Garrison_SortMissions_Original" then return end
-		local f=sorters[Current_Sorter]
-		for k=#OHFMissions.availableMissions,1,-1 do
-			local missionID=OHFMissions.availableMissions[k].missionID
-			local mission=addon:GetMissionData(missionID) -- we need the enriched version
+	sort(OHFMissions.inProgressMissions,sortfuncProgress)
+	if Current_Sorter=="Garrison_SortMissions_Original" then return end
+	local f=sorters[Current_Sorter]
+	for k=#OHFMissions.availableMissions,1,-1 do
+		local missionID=OHFMissions.availableMissions[k].missionID
+		local mission=addon:GetMissionData(missionID) -- we need the enriched version
 --@debug@
-			if IsIgnored(mission) then
-				tremove(OHFMissions.availableMissions,k)
-			else
+		if IsIgnored(mission) then
+			tremove(OHFMissions.availableMissions,k)
+		else
 --@end-debug@			
-				local rc,result =pcall(f,mission)
-				sortKeys[missionID]=rc and result or 0
+			local rc,result =pcall(f,mission)
+			sortKeys[missionID]=rc and result or 0
 --@debug@
-			end
---@end-debug@			
 		end
-		sort(OHFMissions.availableMissions,sortfuncAvailable)
+--@end-debug@			
 	end
+	sort(OHFMissions.availableMissions,sortfuncAvailable)
 end
 local timer
 function addon:Apply(flag,value)
@@ -502,14 +518,14 @@ function module:Menu()
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
 		local flag,icon=strsplit(',',v)
-		local f=factory:Option(addon,menu,flag,140)
+		local f=factory:Option(addon,menu,flag,200)
 		if type(f)=="table" and f.GetObjectType then
 			if previous then
-				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-5)
+				f:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,0)
 			else
-				f:SetPoint("TOPLEFT",menu,"TOPLEFT",32,-30)
+				f:SetPoint("TOPLEFT",menu,"TOPLEFT",10,-30)
 			end
-			local w=f:GetWidth()+45
+			local w=f:GetWidth()+30
 			if w >menu:GetWidth() then menu:SetWidth(w) end
 			previous=f
 		end
@@ -752,9 +768,11 @@ end
 function module:AddMembers(frame)
 	local start=GetTime()
 	local mission=frame.info
+	if not mission then return end
 	local nrewards=#mission.rewards
-	local missionID=mission and mission.missionID
+	local missionID=mission.missionID
 	local followers=mission.followers
+	if not missionID then _G.Print(frame:GetName()) return end
 	local members=missionmembers[frame]
 	local stats=missionstats[frame]
 	local threats=missionthreats[frame]

@@ -131,7 +131,8 @@ function addon:SetDbDefaults(default)
 	default.profile=default.profile or {}
 	default.profile.blacklist={}
 end
-do
+do 
+local banned={}
 local byFollowers={}
 local byMissions=setmetatable({},{__index=function(t,k) rawset(t,k,{}) return rawget(t,k) end})
 local function refreshByMissions(missionID)
@@ -177,7 +178,17 @@ function addon:IsReserved(followerID)
 	if not followerID then return byFollowers end
 	return byFollowers[followerID]
 end
+function addon:Ban(slot,missionID)
+	banned[slot..':'..missionID]=true
 end
+function addon:Unban(slot,missionID)
+	banned[slot..':'..missionID]=nil
+end
+function addon:IsBanned(slot,missionID)
+	if not slot then return banned end
+	return banned[slot..':'.. missionID]
+end
+end -- DO closed
 local colors=addon.colors
 _G.OrderHallCommanderMixin={}
 _G.OrderHallCommanderMixinThreats={}
@@ -309,6 +320,7 @@ function MixinFollowerIcon:GetFollower()
 end
 function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	local info=addon:GetFollowerData(followerID)
+	local missionID=self:GetParent():GetParent().info.missionID
 	if not info or not info.followerID then
 		local rc
 		rc,info=pcall(G.GetFollowerInfo,followerID)
@@ -332,6 +344,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 		end
 	end
 	self.locked=addon:IsReserved(followerID) and true or false
+	self.banned=addon:IsBanned(self.Slot,missionID) and true or false
 	if status or blacklisted then
 		if not blacklisted then
 			self:SetILevel(0) --CHAT_FLAG_DND
@@ -343,30 +356,39 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	else
 		self.Portrait:SetDesaturated(false)
 	end
-	self:ShowLock()
+	self:ShowLocks()
 	return status
 end
-function MixinFollowerIcon:ShowLock()
+function MixinFollowerIcon:ShowLocks()
 	if self.locked then 
 		self.LockIcon:Show()
 	else
 		self.LockIcon:Hide()
 	end
+	if self.banned then
+		self.IgnoreIcon:Show()
+	else
+		self.IgnoreIcon:Hide()
+	end	
 end
 function MixinFollowerIcon:SetEmpty(message)
+	local mission=self:GetParent():GetParent().info
 	self.followerID=false
 	self:SetLevel(message or MISSING)
 	self:SetPortraitIcon()
 	self:SetQuality(1)
-	self.LockIcon:Hide()
+	self.locked=false
+	self.banned=addon:IsBanned(self.Slot,mission.missionID)
 	if message ~=UNUSED then
 		self:GetParent():SetNotReady(true)
 	end
+	self:ShowLocks()
 end
 local gft -- =GarrisonFollowerTooltip
 local gft2
 function MixinFollowerIcon:ShowTooltip()
-	local gft = OHFMissions.showInProgress and GarrisonFollowerTooltip or OHCFollowerTip
+	local mission=self:GetParent():GetParent().info
+	local gft = mission.inProgress and GarrisonFollowerTooltip or OHCFollowerTip
 	if not self.followerID then
 --@debug@
 		return self:Dump()
@@ -386,6 +408,7 @@ function MixinFollowerIcon:ShowTooltip()
 			tonumber(trait1), tonumber(trait2), tonumber(trait3), tonumber(trait4),
 			true,nil,nil,gft
 		)
+		if gft==GarrisonFollowerTooltip then return end
 		gft:ClearAllPoints()
 		gft:SetPoint("BOTTOM", self, "TOP")
 		if OHFMissions.showInProgress then return end
@@ -407,47 +430,23 @@ function MixinFollowerIcon:ShowTooltip()
 		else
 			gft.Line1:SetText(KEY_BUTTON1 .. ' : ' .. C(L['Lock this follower'],"Green"))
 		end		
-		gft.Line2:SetText(SHIFT_KEY_TEXT .. KEY_BUTTON1 .. ' : ' .. L['Lock all']) 
-		gft.Line3:SetText(SHIFT_KEY_TEXT .. KEY_BUTTON2 .. ' : ' .. L['Unlock all']) 
-		gft.Line4:SetText(L["Locked follower are only used in this mission"])
-		gft.Line4:SetTextColor(LIGHTBLUE_FONT_COLOR:GetRGBA())
-		gft:SetHeight(gft:GetHeight()+80)
---		if not gft2 then
---			gft2=CreateFrame("Frame","OHCGarrisonFollowerTooltip",gft)--,"TooltipBorderedFrameTemplate")
---			--gft2:SetPoint("BOTTOMLEFT",gft,"BOTTOMRIGHT",0,0)
---			gft2:SetPoint("BOTTOMLEFT")
---			gft2:SetPoint("BOTTOMRIGHT")
---			gft2.lines={}
---			gft2.AddLine=function(this,message,r,g,b,a)
---				 tinsert(this.lines,this:CreateFontString(nil, "ARTWORK", "GameFontHighlight"))
---				 local i=#this.lines
---				 local line=this.lines[i]
---				 line:SetJustifyH("LEFT")
---				 if i==1 then 
---				 	line:SetTextColor(GREEN_FONT_COLOR:GetRGBA())
---				 	line:SetPoint("TOPLEFT",5,-5) 
---				 	line:SetPoint("TOPRIGHT",5,-5) 
---				 else 
---				 	line:SetTextColor(YELLOW_FONT_COLOR:GetRGBA())
---				 	line:SetPoint("TOPLEFT",this.lines[i-1],"BOTTOMLEFT",0,-5) 
---				 	line:SetPoint("TOPRIGHT",this.lines[i-1],"BOTTOMRIGHT",0,-5) 
---				end
---				 if (r and g and b) then
---				 	line:SetTextColor(r,g,b,a or 1)
---				 end				 	
---				 line:SetText(message)
---			end
---			gft2:AddLine("Finalize parties")
---			gft2:AddLine(KEY_BUTTON1 .. ' : ' .. L['Lock/Unlock this follower to this mission'])
---			gft2:AddLine(SHIFT_KEY_TEXT .. KEY_BUTTON1 .. ' : ' .. L['Lock all']) 
---			gft2:AddLine(SHIFT_KEY_TEXT .. KEY_BUTTON2 .. ' : ' .. L['Unlock all']) 
---			gft2:AddLine(L["Locked follower can not be used in other missions"],LIGHTBLUE_FONT_COLOR:GetRGBA())
---			gft2:Show()
---		end
+		if self.banned then
+			gft.Line2:SetText(KEY_BUTTON2 .. ' : ' .. C(L['Use this slot'],"Green"))
+		else
+			gft.Line2:SetText(KEY_BUTTON2 .. ' : ' .. C(L['Dont use this slog'],"Red"))
+		end		
+		gft.Line3:SetText(SHIFT_KEY_TEXT .. KEY_BUTTON1 .. ' : ' .. L['Lock all']) 
+		gft.Line4:SetText(SHIFT_KEY_TEXT .. KEY_BUTTON2 .. ' : ' .. L['Unlock all']) 
+		gft.Line5:SetText(L["Locked follower are only used in this mission"])
+		gft.Line5:SetTextColor(LIGHTBLUE_FONT_COLOR:GetRGBA())
+		gft:SetHeight(gft:GetHeight()+110)
+		gft:SetWidth(gft.Line5:GetStringWidth())
 	end
 end
 function MixinFollowerIcon:Click(button)
-	local missionID=self:GetParent():GetParent().info.missionID
+	local mission=self:GetParent():GetParent().info
+	if mission.InProgress then return end
+	local missionID=mission.missionID
 	if IsShiftKeyDown() then
 		local lockIt=button=="LeftButton"
 		for _,champion in	pairs(self:GetParent().Champions) do
@@ -461,14 +460,24 @@ function MixinFollowerIcon:Click(button)
 			end
 		end
 	elseif self.followerID then
-		-- we cant lock a busy follower or to a blacklisted mission
-		if addon:IsReserved(self.followerID) then
-			self:Unlock()
-		elseif not G.GetFollowerStatus(self.followerID) and not addon.db.profile.blacklist[missionID] then
-			self:Lock(missionID)
+		if button == "LeftButton" then
+			if self.banned then return end
+			-- we cant lock a busy follower or to a blacklisted mission
+			if addon:IsReserved(self.followerID) then
+				self:Unlock()
+			elseif not G.GetFollowerStatus(self.followerID) and not addon.db.profile.blacklist[missionID] then
+				self:Lock(missionID)
+			end
 		end
-	else
-		return
+	end
+	if button == "RightButton" then
+		if self.locked then return end
+		if addon:IsBanned(self.Slot,missionID) then
+			self:Unban(missionID)
+		else
+			self:Ban(missionID)
+		end
+		DevTools_Dump(addon:IsBanned())
 	end
 	self:ShowTooltip()
 	addon:GetMissionlistModule():RefreshButtons()
@@ -476,13 +485,22 @@ end
 function MixinFollowerIcon:Lock(missionID)
 	addon:Reserve(self.followerID,missionID)
 	self.locked=true
-	self:ShowLock()
+	self:ShowLocks()
 end
 function MixinFollowerIcon:Unlock()
-	print("Unlocking",self.followerID)
 	addon:UnReserve(self.followerID)
 	self.locked=nil
-	self:ShowLock()
+	self:ShowLocks()
+end
+function MixinFollowerIcon:Ban(missionID)
+	addon:Ban(self.Slot,missionID)
+	self.banned=true
+	self:ShowLocks()
+end
+function MixinFollowerIcon:Unban(missionID)
+	addon:Unban(self.Slot,missionID)
+	self.banned=nil
+	self:ShowLocks()
 end
 function MixinFollowerIcon:HideTooltip()
 	local gft = OHFMissions.showInProgress and GarrisonFollowerTooltip or OHCFollowerTip
@@ -509,6 +527,7 @@ function MixinMembers:OnLoad()
 		self.Champions[i]:SetFrameLevel(self:GetFrameLevel()+1)
 		self.Champions[i]:Show()
 		self.Champions[i]:SetEmpty()
+		self.Champions[i].Slot=i
 	end
 	self:SetWidth(self.Champions[1]:GetWidth()*3+30)
 	self.NotReady.Text:SetFormattedText(RAID_MEMBER_NOT_READY,STATUS_TEXT_PARTY)
@@ -537,14 +556,6 @@ function MixinMembers:Lock()
 	end
 end
 function MixinMenu:OnLoad()
-	self.Top:SetAtlas("_StoneFrameTile-Top", true);
-	self.Bottom:SetAtlas("_StoneFrameTile-Bottom", true);
-	self.Left:SetAtlas("!StoneFrameTile-Left", true);
-	self.Right:SetAtlas("!StoneFrameTile-Left", true);
-	self.GarrCorners.TopLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	self.GarrCorners.TopRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	self.GarrCorners.BottomLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	self.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
 	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end
 

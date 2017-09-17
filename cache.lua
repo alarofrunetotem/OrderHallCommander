@@ -231,9 +231,6 @@ local function rebuildFollowerIndex()
 		indexes.followers[followerCache[i].name]=i
 	end
 end
-local function GetFollowers()
-	return OHFFollowerList.followers or G.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0) or emptyTable	
-end
 --- Return followerdata-
 -- Available fields:
 --
@@ -264,6 +261,11 @@ end
 -- * busyUntil
 --
 --
+local function GetFollowers()
+	if not empty(OHFFollowerList.followers) then return  OHFFollowerList.followers end
+	return G.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0) or emptyTable	
+end
+
 function module:GetFollowerData(followerID,field,defaultValue)
 	if empty(followerCache) then
 		followerCache=GetFollowers()
@@ -272,7 +274,7 @@ function module:GetFollowerData(followerID,field,defaultValue)
 	local followerIndex=indexes.followers[followerID]
 	local pointer=followerCache[followerIndex]
 	if not pointer or pointer.followerID~=followerID then
-		followerCache=GetFollowers()
+		GetFollowers()
 		rebuildFollowerIndex()
 	end
 	followerIndex=indexes.followers[followerID]
@@ -684,47 +686,13 @@ end
 function addon:GetFollower(...)
 	return module:GetFollower(...)
 end
-function addon:GetFollowerCounts()
-	local t,c=0,0
-	for _,follower in pairs(self:GetFollowerData()) do
-		if follower.isTroop then
-			t=t+1
-		else
-			c=c+1
-		end
-	end
-	return c,t
-end
 function addon:GetFollowerName(id)
 	if not id then return "none" end
 	local rc,error=pcall(G.GetFollowerName,id)
 	return strconcat(tostringall(id,'(',error,')'))
 end
-function addon:GetAllChampions(table)
-	if not table then table=new() end
-	for _,follower in pairs(self:GetFollowerData()) do
-		if follower.isCollected and not follower.isTroop  then
-			tinsert(table,follower)
-		end
-	end
-	return table
-end
-local troopsPermutations={}
-local troopsSeen={}
-function addon:GetAllTroops(refill)
-	if empty(troopsPermutations) or refill then
-		wipe(troopsSeen)
-		for _,follower in pairs(self:GetFollowerData()) do
-			if follower.isTroop and follower.isCollected then
-				--if not troopsSeen[follower.className] then
-					tinsert(troopsPermutations,follower.followerID)
-					troopsSeen[follower.className]=true
-				--end
-			end
-		end
-	end
-	return troopsPermutations
-end
+
+local x_troopsSeen={}
 local fullPermutations={}
 local tt={}
 local function sortid(a,b)
@@ -780,13 +748,18 @@ local function isGood(missionID,follower,durability,ignoreBusy)
 			return false
 		end
 	end
-	if not durability or durability==follower.durability then return true end
+	if not durability then return true end
+	if durability < 0 then
+		return follower.durability >= math.abs(durability)
+	else  
+		return follower.durability <= durability
+	end
 	return false
 	
 end
 function addon:GetTroop(missionID,followerID,ignoreID,durability,ignoreBusy)
 	local classSpec=self:GetFollowerData(followerID,'classSpec')
-	if isGood(followerID,self:GetFollowerData(missionID,followerID),durability,ignoreBusy) then return followerID end
+	if isGood(missionID,self:GetFollowerData(followerID),durability,ignoreBusy) then return followerID end
 	for _,follower in pairs(self:GetFollowerData()) do
 		if follower.isTroop and follower.isCollected and follower.classSpec==classSpec then
 			if follower.followerID ~= followerID and follower.followerID ~=ignoreID and isGood(missionID,follower,durability,ignoreBusy) then 
@@ -800,11 +773,13 @@ function addon:GetFullPermutations(dowipe)
 	if dowipe then wipe(fullPermutations) end
 	if empty(fullPermutations) then
 		wipe(fullPermutations) -- better safe than sorry
-		wipe(troopsSeen)
 		local appo=new()
-		local t=module:GetFollowerData()
+		local t=G.GetFollowers()
+		followerCache=t
+		local x=0
 		for i=1,#t do
-			if t[i].isCollected then
+			x=x+1
+			if t[i].isCollected and not t[i].isTroop then
 				local s=compose(t[i])
 				if s then appo[s]=s end
 				for j=i+1,#t do
@@ -817,48 +792,17 @@ function addon:GetFullPermutations(dowipe)
 				end
 			end
 		end
+		print("Tried ",x," permutations")
 		for _,v in pairs(appo) do
 			tinsert(fullPermutations,v)
 		end
+		del(appo)
 		table.sort(fullPermutations)
 	end
 	return fullPermutations
 end
 function addon:DumpPermutations()
 	addon:Dump("Permutations",fullPermutations)
-end
-local permutations={
-	{},
-	{},
-	{}
-}
-
-function addon:GetPermutations(refill)
-	if refill or empty(permutations) then
-		local champs=new()
-		addon:GetAllChampions(champs)
-		local k=#champs
-		local refresh=false
-		for i=1,k do
-			if permutations[1][i]~=champs[i] then refresh=true end
-		end
-		if refresh then
-			wipe(permutations[1])
-			wipe(permutations[2])
-			wipe(permutations[3])
-			for i=1,k do
-				tinsert(permutations[1],champs[i].followerID)
-				for j=i+1,k do
-					tinsert(permutations[2],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID)))
-					for z=j+1,k do
-						tinsert(permutations[3],strjoin(',',tostringall(champs[i].followerID,champs[j].followerID,champs[z].followerID)))
-					end
-				end
-			end
-		end
-		del(champs)
-	end
-	return permutations
 end
 
 local function isInParty(followerID)
@@ -892,12 +836,12 @@ local TROOPS_STATUS_FORMAT= FOLLOWERLIST_LABEL_TROOPS .. ":" ..
 							C(GARRISON_FOLLOWER_ON_MISSION .. ":%d ",'red')
 function addon:RefreshFollowerStatus()
 	if not OHF:IsVisible() then return end
-	if empty(addon:GetFollowerData()) then return end
 	wipe(s)
-	for _,follower in pairs(addon:GetFollowerData()) do
-		local rc,status=pcall(G.GetFollowerStatus,follower.followerID) -- Follower could have been exhasted and still present in cache
-		if rc then
-			status=status or AVAILABLE
+	local followers=G.GetFollowers()
+	for i=1,#followers do
+		local follower=followers[i]
+		if follower.isCollected then
+			local status=follower.status or AVAILABLE
 			s[status]=s[status]+1
 			if follower.isTroop then
 				s['TROOP_'..status]=s['TROOP_'..status]+1
