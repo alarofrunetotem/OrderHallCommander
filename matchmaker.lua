@@ -526,7 +526,7 @@ function module:OnInitialized()
 	addon:AddRange("BASECHANCE",5,5,100,L["Base Chance"],L["When we cant achieve the requested bonus chance, we try to reach at least this one"],5)
 	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
-	addon:AddBoolean("IGNOREBUSY",false,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
+	addon:AddBoolean("IGNOREBUSY",true,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
 	addon:RegisterForMenu("mission",
 		"SAVETROOPS",

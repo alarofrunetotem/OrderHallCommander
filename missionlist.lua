@@ -577,9 +577,9 @@ function module:InitialSetup(this)
 	option1:SetPoint("BOTTOMLEFT",200,-25)
 	option1.obj=module
 	option1:SetOnChange("RunMission")
-	local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower at once"])
+	local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower and slots at once"])
 	option2:SetPoint("BOTTOMRIGHT",-200,-25)
-	option2:SetOnChange(function() addon:UnReserve() addon:RefreshMissions() end)
+	option2:SetOnChange(function() addon:UnReserve() addon:Unban() addon:RefreshMissions() end)
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
 	for _,mission in pairs(addon:GetMissionData()) do
 		addon:GetSelectedParty(mission.missionID)

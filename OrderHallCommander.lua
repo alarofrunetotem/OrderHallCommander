@@ -182,7 +182,11 @@ function addon:Ban(slot,missionID)
 	banned[slot..':'..missionID]=true
 end
 function addon:Unban(slot,missionID)
-	banned[slot..':'..missionID]=nil
+	if not slot then 
+		wipe(banned)
+	else
+		banned[slot..':'..missionID]=nil
+	end
 end
 function addon:IsBanned(slot,missionID)
 	if not slot then return banned end
