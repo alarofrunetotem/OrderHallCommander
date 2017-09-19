@@ -103,7 +103,7 @@ __index = function(t,key)
 --upvalues
 local assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent=assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent
 local select,tinsert,format,pcall,setmetatable,coroutine=select,tinsert,format,pcall,setmetatable,coroutine
-local tostringall=tostringall
+local tostringall,strsplit,strjoin=tostringall,strsplit,strjoin
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local emptyTable=setmetatable({},{__newindex=function() end})
 local holdEvents
@@ -156,13 +156,18 @@ function addon:BusyFor(candidate)
 	end
 	return busyUntil
 end
-function addon:CanKillTroops(candidate)
-	for _,followerID in candidate:IterateFollowers() do
-		if self:GetFollowerData(followerID,'durability',0)>1 then
-			return true
+function addon:TroopsWillDieAnyway(candidate)
+	print("willdie")
+	for i=1,#candidate do
+		if candidate['f' .. i] >= "T" then
+			local followerID=candidate[i]
+			print("willdie?",self:GetFollowerName(followerID),self:GetFollowerData(followerID,'durability',3))
+			if self:GetFollowerData(followerID,'durability',3)>1 then
+				return false
+			end
 		end
 	end
-	return false
+	return true
 end
 
 -- Party management
@@ -184,26 +189,34 @@ local partiesPool=CreateObjectPool(
 
 --	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAXIMIZEXP")
 function partyManager:Fail(reason,...)
-	self.lastreason=reason
+	self.current.reason=strjoin(' ',tostringall(reason,...))
 	return false,reason
 end
 
 function partyManager:SatisfyCondition(candidate,index)
 	local missionID=self.missionID
+	if addon:IsBanned(index,missionID) then
+		return self:Fail("Slot banned")
+	end	
 	if type(candidate) ~= "table" then return self:Fail("NOTABLE") end
 	local followerID=candidate[index]
 	if not followerID then return self:Fail("No follower id for party slot",index) end
-
-	local follower=addon:GetFollowerData(followerID)
-	if follower.IsTroop then
-		if addon:GetBoolean("NOTROOPS") 	then return self:Fail("NOTROOPS") end
+	local fType,classSpec,value,slot=strsplit('|',candidate['f'..index])
+	if fType=="T" then
+		if self.noTroops then return self:Fail("NOTROOPS") end
+		if candidate.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("WOULDKILLTROOPS") end
 		local durability
-		if addon:GetBoolean("SAVETROOPS") and candidate.hasKillTroopsEffect then durability =1 end
-		followerID=addon:GetTroop(missionID,followerID,durability,addon:GetBoolean('IGNOREBUSY'))
+		if self.saveTroops and candidate.hasKillTroopsEffect then durability = 1 end
+		if self.dontKillTroops then durability= -2 end
+		followerID=addon:GetTroop(tonumber(classSpec),slot or 1,missionID,durability,self.ignoreBusy)
 		if followerID then candidate[index]=followerID return true,'OK' else return false,"NOAVAILABLETROOPS" end
 	else
 		local reserved=addon:IsReserved(followerID)
-		if reserved and reserved ~= missionID then return self:Fail("RESERVED",G.GetFollowerName(followerID)) end
+		if reserved then
+			-- Always increment because, when reserved is not equal missionID we refuse the whole party
+			candidate.reservedChampions=candidate.reservedChampions +1 
+			return reserved==missionID
+		end
 		self.lastChecked=followerID
 	end
 	local status=G.GetFollowerStatus(followerID)
@@ -254,7 +267,7 @@ function partyManager:CheckCaps(index)
 				-- we are too low, so we need to go back in the chain and find someting better than baseChance even if over cap
 				for k=index-1,1,-1 do
 					local candidate=self.candidates[self.candidatesIndex[k]]
-					if candidate and candidate.good and candidate.perc >= self.baseChance then
+					if candidate and candidate.good and (self.maximizeXP or candidate.champions <= self.maxChampions) and candidate.perc >= self.baseChance then
 						return candidate.key
 					end
 				end
@@ -266,73 +279,84 @@ end
 function partyManager:CheckParty(candidate)
 	candidate.good=false
 	local key,chance=candidate.key,candidate.perc
-	local missionID=candidate.missionID
+	local missionID=self.missionID
 	if not self.elite and chance < self.minChance then return end
 	if type(self.numFollowers) ~= "number" then
-		self.numFollowers=addon:GetMissionData(self,"numfollowers",3)
+		self.numFollowers=addon:GetMissionData(missionID,"numfollowers",3)
 	end
 	if addon:GetBoolean("SPARE") and candidate.cost > candidate.baseCost then return self:Fail("SPARE",addon:GetBoolean("SPARE"),candidate.cost , candidate.baseCost) end
-	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeIsImproved then return self:Fail("VERYQUICK") end
+	if addon:GetBoolean("MAKEITVERYQUICK") and not candidate.timeImproved then return self:Fail("VERYQUICK") end
 	if addon:GetBoolean("MAKEITQUICK") and candidate.hasMissionTimeNegativeEffect then return self:Fail("QUICK") end
 	if addon:GetBoolean("BONUS") and candidate.hasBonusLootNegativeEffect then return self:Fail("BONUS") end			
 	local mandatoryfound=0
 	for j=1,#candidate do
-		local oldfollower=candidate[j]
-		local rc,reason = self:SatisfyCondition(candidate,j)
-		if not rc then self.lastreason=reason return end
+		if not self:SatisfyCondition(candidate,j) then return end
 	end
 	for _,mandatory in ipairs(self.mandatoryFollowers) do
 		if not tContains(candidate,mandatory) then
-			self.lastreason="Missing mandatory follower"
-			return
+			return self:Fail("NOMANDATORY")
 		end
 	end
 	self.candidates[key].good=true -- This party is good, we now check caps
 	return key
 end
-
-function partyManager:GetSelectedParty(key)
+function partyManager:GetChanceForKey(key)
+	local candidate=self.candidates[key]
+	return candidate and candidate.perc or 0
+end
+function partyManager:GetSelectedParty(key,dbg)
 	-- When we receive a key we MUST return the selected party, no question asked
 	if type(key)=="string" and self.candidates[key] then
 		return self.candidates[key],key
 	end
+	if #self.candidatesIndex ==0 then return self.candidates["EMPTY"],"EMPTY" end
 	local missionID=self.missionID
 	local xpgainers=0
 	self.maximizeXP=addon:GetBoolean("MAXIMIZEXP")
 	self.minChance=addon:GetNumber("MINCHANCE")
 	self.baseChance=addon:GetNumber("BASECHANCE")
-	self.bonusChance=100 + (self.elite and 0 or addon:GetNumber("BONUSCHANCE"))
+	self.bonusChance=self.elite and 100 or addon:GetNumber("BONUSCHANCE")
+	self.ignoreBusy=addon:GetBoolean("IGNOREBUSY")
+	self.noTroops=addon:GetBoolean("NOTROOPS")
+	self.saveTroops=addon:GetBoolean("SAVETROOPS")
+	self.dontKillTroops=addon:GetBoolean("NEVERKILLTROOPS")
 	self.capChance=self.elite and 100 or 200
 	self.maxXp=0
-	self.bestkey,self.xpkey,self.absolutebestkey,self.lastkey=nil,nil,nil,nil
+	self.bestkey,self.xpkey,self.absolutebestkey,self.lastkey,self.uncappedkey=nil,nil,nil,nil,nil
 	self.mandatoryFollowers=new()
 	self.lastreason='GOOD'
-	for f,m in pairs(addon:IsReserved()) do
-		if m==missionID then
-			tinsert(self.mandatoryFollowers,f)
-		end
-	end
+	self.maxChampions=addon:GetNumber("MAXCHAMP")
+	self.mandatoryFollowers=addon:GetReservedFollowers(missionID)
 	for i=1,#self.candidatesIndex do
 		local candidate=self.candidates[self.candidatesIndex[i]]
+		self.current=candidate
 		if candidate then
 			local key = candidate.key 
+			candidate.reservedChampions=0
 			if self:CheckParty(candidate) then
 				if self.maximizeXP and candidate.totalXP >self.maxXp then 
 					self.maxXp=candidate.totalXP
 					self.xpkey=key 
 				end
-				if candidate.champions > addon:GetNumber("MAXCHAMP") then 
-					self.lastreason=format("TOOMANYCHAMPIONS %d over %d",candidate.champions,addon:GetNumber("MAXCHAMP"))
+				if candidate.champions > math.max(candidate.reservedChampions,self.maxChampions) then 
+					self:Fail(format("TOOMANYCHAMPIONS %d over %d",candidate.champions,self.maxChampions))
 				else
+					if not self.uncappedkey then self.uncappedkey=key end
 					if not self.absolutebestkey then self.absolutebestkey=key end
 					if not self.bestkey then self.bestkey=self:CheckCaps(i) end
 					self.lastkey=key
 				end
 			end
 			if self.bestkey and not self.maximizeXP then break end
-			if candidate.perc < self.minChance then break end
+			if candidate.perc < self.minChance then candidate.reason = "UNDERMINCHANCE" break end
+--@debug@
+			if dbg then
+				print(i,candidate.key,candidate.reason)
+			end
+--@end-debug@			
 		end
 	end -- for i,key in ipairs(self.candidatesIndex) do
+	self.current=nil
 	del(self.mandatoryFollowers,false)
 	self.mandatoryFollowers=nil
 	local selected
@@ -347,7 +371,7 @@ function partyManager:GetSelectedParty(key)
 			selected = self.candidates[self.lastkey] -- should not return busy followers
 		--end
 	else
-		selected = setmetatable(self:GetEffects(),CandidateMeta)
+		selected = self.candidates["EMPTY"]
 	end
 	self.bestChance=selected.perc or 0
 	self.bestTimeseconds=selected.timeseconds or 0
@@ -357,7 +381,8 @@ end
 function partyManager:Remove(...)
 	local tbl=...
 	if type(tbl)=="table" then
-		for _,id in ipairs(tbl) do
+		for i =1,#tbl do
+			local id=tbl[i]
 			if type(id)=="table" then id=id.followerID end
 			local rc,message=pcall(G.RemoveFollowerFromMission,self.missionID,id)
 		end
@@ -397,15 +422,22 @@ function partyManager:GetEffects()
 
 end
 function partyManager:Build(...)
-	local numFollowers=self.numFollowers
 	local missionID=self.missionID
+	self.numFollowers=self.numFollowers or G.GetMissionMaxFollowers(missionID)
 	local followers=new()
-	local troopcost,xpGainers,champions=0,0,0
-	if select('#',...)>0 then
-		for i=1,numFollowers or 3 do
+	local troopcost,xpGainers,champions,troops=0,0,0,0
+	local assigned=select('#',...)
+	if assigned>0 then
+		for i=1,self.numFollowers or 3 do
 			local s=select(i,...)
 			if s then
-				local fType,followerID=strsplit('|',s)
+				local fType,followerID,value,slot=strsplit('|',s)
+				value=tonumber(value) or 0
+				if fType=='T' then
+					slot=tonumber(slot) or 1
+					followerID=addon:GetTroop(tonumber(followerID),slot)
+					if not followerID then print(s,"not converted") end
+				end
 				if followerID then
 					local rc,res = pcall(G.AddFollowerToMission,missionID,followerID)
 					if not rc or not res then
@@ -415,13 +447,13 @@ function partyManager:Build(...)
 					end
 					tinsert(followers,followerID)
 					if fType=="H" then -- Champion
-						local qlevel=addon:GetFollowerData(followerID,'qLevel',0)
 						champions=champions+1
-						if qlevel < addon:MAXQLEVEL() then
+						if value < addon:MAXQLEVEL() then
 							xpGainers=xpGainers+1
 						end
 					else
-						troopcost=troopcost + addon:GetFollowerData(followerID,"maxDurability") + addon:GetFollowerData(followerID,"quality")
+						troops=troops +1
+						troopcost=troopcost + value
 					end
 				end
 			end
@@ -431,22 +463,30 @@ function partyManager:Build(...)
 	missionEffects.xpGainers=xpGainers
 	missionEffects.totalXP=(todefault(missionEffects.bonusXP,0) + todefault(self.baseXP,0))*(missionEffects.xpGainers or 0)	
 	missionEffects.champions=champions
-	if missionEffects.champions > 3 then print("Che cazzo succede",missionID,champions) end
+	missionEffects.troops=troops
+	missionEffects.troopcost=troopcost
 	self.unique=self.unique+1
 	for i=1,#followers do
-		missionEffects[i]=followers[i]
+		local id=followers[i]
+		if id then tinsert(missionEffects,id) end
 	end
-	local index=format("%04d:%1d:%1d:%1d:%1d:%1d:%2d",
+	for i=1,assigned do
+		local id=select(i,...)
+		if id then missionEffects['f' .. i]=id end
+	end
+	local index=format("%04d:%1d:%2d:%1d:%1d:%1d:%2d",
 		1000-missionEffects.perc,
-		#followers,
-		troopcost,
+		#missionEffects,
+		99-troopcost,
 		missionEffects.improvements,
 		missionEffects.champions,
 		3-missionEffects.xpGainers,
 		self.unique)
+	if #missionEffects==0 then index="EMPTY" end
 	missionEffects.key=index
 	self.candidates[index]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
+	del(followers)
 	return index
 end
 
@@ -460,20 +500,26 @@ function partyManager:Match()
 	wipe(self.candidates)
 	self.unique=0
 	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(missionID)
-	self.numFollowers=mission.numFollowers or 0
+	self.numFollowers=mission.numFollowers or G.GetMissionMaxFollowers(missionID)
 	self.exhausting=exhausting
 	self.elite=mission.elite
 	self.baseXP=baseXP or 0
 	self.rewardXP=(mission.class=="FollowerXP" and mission.value) or 0
 	self.totalXP=self.baseXP+self.rewardXP
-	local n=self.numFollowers or 3
-	for _,tuple in pairs(addon:GetFullPermutations()) do
-		local total,totalChamps,totalTroops,f1,f2,f3=strsplit(',',tuple)
-		if tonumber(total) > n then break end
+	local n
+	local p=addon:GetFullPermutations()
+	for i=1,#p do
+		local tuple=p[i]
+		local total,f1,f2,f3=strsplit(',',tuple)
+		if tonumber(total) > self.numFollowers then break end
 		self:Build(f1,f2,f3)
+		n=i
 	end
 	self:Build()
 	self:GenerateIndex()
+	--@debug@
+	print("Match started for ", missionID, self.numFollowers,"followers",#addon:GetFullPermutations(),"builds",n,"indexed",#self.candidatesIndex,self.candidatesIndex)
+	--@end-debug@
 	return true
 end
 function partyManager:GenerateIndex()
@@ -485,7 +531,10 @@ function partyManager:GenerateIndex()
 end
 function module:OnInitialized()
 	addon:AddLabel(L["Missions"],L["Configuration for mission party builder"])
-	addon:AddBoolean("SAVETROOPS",false,L["Dont kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
+	addon:AddBoolean("SAVETROOPS",false,L["Counter kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
+	addon:AddBoolean("NEVERKILLTROOPS",false,L["Never kill Troops"],L["Makes sure that no troops will be killed"])
+	addon:AddBoolean("PREFERHIGH",false,L["Prefer high durability"],L["Uses tropps with the highest durability instead of the ones with the lowest"])
+	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("BONUS",true,L["Keep extra bonus"],L["Always counter no bonus loot threat"])
 	addon:AddBoolean("SPARE",false,L["Keep cost low"],L["Always counter increased resource cost"])
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
@@ -493,14 +542,16 @@ function module:OnInitialized()
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	addon:AddRange("MAXCHAMP",2,1,3,L["Max champions"],L["Use at most this many champions"],1)
 	addon:AddRange("MINCHANCE",5,5,100,L["Absolute Minimum Chance"],L["Dont bother filling missions under this success chance. (Can speed up the whole selection)."],5)
-	addon:AddRange("BONUSCHANCE",5,5,100,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to not overcap the mission."],5)
+	addon:AddRange("BONUSCHANCE",100,100,200,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to cap at 100. Ignored for elite missions."],5)
 	addon:AddRange("BASECHANCE",5,5,100,L["Base Chance"],L["When we cant achieve the requested bonus chance, we try to reach at least this one"],5)
-	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
-	addon:AddBoolean("IGNOREBUSY",false,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
+	addon:AddBoolean("IGNOREBUSY",true,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
 	addon:RegisterForMenu("mission",
 		"SAVETROOPS",
+		"NEVERKILLTROOPS",
+		'NOTROOPS',
+		'PREFERHIGH',
 		"BONUS",
 		"SPARE",
 		"MAKEITQUICK",
@@ -510,12 +561,11 @@ function module:OnInitialized()
 		'MINCHANCE',
 		'BASECHANCE',
 		'BONUSCHANCE',
-		'NOTROOPS',
 		'USEALLY',
 		'IGNOREBUSY',
 		'IGNOREINACTIVE')
 end
-function module:Events()
+function module:remEvents()
 	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
@@ -557,7 +607,7 @@ function addon:TestParty(missionID)
 	self:Print(choosenkey)
 	if ViragDevTool_AddData then
 		ViragDevTool_AddData({_title=title,_key=choosenkey,data=parties.candidates},"Mission debug " .. title)
-		GetSelectedParty(parties,true)
+		parties:GetSelectedParty(true)
 	end
 end
 --@end-debug@
@@ -574,12 +624,17 @@ function addon:GetAllMissionParties()
 end
 function addon:RefillParties()
 	local i=0
+	collectgarbage("stop")
 	holdEvents()
-	for _,mission in ipairs(OHFMissions.availableMissions) do
-		self:GetMissionParties(mission.missionID):Match()
-		i=_
+	addon:GetFullPermutations(true)
+	partiesPool:ReleaseAll()
+	wipe(missionParties)
+	for n=1,#OHFMissions.availableMissions do
+		self:GetMissionParties(OHFMissions.availableMissions[n].missionID):Match()
+		i=n
 	end
 	releaseEvents()
+	collectgarbage("restart")
 	return i
 end
 function module:ProfileStats()

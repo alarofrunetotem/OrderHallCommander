@@ -46,7 +46,7 @@ end
 function m:SetScale(s)
 	return self.frame:SetScale(s)
 end
-function m:Blacklist(blacklisted)
+function m:xxBlacklist(blacklisted)
 	local mb=self.frame
 	if blacklisted then
 --@debug@

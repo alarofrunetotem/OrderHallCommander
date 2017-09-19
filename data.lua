@@ -102,6 +102,7 @@ local data={
 	},
 	Buffs={
 		140749,
+		143852,
 		139419,
 		140760,
 		140156,
@@ -113,7 +114,11 @@ local data={
 		139376,
 		139418,
 		138412,
+		140922,
 		139670,
+		148349,
+		148350,
+		142209,
 	},
 	Xp={
 		141028
@@ -338,7 +343,7 @@ function module:OnInitialized()
 	--@debug@
 	addon:Print("Starting coroutine")
 	--@end-debug@
-	addon.coroutineExecute(module,0,"TickleServer")
+	addon.coroutineExecute(module,0.1,"TickleServer")
 end
 function module:AddItem(itemID)
 
@@ -362,7 +367,6 @@ local iteration=2
 local GetTime=GetTime
 function tickle(category)
 	local start=GetTime()
-	local pause=0
 	for _,itemid in pairs(category) do
 		if type(itemid)=="number" and itemid > 10 then
 			if not itemquality[itemid] then
@@ -371,19 +375,22 @@ function tickle(category)
 					itemquality[itemid]=quality
 					icon2item[GetItemIcon(itemid)]=itemid
 					i=i+1
+--@debug@
+					if i % 100 == 0 then
+						addon:Print(format("Precached %d items so far",i))
+					end
+--@end-debug@
 				else
 					failed=failed+1
 				end
-				if coroutine.running() and pause > 10 then pause=0 coroutine.yield() end
-				pause=pause+1
+				if coroutine.running() then coroutine.yield() end
 			end
 		end
 	end
 end
 function module:TickleServer()
-	local start=GetTime()
+	local start=debugprofilestop()
 	while true do
-		local now=GetTime()
 		failed=0
 		tickle(data.Equipment)
 		tickle(data.ArtifactPower)
@@ -395,7 +402,7 @@ function module:TickleServer()
 		if failed * iteration == 0 then break end
 	end
 	--@debug@
-	addon:Print("Precached " .. i .. " items in " .. GetTime()-start)
+	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
 	--@end-debug@
 end
 end

@@ -199,9 +199,6 @@ function module:MissionComplete(this,button,skiprescheck)
 	missions=G.GetCompleteMissions(followerType)
 	fillMyStatus(mebefore)
 	if (missions and #missions > 0) then
---@debug@
-		missions={missions[1]}
---@end-debug@	
 		this:SetEnabled(false)
 		OHFMissions.CompleteDialog.BorderFrame.ViewButton:SetEnabled(false) -- Disabling standard Blizzard Completion
 		for k,v in pairs(rewards) do
@@ -296,9 +293,6 @@ GARRISON_FOLLOWER_LIST_UPDATE,followerType
 function module:MissionAutoComplete(event,...)
 -- C_Garrison.MarkMissionComplete Mark mission as complete and prepare it for bonus roll, da chiamare solo in caso di successo
 -- C_Garrison.MissionBonusRoll
---@debug@
-	_G.print(event,...)
---@end-debug@
 	if event=="LOOT" then
 		return self:MissionsPrintResults()
 	end

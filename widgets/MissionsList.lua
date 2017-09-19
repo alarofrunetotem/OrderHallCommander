@@ -102,9 +102,6 @@ function m:AddPlayerXP(xpgain)
 
 end
 function m:AddFollower(followerID,xp,levelup,portrait,fullname)
---@debug@
-	print("Called addfollower for",followerID,xp,levelup,portrait,fullname)
---@end-debug@
 	if xp < 0 then
 		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname))
 	end
