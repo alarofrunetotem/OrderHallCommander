@@ -624,6 +624,7 @@ function addon:GetAllMissionParties()
 end
 function addon:RefillParties()
 	local i=0
+	collectgarbage("stop")
 	holdEvents()
 	addon:GetFullPermutations(true)
 	partiesPool:ReleaseAll()
@@ -633,6 +634,7 @@ function addon:RefillParties()
 		i=n
 	end
 	releaseEvents()
+	collectgarbage("restart")
 	return i
 end
 function module:ProfileStats()

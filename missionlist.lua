@@ -534,6 +534,7 @@ function addon:UpdateStop(n)
 	stopper:RawHookScript(OrderHallMissionFrameMissions,"OnUpdate",GarrisonMissionListMixin.OnUpdate)
 end
 function module:InitialSetup(this)
+	collectgarbage("stop")
 	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
 	if type(addon.db.global.warn02_seen)~="number" then	addon.db.global.warn02_seen =0 end
 	if GetAddOnEnableState(UnitName("player"),"GarrisonCommander") > 0 then
@@ -584,31 +585,36 @@ function module:InitialSetup(this)
 	self:MainOnShow()
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
+	collectgarbage("restart")
 --@alpha@
-	local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
-	frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
-	frame.label:SetAllPoints(frame)
-	frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
-	frame.label:SetWidth(OHF:GetWidth()-10)
-	frame.label:SetText("You are using an\r|cffff0000ALPHA VERSION|r.\nThings can and will break.")
-	frame.label:SetJustifyV("CENTER")
-	frame.label:SetJustifyH("CENTER")
-	frame:SetHeight(frame.label:GetStringHeight()+15)
-	frame:SetWidth(OHF:GetWidth())
-	frame.label:SetPoint("CENTER")
-	if true then return end
+	do
+		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
+		frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
+		frame.label:SetAllPoints(frame)
+		frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
+		frame.label:SetWidth(OHF:GetWidth()-10)
+		frame.label:SetText("You are using an|cffff0000ALPHA VERSION|r.\nThings can and will break.")
+		frame.label:SetJustifyV("CENTER")
+		frame.label:SetJustifyH("CENTER")
+		frame:SetHeight(frame.label:GetStringHeight()+15)
+		frame:SetWidth(OHF:GetWidth())
+		frame.label:SetPoint("CENTER")
+		return
+	end
 --@end-alpha@
-	local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
-	frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
-	frame.label:SetAllPoints(frame)
-	frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
-	frame.label:SetWidth(OHF:GetWidth()-10)
-	frame.label:SetText("You are using an\r|cffff0000BETA VERSION|r.\nIf something doesnt work usually typing /reload will fix it.")
-	frame.label:SetJustifyV("CENTER")
-	frame.label:SetJustifyH("CENTER")
-	frame:SetHeight(frame.label:GetStringHeight()+15)
-	frame:SetWidth(OHF:GetWidth())
-	frame.label:SetPoint("CENTER")
+	if addon.version:find("Beta") then
+		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
+		frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
+		frame.label:SetAllPoints(frame)
+		frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
+		frame.label:SetWidth(OHF:GetWidth()-10)
+		frame.label:SetText("You are using |cffff0000BETA VERSION|r "..addon.version ..".\nIf something doesnt work usually typing /reload will fix it.")
+		frame.label:SetJustifyV("CENTER")
+		frame.label:SetJustifyH("CENTER")
+		frame:SetHeight(frame.label:GetStringHeight()+15)
+		frame:SetWidth(OHF:GetWidth())
+		frame.label:SetPoint("CENTER")
+	end
 	
 end
 function addon:GetMissionKey(missionID)

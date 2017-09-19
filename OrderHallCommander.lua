@@ -539,6 +539,7 @@ function MixinFollowerIcon:Ban(missionID)
 	self:ShowLocks()
 end
 function MixinFollowerIcon:IsBannable()
+	if not self.followerID then return false end
 	if self.Slot==3 then return true end
 	if self.Slot==1 then return false end
 	local slot3=self:GetParent().Champions[3]
