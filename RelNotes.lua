@@ -14,7 +14,7 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,5,"0-Beta-3",[[
+self:RelNotes(1,5,0,[[
 Feature: Left Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones
 Feature: Right clicking a follower slot forbids using it, so you can force OHC to use less follower for a specific mission. Usable only on the leftmost slot
 Feature: Autostart. Mission can be launched whith just one click via the "Quick start mission button". The first mission in the list is started.
