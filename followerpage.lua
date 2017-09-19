@@ -233,9 +233,11 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
 	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
+--@debug@
 	print("RefreshUpgrades",follower.name)
+--@end-debug@	
 	for _,id in pairs(addon:GetData("Buffs")) do
-		self:RenderEquipmentButton(id)
+		self:RenderUpgradeButton(id)
 	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
