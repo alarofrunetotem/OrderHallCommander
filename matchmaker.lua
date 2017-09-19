@@ -103,7 +103,7 @@ __index = function(t,key)
 --upvalues
 local assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent=assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent
 local select,tinsert,format,pcall,setmetatable,coroutine=select,tinsert,format,pcall,setmetatable,coroutine
-local tostringall=tostringall
+local tostringall,strsplit,strjoin=tostringall,strsplit,strjoin
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local emptyTable=setmetatable({},{__newindex=function() end})
 local holdEvents
@@ -156,13 +156,18 @@ function addon:BusyFor(candidate)
 	end
 	return busyUntil
 end
-function addon:CanKillTroops(candidate)
-	for _,followerID in candidate:IterateFollowers() do
-		if self:GetFollowerData(followerID,'durability',0)>1 then
-			return true
+function addon:TroopsWillDieAnyway(candidate)
+	print("willdie")
+	for i=1,#candidate do
+		if candidate['f' .. i] >= "T" then
+			local followerID=candidate[i]
+			print("willdie?",self:GetFollowerName(followerID),self:GetFollowerData(followerID,'durability',3))
+			if self:GetFollowerData(followerID,'durability',3)>1 then
+				return false
+			end
 		end
 	end
-	return false
+	return true
 end
 
 -- Party management
@@ -184,7 +189,7 @@ local partiesPool=CreateObjectPool(
 
 --	addon:RegisterForMenu("mission","SAVETROOPS","SPARE","MAKEITQUICK","MAXIMIZEXP")
 function partyManager:Fail(reason,...)
-	self.current.reason=reason
+	self.current.reason=strjoin(' ',tostringall(reason,...))
 	return false,reason
 end
 
@@ -196,19 +201,14 @@ function partyManager:SatisfyCondition(candidate,index)
 	if type(candidate) ~= "table" then return self:Fail("NOTABLE") end
 	local followerID=candidate[index]
 	if not followerID then return self:Fail("No follower id for party slot",index) end
-
-	local follower=addon:GetFollowerData(followerID)
-	if not follower then return self:Fail("No follower for followerID",followerID) end
-	
-
-	if follower.IsTroop then
+	local fType,classSpec,value,slot=strsplit('|',candidate['f'..index])
+	if fType=="T" then
 		if self.noTroops then return self:Fail("NOTROOPS") end
 		if candidate.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("WOULDKILLTROOPS") end
 		local durability
 		if self.saveTroops and candidate.hasKillTroopsEffect then durability = 1 end
 		if self.dontKillTroops then durability= -2 end
-		followerID=addon:GetTroop(missionID,followerID,self.lastTroop,durability,self.ignoreBusy)
-		self.lastTroop=followerID
+		followerID=addon:GetTroop(tonumber(classSpec),slot or 1,missionID,durability,self.ignoreBusy)
 		if followerID then candidate[index]=followerID return true,'OK' else return false,"NOAVAILABLETROOPS" end
 	else
 		local reserved=addon:IsReserved(followerID)
@@ -309,7 +309,7 @@ function partyManager:GetSelectedParty(key,dbg)
 	if type(key)=="string" and self.candidates[key] then
 		return self.candidates[key],key
 	end
-	if #self.candidatesIndex ==0 then return "" end
+	if #self.candidatesIndex ==0 then return self.candidates["EMPTY"],"EMPTY" end
 	local missionID=self.missionID
 	local xpgainers=0
 	self.maximizeXP=addon:GetBoolean("MAXIMIZEXP")
@@ -356,6 +356,7 @@ function partyManager:GetSelectedParty(key,dbg)
 --@end-debug@			
 		end
 	end -- for i,key in ipairs(self.candidatesIndex) do
+	self.current=nil
 	del(self.mandatoryFollowers,false)
 	self.mandatoryFollowers=nil
 	local selected
@@ -421,15 +422,22 @@ function partyManager:GetEffects()
 
 end
 function partyManager:Build(...)
-	local numFollowers=self.numFollowers
 	local missionID=self.missionID
+	self.numFollowers=self.numFollowers or G.GetMissionMaxFollowers(missionID)
 	local followers=new()
-	local troopcost,xpGainers,champions=0,0,0
-	if select('#',...)>0 then
-		for i=1,numFollowers or 3 do
+	local troopcost,xpGainers,champions,troops=0,0,0,0
+	local assigned=select('#',...)
+	if assigned>0 then
+		for i=1,self.numFollowers or 3 do
 			local s=select(i,...)
 			if s then
-				local fType,followerID=strsplit('|',s)
+				local fType,followerID,value,slot=strsplit('|',s)
+				value=tonumber(value) or 0
+				if fType=='T' then
+					slot=tonumber(slot) or 1
+					followerID=addon:GetTroop(tonumber(followerID),slot)
+					if not followerID then print(s,"not converted") end
+				end
 				if followerID then
 					local rc,res = pcall(G.AddFollowerToMission,missionID,followerID)
 					if not rc or not res then
@@ -439,16 +447,13 @@ function partyManager:Build(...)
 					end
 					tinsert(followers,followerID)
 					if fType=="H" then -- Champion
-						local qlevel=addon:GetFollowerData(followerID,'qLevel',0)
 						champions=champions+1
-						if qlevel < addon:MAXQLEVEL() then
+						if value < addon:MAXQLEVEL() then
 							xpGainers=xpGainers+1
 						end
 					else
-						local m=addon:GetFollowerData(followerID,"maxDurability",0)
-						local q=addon:GetFollowerData(followerID,"quality",0)
-						troopcost=troopcost + tonumber(m) or 0 + tonumber(q) or 0
-						
+						troops=troops +1
+						troopcost=troopcost + value
 					end
 				end
 			end
@@ -458,23 +463,30 @@ function partyManager:Build(...)
 	missionEffects.xpGainers=xpGainers
 	missionEffects.totalXP=(todefault(missionEffects.bonusXP,0) + todefault(self.baseXP,0))*(missionEffects.xpGainers or 0)	
 	missionEffects.champions=champions
-	if missionEffects.champions > 3 then print("Che cazzo succede",missionID,champions) end
+	missionEffects.troops=troops
+	missionEffects.troopcost=troopcost
 	self.unique=self.unique+1
 	for i=1,#followers do
-		missionEffects[i]=followers[i]
+		local id=followers[i]
+		if id then tinsert(missionEffects,id) end
+	end
+	for i=1,assigned do
+		local id=select(i,...)
+		if id then missionEffects['f' .. i]=id end
 	end
 	local index=format("%04d:%1d:%2d:%1d:%1d:%1d:%2d",
 		1000-missionEffects.perc,
-		#followers,
+		#missionEffects,
 		99-troopcost,
 		missionEffects.improvements,
 		missionEffects.champions,
 		3-missionEffects.xpGainers,
 		self.unique)
-	if #followers==0 then index="EMPTY" end
+	if #missionEffects==0 then index="EMPTY" end
 	missionEffects.key=index
 	self.candidates[index]=setmetatable(missionEffects,CandidateMeta)
 	self:Remove(followers)
+	del(followers)
 	return index
 end
 
@@ -488,20 +500,26 @@ function partyManager:Match()
 	wipe(self.candidates)
 	self.unique=0
 	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(missionID)
-	self.numFollowers=mission.numFollowers or 0
+	self.numFollowers=mission.numFollowers or G.GetMissionMaxFollowers(missionID)
 	self.exhausting=exhausting
 	self.elite=mission.elite
 	self.baseXP=baseXP or 0
 	self.rewardXP=(mission.class=="FollowerXP" and mission.value) or 0
 	self.totalXP=self.baseXP+self.rewardXP
-	local n=self.numFollowers or 3
-	for _,tuple in pairs(addon:GetFullPermutations()) do
-		local total,totalChamps,totalTroops,f1,f2,f3=strsplit(',',tuple)
-		if tonumber(total) > n then break end
+	local n
+	local p=addon:GetFullPermutations()
+	for i=1,#p do
+		local tuple=p[i]
+		local total,f1,f2,f3=strsplit(',',tuple)
+		if tonumber(total) > self.numFollowers then break end
 		self:Build(f1,f2,f3)
+		n=i
 	end
 	self:Build()
 	self:GenerateIndex()
+	--@debug@
+	print("Match started for ", missionID, self.numFollowers,"followers",#addon:GetFullPermutations(),"builds",n,"indexed",#self.candidatesIndex,self.candidatesIndex)
+	--@end-debug@
 	return true
 end
 function partyManager:GenerateIndex()
@@ -515,6 +533,8 @@ function module:OnInitialized()
 	addon:AddLabel(L["Missions"],L["Configuration for mission party builder"])
 	addon:AddBoolean("SAVETROOPS",false,L["Counter kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
 	addon:AddBoolean("NEVERKILLTROOPS",false,L["Never kill Troops"],L["Makes sure that no troops will be killed"])
+	addon:AddBoolean("PREFERHIGH",false,L["Prefer high durability"],L["Uses tropps with the highest durability instead of the ones with the lowest"])
+	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("BONUS",true,L["Keep extra bonus"],L["Always counter no bonus loot threat"])
 	addon:AddBoolean("SPARE",false,L["Keep cost low"],L["Always counter increased resource cost"])
 	addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
@@ -524,13 +544,14 @@ function module:OnInitialized()
 	addon:AddRange("MINCHANCE",5,5,100,L["Absolute Minimum Chance"],L["Dont bother filling missions under this success chance. (Can speed up the whole selection)."],5)
 	addon:AddRange("BONUSCHANCE",100,100,200,L["Bonus Chance"],L["If bonus chance is lower than this, then we try to cap at 100. Ignored for elite missions."],5)
 	addon:AddRange("BASECHANCE",5,5,100,L["Base Chance"],L["When we cant achieve the requested bonus chance, we try to reach at least this one"],5)
-	addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
 	addon:AddBoolean("IGNOREBUSY",true,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
 	addon:RegisterForMenu("mission",
 		"SAVETROOPS",
 		"NEVERKILLTROOPS",
+		'NOTROOPS',
+		'PREFERHIGH',
 		"BONUS",
 		"SPARE",
 		"MAKEITQUICK",
@@ -540,7 +561,6 @@ function module:OnInitialized()
 		'MINCHANCE',
 		'BASECHANCE',
 		'BONUSCHANCE',
-		'NOTROOPS',
 		'USEALLY',
 		'IGNOREBUSY',
 		'IGNOREINACTIVE')
@@ -596,7 +616,6 @@ function addon:GetMissionParties(missionID)
 	if not missionParties[missionID] then
 		missionParties[missionID]=partiesPool:Acquire()
 		missionParties[missionID].missionID=missionID
-		missionParties[missionID]:Match()
 	end
 	return missionParties[missionID]
 end
@@ -606,6 +625,9 @@ end
 function addon:RefillParties()
 	local i=0
 	holdEvents()
+	addon:GetFullPermutations(true)
+	partiesPool:ReleaseAll()
+	wipe(missionParties)
 	for n=1,#OHFMissions.availableMissions do
 		self:GetMissionParties(OHFMissions.availableMissions[n].missionID):Match()
 		i=n

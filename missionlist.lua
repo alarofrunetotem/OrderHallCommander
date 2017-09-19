@@ -44,6 +44,7 @@ local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
 local MAX_LEVEL=110
+local tinsert,unpack=tinsert,unpack
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
@@ -78,6 +79,15 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+local pairs,wipe=pairs,wipe
+local unpackHashAppo={}
+local function unpackHash(t)
+	wipe(unpackHashAppo)
+	for _,v in pairs(t) do
+		tinsert(unpackHashAppo,v)
+	end
+	return unpack(unpackHashAppo)
+end
 local UNCAPPED_PERC=PERCENTAGE_STRING
 local CAPPED_PERC=PERCENTAGE_STRING .. "**"
 local Dialog = LibStub("LibDialog-1.0")
@@ -230,26 +240,27 @@ function module:Print(...)
 	print(...)
 end
 function module:Events()
-	addon:RegisterEvent("GARRISON_MISSION_LIST_UPDATE")
-	addon:RegisterEvent("GARRISON_MISSION_STARTED")
-	addon:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED")
-	addon:RegisterEvent("GARRISON_FOLLOWER_ADDED")
-	addon:RegisterEvent("GARRISON_FOLLOWER_REMOVED")
-	addon:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATED")
-	addon:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
-	addon:RegisterEvent("GARRISON_UPDATE")
-	addon:RegisterEvent("GARRISON_UPGRADEABLE_RESULT")
-	addon:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE")
-	addon:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED")
-	addon:RegisterEvent("GARRISON_FOLLOWER_UPGRADED")
-	addon:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED")
-	addon:RegisterEvent("SHIPMENT_CRAFTER_CLOSED")
+	addon:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","makedirty")
+	addon:RegisterEvent("GARRISON_MISSION_STARTED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_ADDED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_REMOVED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATED","makedirty")
+	addon:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS","makedirty")
+	addon:RegisterEvent("GARRISON_UPDATE","makedirty")
+	addon:RegisterEvent("GARRISON_UPGRADEABLE_RESULT","makedirty")
+	addon:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","makedirty")
+	addon:RegisterEvent("SHIPMENT_CRAFTER_CLOSED","makedirty")
 end
 function module:LoadButtons(...)
 	local buttonlist=OHFMissions.listScroll.buttons
 	for i=1,#buttonlist do
 		local b=buttonlist[i]
 		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
+		self:SecureHookScript(b,"OnLeave","AddMembers")
 		self:RawHookScript(b,"OnClick","RawMissionClick")
 		b:RegisterForClicks("AnyDown")
 		local scale=0.8
@@ -261,8 +272,11 @@ function module:LoadButtons(...)
 		self:SecureHookScript(b.Rewards[1],"OnEnter","rwWarning")
 	end
 end
-local currentFollowerString=""
-local function makedirty(self,event,missionType,missionID,...)
+local Refreshers={
+	RefillParties="RefillParties",
+	CleanMissionsCache="CleanMissionsCache"
+}
+function addon:makedirty(event,missionType,missionID,...)
 	if event=="GARRISON_MISSION_LIST_UPDATE" or
 		event=="GARRISON_MISSION_STARTED" then
 		if missionType ~= LE_FOLLOWER_TYPE_GARRISON_7_0 then return end
@@ -275,27 +289,13 @@ local function makedirty(self,event,missionType,missionID,...)
 		or event=="GARRISON_FOLLOWER_UPGRADED"
 		or event=="GARRISON_FOLLOWER_DURABILITY_CHANGED"
 	then
-		clean=false
+		Refreshers["RefillParties"]="RefillParties"
 	end
-	displayClean=false			
+	Refreshers["CleanMissionsCache"]="CleanMissionsCache"
 --@debug@
-	print("Set Dirty state",event,clean,displayClean)
+	print("Set Dirty state ",event,unpackHash(Refreshers))
 --@end-debug@
 end
-function addon:GARRISON_MISSION_LIST_UPDATE(...) makedirty(self,...) end
-function addon:GARRISON_MISSION_STARTED(...) makedirty(self,...)  end
-function addon:GARRISON_FOLLOWER_CATEGORIES_UPDATED(...) makedirty(self,...) end
-function addon:GARRISON_FOLLOWER_ADDED(...) makedirty(self,...) end
-function addon:GARRISON_FOLLOWER_REMOVED(...) makedirty(self,...) end
-function addon:GARRISON_FOLLOWER_LIST_UPDATED(...) makedirty(self,...) end
-function addon:GARRISON_LANDINGPAGE_SHIPMENTS(...) makedirty(self,...) end
-function addon:GARRISON_UPDATE(...) makedirty(self,...) end
-function addon:GARRISON_UPGRADEABLE_RESULT(...) makedirty(self,...) end
-function addon:GARRISON_MISSION_COMPLETE_RESPONSE(...) makedirty(self,...) end
-function addon:GARRISON_FOLLOWER_XP_CHANGED(...) makedirty(self,...) end
-function addon:GARRISON_FOLLOWER_UPGRADED(...) makedirty(self,...) end
-function addon:GARRISON_FOLLOWER_DURABILITY_CHANGED(...) makedirty(self,...) end
-function addon:SHIPMENT_CRAFTER_CLOSED(...) makedirty(self,...) end
 local tb={url=""}
 local artinfo='*' .. L["Artifact shown value is the base value without considering knowledge multiplier"]
 
@@ -322,6 +322,7 @@ function module:printLink(this,button)
 	end
 end
 
+
 --- Full mission panel refresh.
 -- Reloads cached mission inProgressMissions and availableMissions.
 -- Updates combat ally data
@@ -331,31 +332,21 @@ end
 -- 
 function module:OnUpdateMissions(frame)
 --@debug@
-	print("Called OnUpdateMissions with ",clean,displayClean)
+	print("Called OnUpdateMissions with ",unpackHash(Refreshers))
 --@end-debug@	
-	if not clean or not displayClean then
---@debug@
-		local start=debugprofilestop()
---@end-debug@	
-		missionNonFilled=false
-		wipe(missionKEYS)
-		wipe(missionIDS)
-		if not clean then
-			addon:GetFullPermutations(true)
-			local rc=addon:RefillParties()
---@debug@
-			print(format("Refilled %d parties in %.3f",rc,(debugprofilestop()-start)/1000))
---@end-debug@	
-		end
-		clean=true
-		displayClean=true
+	for method,_ in pairs(Refreshers) do
+		addon[method](addon)
 	end
-	return 
+	wipe(Refreshers)	
 end
 function module:RefreshButtons()
-	wipe(missionKEYS)
-	wipe(missionIDS)
-	for _,frame in pairs(OHFButtons) do
+	for method,_ in pairs(Refreshers) do
+		addon[method](addon)
+	end
+	addon:SortTroop()
+	wipe(Refreshers)	
+	for i=1,#OHFButtons do
+		local frame=OHFButtons[i]
 		self:OnSingleUpdate(frame)
 	end
 	return self:CheckShadow()
@@ -380,10 +371,15 @@ function module:CheckShadow()
 		self:NoMartiniNoParty()
 	end
 end
-function addon:ClearMissionsCache()
-		wipe(missionKEYS)
-		wipe(missionIDS)
+function addon:CleanMissionsCache()
+	missionNonFilled=false
+	wipe(missionKEYS)
+	wipe(missionIDS)
 end
+function addon:CleanPermutations()
+	return addon:GetFullpermutations(true)
+end
+
 function addon:Redraw()
 	self:ApplySORTMISSION(Current_Sorter)
 end
@@ -395,6 +391,8 @@ function module:OnSingleUpdate(frame)
 		local blacklisted=addon:IsBlacklisted(frame.info.missionID)
 		if full and not blacklisted  then
 			self:AdjustMissionButton(frame)
+		else
+			self:AddMembers(frame)
 		end
 		missionIDS[frame]=frame.info.missionID
 		local mission=addon:GetMissionData(frame.info.missionID)
@@ -447,7 +445,6 @@ function module:SortMissions()
 end
 local timer
 function addon:Apply(flag,value)
-	missionNonFilled=false
 	if not timer then timer=addon:NewDelayableTimer(function() addon:RefreshMissions() end) end
 	timer:Start(0.01)
 end
@@ -459,10 +456,9 @@ end
 function addon:ApplyELITEMODE(value)
 	OHFMissions:UpdateMissions()
 end
-function addon:ApplyMAXIMIZEXP(value)
-	OHFMissions:UpdateMissions()
-end
+
 function addon:RefreshMissions()
+	self:CleanMissionsCache()
 	module:RefreshButtons()
 	if OHF.MissionTab.MissionPage:IsVisible() then
 		module:RawMissionClick(OHF.MissionTab.MissionPage,"missionpage")
@@ -768,11 +764,11 @@ end
 function module:AddMembers(frame)
 	local start=GetTime()
 	local mission=frame.info
-	if not mission then return end
+	if not mission then print("Missing mission for",frame:GetName()) return end
 	local nrewards=#mission.rewards
 	local missionID=mission.missionID
 	local followers=mission.followers
-	if not missionID then _G.Print(frame:GetName()) return end
+	if not missionID then print("Missing missionID for",frame:GetName())return end
 	local members=missionmembers[frame]
 	local stats=missionstats[frame]
 	local threats=missionthreats[frame]
@@ -783,6 +779,7 @@ function module:AddMembers(frame)
 			members.Champions[i]:SetFollower(followerID,false)
 		end
 		for i=#frame.info.followers+1,3 do
+			members.Champions[i].followerID=nul
 			members.Champions[i]:Hide()
 		end		
 		frame.Overlay:SetFrameLevel(20)
@@ -901,11 +898,11 @@ function module:AddThreats(frame,threats,party,missionID)
 		if party.hasMissionTimeNegativeEffect then
 		tinsert(mechanics,new({icon=timeIcon,color="red",name="Time",description=increasedduration}))
 	end
-	if party.hasKillTroopsEffect then
-			if addon:CanKillTroops(party) then
-			tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
-		else
+	if party.troops > 0 and party.hasKillTroopsEffect then
+		if addon:TroopsWillDieAnyway(party) then
 			tinsert(mechanics,new({icon=killIcon,color="green",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroopsnodie}))
+		else
+			tinsert(mechanics,new({icon=killIcon,color="red",name=ENCOUNTER_JOURNAL_SECTION_FLAG4,description=killtroops}))
 		end
 	end
 	if party.hasResurrectTroopsEffect then
@@ -1015,10 +1012,10 @@ function module:AdjustMissionTooltip(this,...)
 				tip:AddLine(nobonusloot,C:Red())
 			end
 			if candidate.hasKillTroopsEffect then
-				if addon:CanKillTroops(candidate) then
-					tip:AddLine(killtroops,C:Red())
-				else
+				if addon:TroopsWillDieAnyway(candidate) then
 					tip:AddLine(killtroopsnodie,C:Green())
+				else
+					tip:AddLine(killtroops,C:Red())
 				end
 			end
 			if candidate.hasResurrectTroopsEffect then
@@ -1124,6 +1121,7 @@ function module:AdjustMissionTooltip(this,...)
 		tip:AddDoubleLine(k,v,addon.colors("Orange",color))
 	end
 --@end-debug@	
+	self:AddMembers(this)
 	tip:Show()
 end
 function module:RawMissionClick(this,button)
