@@ -15,6 +15,7 @@ local GARRISON_FOLLOWER_XP_UPGRADE_STRING=GARRISON_FOLLOWER_XP_UPGRADE_STRING
 local GARRISON_FOLLOWER_XP_STRING=GARRISON_FOLLOWER_XP_STRING
 local GARRISON_FOLLOWER_DISBANDED=GARRISON_FOLLOWER_DISBANDED
 local BONUS_LOOT_LABEL=C(" (".. BONUS_LOOT_LABEL .. ")","Green")
+local GetItemInfo,GetItemIcon=GetItemInfo,GetItemIcon
 local m={} --#Widget
 function m:ScrollDown()
 	local obj=self.scroll
@@ -157,6 +158,7 @@ end
 function m:AddItem(itemID,qt,isBonus)
 	local obj=self.scroll
 	local _,itemlink,itemquality,_,_,_,_,_,_,itemtexture=GetItemInfo(itemID)
+	if not itemtexture then itemtexture=GetItemIcon(itemID) end
 	if not itemlink then
 		self:AddIconText(itemtexture,itemID,qt,isBonus)
 	else
