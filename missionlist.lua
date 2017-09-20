@@ -725,12 +725,6 @@ function module:AdjustMissionButton(frame)
 		stats.Expire:Show()
 	end
 	stats.Chance:Show()
-	if not missionmembers[frame] then
-		missionmembers[frame]=CreateFrame("Frame",nil,frame,"OHCMembers")
-	end
-	if not missionthreats[frame] then
-		missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
-	end
 	if addon:IsBlacklisted(missionID) then
 		return
 	end
@@ -775,6 +769,12 @@ function module:AddMembers(frame)
 	local missionID=mission.missionID
 	local followers=mission.followers
 	if not missionID then print("Missing missionID for",frame:GetName())return end
+  if not missionmembers[frame] then
+    missionmembers[frame]=CreateFrame("Frame",nil,frame,"OHCMembers")
+  end
+  if not missionthreats[frame] then
+    missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
+  end  
 	local members=missionmembers[frame]
 	local stats=missionstats[frame]
 	local threats=missionthreats[frame]
