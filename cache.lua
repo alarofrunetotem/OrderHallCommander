@@ -622,7 +622,7 @@ function module:Refresh(event,...)
 			event=="GARRISON_MISSION_STARTED" or 
 			event=="GARRISON_MISSION_FINISHED" or
 			event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
-		addon:RefreshFollowerStatus() 
+		return addon:RefreshFollowerStatus() 
 	end
 end
 function module:OnInitialized()
