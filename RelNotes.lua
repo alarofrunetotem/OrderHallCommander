@@ -33,6 +33,7 @@ Fix: #66 Not using less than 3 units total
 Fix: #80 Krokul troops should be used more rarely
 Fix: #78 Ignore busy follower will be checked by defaults for new installs
 Fix: #79 Sometimes parties were not filled
+Fix: #83 Error in missionlist line 781
 ]])
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning
