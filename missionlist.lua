@@ -762,6 +762,7 @@ function module:UnDim(frame)
 		end
 end
 function module:AddMembers(frame)
+  if not frame:IsVisible() then return end
 	local start=GetTime()
 	local mission=frame.info
 	if not mission then print("Missing mission for",frame:GetName()) return end
