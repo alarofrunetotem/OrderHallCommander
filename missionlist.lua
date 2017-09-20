@@ -785,7 +785,7 @@ function module:AddMembers(frame)
 			members.Champions[i]:SetFollower(followerID,false)
 		end
 		for i=#frame.info.followers+1,3 do
-			members.Champions[i].followerID=nul
+			members.Champions[i].followerID=nil
 			members.Champions[i]:Hide()
 		end		
 		frame.Overlay:SetFrameLevel(20)
