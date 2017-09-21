@@ -78,8 +78,8 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
-local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
-local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
+local CATEGORY_INFO_FORMAT=GARRISON_LANDING_COMPLETED:gsub("%%d/%%d","%%d/%%d %%d")
+local CATEGORY_INFO_FORMAT_SHORT="%d/%d %d " .. READY
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin=pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
@@ -537,18 +537,16 @@ function module:GetTroopsFrame()
 end
 
 function module:ParseFollowers()
-	categoryInfo = G.GetClassSpecCategoryInfo(followerType)
-	if empty(categoryInfo) then
-		G.RequestClassSpecCategoryInfo(followerType)
-		self:ScheduleTimer("ParseFollowers",1)
-		return
-	end
+  G.RequestClassSpecCategoryInfo(followerType)
 	G.RequestLandingPageShipmentInfo();
+end	
+function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
+  categoryInfo = G.GetClassSpecCategoryInfo(followerType)
 	if not OHF:IsVisible() then return end
 	local main=self:GetTroopsFrame()
 	local numCategories = #categoryInfo;
 	local prevCategory, firstCategory;
-	local xSpacing = 20;	-- space between categories
+	local nCategories=#categoryInfo
 	for i=1,#categoryInfo do
 		local category=categoryInfo[i]
 		local index=category.classSpec
@@ -567,13 +565,14 @@ function module:ParseFollowers()
 		categoryInfoFrame.name = category.name;
 		categoryInfoFrame.description = category.description;
 		categoryInfoFrame.Count:SetFormattedText(
-			CATEGORY_INFO_FORMAT,
+			nCategories <5 and CATEGORY_INFO_FORMAT or CATEGORY_INFO_FORMAT_SHORT,
 			category.count, category.limit,unpack(shipmentInfo[category.icon]));
 		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)
 		categoryInfoFrame:ClearAllPoints();
-		local w=35 + categoryInfoFrame.Count:GetWidth()
+		local padding= 600 / (nCategories * 1.5)
+		local w= padding + categoryInfoFrame.Count:GetWidth()
 		categoryInfoFrame:SetWidth(w)
-		categoryInfoFrame:SetPoint("TOPLEFT",60 +(w+10) *(i-1), 0);
+		categoryInfoFrame:SetPoint("TOPLEFT",50 +(w) *(i-1), 0);
 		categoryInfoFrame:Show();
 	end
 end
@@ -615,7 +614,6 @@ function module:Refresh(event,...)
 		resources = select(2,GetCurrencyInfo(currency))
 		return
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
-			event=="GARRISON_FOLLOWER_CATEGORIES_UPDATED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
 		return self:ParseFollowers()
 	elseif event=="GARRISON_FOLLOWER_LIST_UPDATE" or 
@@ -639,12 +637,12 @@ function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_FINISHED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
+  self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED")
 end
 function module:EventsOff()
 	self:UnregisterAllEvents()
@@ -755,11 +753,12 @@ end
 function addon:GetFullPermutations(dowipe)
 	if dowipe then wipe(fullPermutations) end
 	if empty(fullPermutations) then
+    self:RefreshFollowers()
 		wipe(fullPermutations) -- better safe than sorry
 		for _,v in pairs(classTroops) do wipe(v) end
 		local seen=new()
 		local all=new()
-		local t=G.GetFollowers()
+		local t=module:GetFollowerData()
 		for i=1,#t do
 			local f=t[i]
 			if f.isCollected then
