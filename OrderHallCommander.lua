@@ -427,6 +427,7 @@ function MixinFollowerIcon:ShowTooltip()
 		local ypos=gft:GetHeight()
 		gft.Lines[1]:ClearAllPoints()
 		gft.Lines[1]:SetPoint("TOPLEFT",gft,"TOPLEFT",5,-ypos)
+
 		if self.locked then
 			self.AddLine(gft,KEY_BUTTON1 .. ' : ' .. C(L['Unlock this follower'],"Red"))
 		else
@@ -480,7 +481,7 @@ function MixinFollowerIcon:AddLine(message)
 	else
 		self.maxWidth=0
 	end
-	line:SetText(tostring(self.current) .. "/" .. tostring(#self.Lines) .. "  " .. message)
+	line:SetText(message)
 	line:Show()
 	self.maxWidth=math.max( line:GetStringWidth(),self.maxWidth)
 	

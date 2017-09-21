@@ -117,9 +117,11 @@ function module:FillParty(missionID,key)
 	local main=OHF
 	main:ClearParty()
 	local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
+	_G.print(key)
+	DevTools_Dump(party)
 	local missionPage=main:GetMissionPage()
 	for i=1,#party do
-		local followerID=party:Follower(i)
+		local followerID=party[i]
 		if followerID and not G.GetFollowerStatus(followerID) then
 			missionPage:AddFollower(followerID)
 		end

@@ -245,7 +245,7 @@ function module:Events()
 	addon:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","makedirty")
 	addon:RegisterEvent("GARRISON_FOLLOWER_ADDED","makedirty")
 	addon:RegisterEvent("GARRISON_FOLLOWER_REMOVED","makedirty")
-	addon:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATED","makedirty")
+	addon:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","makedirty")
 	addon:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS","makedirty")
 	addon:RegisterEvent("GARRISON_UPDATE","makedirty")
 	addon:RegisterEvent("GARRISON_UPGRADEABLE_RESULT","makedirty")
@@ -277,14 +277,17 @@ local Refreshers={
 	CleanMissionsCache="CleanMissionsCache"
 }
 function addon:makedirty(event,missionType,missionID,...)
-	if event=="GARRISON_MISSION_LIST_UPDATE" or
-		event=="GARRISON_MISSION_STARTED" then
+	if event=="GARRISON_MISSION_LIST_UPDATE"
+    or event=="GARRISON_FOLLOWER_LIST_UPDATE"
+		or event=="GARRISON_MISSION_STARTED"
+    or event=="GARRISON_FOLLOWER_UPGRADED"
+    or event=="GARRISON_FOLLOWER_XP_CHANGED" then
 		if missionType ~= LE_FOLLOWER_TYPE_GARRISON_7_0 then return end
 	end
 	if event=="GARRISON_FOLLOWER_CATEGORIES_UPDATED"
 		or event=="GARRISON_FOLLOWER_ADDED"
+    or event=="GARRISON_FOLLOWER_LIST_UPDATE"
 		or event=="GARRISON_FOLLOWER_REMOVED"
-		or event=="GARRISON_FOLLOWER_LIST_UPDATED"
 		or event=="GARRISON_FOLLOWER_XP_CHANGED"
 		or event=="GARRISON_FOLLOWER_UPGRADED"
 		or event=="GARRISON_FOLLOWER_DURABILITY_CHANGED"
@@ -1128,7 +1131,10 @@ function module:AdjustMissionTooltip(this,...)
 		tip:AddDoubleLine(k,v,addon.colors("Orange",color))
 	end
 --@end-debug@	
-	self:AddMembers(this)
+	local rc,message=pcall(self.AddMembers,self,this)
+--@debug@
+  if not rc then error("ALPHA ONLY\n" .. message) end
+--@end-debug@
 	tip:Show()
 end
 function module:RawMissionClick(this,button)
