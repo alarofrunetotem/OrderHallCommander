@@ -141,12 +141,20 @@ function module:DoRunMissions()
 							end
 						end
 					end
-					local timestring,timeseconds,timeImproved,chance--[[,buffs,missionEffects,xpBonus,materials,gold--]]=G.GetPartyMissionInfo(missionID)
+					local timestring,timeseconds,timeImproved,chance,buffs,missionEffects,xpBonus,materials,gold=G.GetPartyMissionInfo(missionID)
+          
 					if party.perc < chance then
 						addon:Print(C(L["Could not fulfill mission, aborting"],"red"))
 						self:Cleanup()
 						break
 					end
+          local r,n,i=addon:GetResources(true)
+          if select(2,G.GetMissionCost(missionID)) > r then
+            addon:Print(C(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,"red"))
+            self:Cleanup()
+            break
+          end
+					
 					nothing=false
 					if truerun then
 						self:RegisterEvent("GARRISON_MISSION_STARTED")
