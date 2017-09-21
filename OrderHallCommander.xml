@@ -133,7 +133,7 @@
 		<Frames>
 			<Frame parentKey="Durability" inherits="GarrisonMissionFollowerDurabilityFrameTemplate" hidden="true">
 				<Anchors>
-					<Anchor point="BOTTOM" x="0" y="5"/>
+					<Anchor point="BOTTOM" x="0" y="4"/>
 				</Anchors>
 			</Frame>		
 		</Frames>
