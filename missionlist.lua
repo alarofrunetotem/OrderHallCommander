@@ -260,7 +260,7 @@ function module:LoadButtons(...)
 	for i=1,#buttonlist do
 		local b=buttonlist[i]
 		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
-		self:SecureHookScript(b,"OnLeave","AddMembers")
+		self:SecureHookScript(b,"OnLeave","SafeAddMembers")
 		self:RawHookScript(b,"OnClick","RawMissionClick")
 		b:RegisterForClicks("AnyDown")
 		local scale=0.8
@@ -387,7 +387,7 @@ function addon:Redraw()
 	self:ApplySORTMISSION(Current_Sorter)
 end
 function module:OnSingleUpdate(frame)
-	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() and frame.info then
+	if OHFMissions:IsVisible() and not OHFCompleteDialog:IsVisible() and frame.info and frame:IsVisible() then
 		self:AdjustPosition(frame)
 		--if frame.info.missionID ~= missionIDS[frame] then
 		local full= not missionIDS[frame] or missionIDS[frame]~=frame.info.missionID
@@ -395,7 +395,7 @@ function module:OnSingleUpdate(frame)
 		if full and not blacklisted  then
 			self:AdjustMissionButton(frame)
 		else
-			self:AddMembers(frame)
+		  self:SafeAddMembers(frame)
 		end
 		missionIDS[frame]=frame.info.missionID
 		local mission=addon:GetMissionData(frame.info.missionID)
@@ -464,7 +464,8 @@ function addon:RefreshMissions()
 	self:CleanMissionsCache()
 	module:RefreshButtons()
 	if OHF.MissionTab.MissionPage:IsVisible() then
-		module:RawMissionClick(OHF.MissionTab.MissionPage,"missionpage")
+	  local mission=OHF.MissionTab.MissionPage.info or OHF.MissionTab.MissionPage.missionInfo
+    addon:GetMissionpageModule():FillParty(mission.missionID,missionKEYS[mission.missionID])	
 	end
 end
 local function ToggleSet(this,value)
@@ -731,7 +732,14 @@ function module:AdjustMissionButton(frame)
 	if addon:IsBlacklisted(missionID) then
 		return
 	end
-	self:AddMembers(frame)
+	self:SafeAddMembers(frame)
+end
+function  module:SafeAddMembers(frame)
+  local rc,errorMessage=pcall(self.AddMembers,self,frame)
+  if not rc then
+    _G.print(C(me,"red"),": Failed addmembers ",errorMessage)
+  end
+
 end
 function module:Dim(frame)
 		frame.Title:SetTextColor(0,0,0)
@@ -746,7 +754,9 @@ function module:Dim(frame)
 		local members=missionmembers[frame]
 		if members then 
 			for _,champion in pairs(members.Champions) do
-				champion:Unlock()
+        if champion.followerID then
+				  champion:Unlock()
+				end
 				champion:SetEmpty(UNUSED)
 			end
 		end
@@ -950,7 +960,7 @@ function module:MissionTip(this)
 	local info=this:GetParent().info
 	local missionID=info.missionID
 	tip:SetOwner(this,"ANCHOR_CURSOR")
-	tip:AddLine(me)
+	tip:AddLine(this:GetName())
 	tip:AddDoubleLine(addon:GetAverageLevels())
 	OrderHallCommanderMixin.DumpData(tip,info)
 	tip:AddLine("Followers")
@@ -958,13 +968,16 @@ function module:MissionTip(this)
 		local rc,name = pcall(G.GetFollowerName,id)
 		tip:AddDoubleLine(id,name)
 	end
-	local party=addon:GetMissionParties(missionID)
+	local parties=addon:GetMissionParties(missionID)
 	local key=missionKEYS[missionID]
-	local candidate =party:GetSelectedParty(key)
+	local party =parties:GetSelectedParty(key)
 	local dataclass=addon:GetData('Troops')
-	for i,id in ipairs(candidate) do
-		local rc,name = pcall(G.GetFollowerName,id)
-		tip:AddDoubleLine(id,name)
+	if party then
+  	for i=1,#party do
+      local id=party[i]
+  		local rc,name = pcall(G.GetFollowerName,id)
+  		tip:AddDoubleLine(id,name)
+  	end
 	end
 	tip:AddLine("Rewards")
 	for i,d in pairs(info.rewards) do
@@ -993,55 +1006,55 @@ function module:AdjustMissionTooltip(this,...)
 	tip:AddDoubleLine("MissionID",missionID)
 --@end-debug@
 	if this.info.inProgress or this.info.completed then tip:Show() return end
-	local party=addon:GetMissionParties(missionID)
-	local candidate,key=emptyTable,missionKEYS[missionID]
+	local parties=addon:GetMissionParties(missionID)
+	local party,key=emptyTable,missionKEYS[missionID]
 	if not this.info.isRare then
 		tip:AddLine(GARRISON_MISSION_AVAILABILITY);
 		tip:AddLine(this.info.offerTimeRemaining, 1, 1, 1);
 	end
 	tip:AddLine(me .. ' additions',C:Silver())
-	if key ~= party.xpkey then
-		local bestchance,uncappedchance=party:GetChanceForKey(key),party:GetChanceForKey(party.uncappedkey)
-		if (not addon:GetMissionData(missionID,"elite",false) and bestchance < uncappedchance) then
-			tip:AddDoubleLine(L["Mission was capped due to total chance less than"],addon:GetNumber("BONUSCHANCE"))
-			tip:AddDoubleLine("Maximum chance was",uncappedchance,nil,nil,nil,addon:GetDifficultyColors(uncappedchance,true))
+	if key ~= parties.xpkey then
+		local bestchance,uncappedchance=parties:GetChanceForKey(key),parties:GetChanceForKey(parties.uncappedkey)
+		if (bestchance ~= uncappedchance) then
+			tip:AddDoubleLine(L["Mission was capped due to total chance less than"],addon:GetNumber("BONUSCHANCE"),C.Orange.r,C.Orange.g,C.Orange.b,C.Red())
+			tip:AddDoubleLine("Maximum chance was",uncappedchance,C.Orange.r,C.Orange.g,C.Orange.b,addon:GetDifficultyColors(uncappedchance,true))
 		end
 	end
-	if party then
-		candidate,key =party:GetSelectedParty(key)
-		if candidate then
+	if parties then
+		party,key =parties:GetSelectedParty(key)
+		if party then
 --@debug@
 			tip:AddDoubleLine("Base time",this.info.durationSeconds)
-			tip:AddDoubleLine("Party time",candidate.timeseconds)
-			tip:AddDoubleLine("Best Key",party.bestkey)
-			tip:AddDoubleLine("Xp Key",party.xpkey)
-			tip:AddDoubleLine("Uncapped Key",party.uncappedkey)
+			tip:AddDoubleLine("Party time",party.timeseconds)
+			tip:AddDoubleLine("Best Key",parties.bestkey)
+			tip:AddDoubleLine("Xp Key",parties.xpkey)
+			tip:AddDoubleLine("Uncapped Key",parties.uncappedkey)
 			tip:AddDoubleLine("Selected Key",key)
 --@end-debug@
-			if candidate.hasBonusLootNegativeEffect then
+			if party.hasBonusLootNegativeEffect then
 				tip:AddLine(nobonusloot,C:Red())
 			end
-			if candidate.hasKillTroopsEffect then
-				if addon:TroopsWillDieAnyway(candidate) then
+			if party.hasKillTroopsEffect then
+				if addon:TroopsWillDieAnyway(party) then
 					tip:AddLine(killtroopsnodie,C:Green())
 				else
 					tip:AddLine(killtroops,C:Red())
 				end
 			end
-			if candidate.hasResurrectTroopsEffect then
+			if party.hasResurrectTroopsEffect then
 				tip:AddLine(L["Resurrect troops effect"],C:Green())
 			end
-			if candidate.cost > candidate.baseCost then
+			if party.cost > party.baseCost then
 				tip:AddLine(increasedcost,C:Red())
 			end
-			if candidate.hasMissionTimeNegativeEffect then
+			if party.hasMissionTimeNegativeEffect then
 				tip:AddLine(increasedduration,C:Red())
 			end
-			if candidate.timeImproved then
+			if party.timeImproved then
 				tip:AddLine(L["Duration reduced"],C:Green())
 			end
 			local r,n,i=addon:GetResources()
-			if candidate.cost > r then
+			if party.cost > r then
 				tip:AddLine(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,C:Red())
 			end
 			-- Not important enough to be specifically shown
@@ -1060,9 +1073,9 @@ function module:AdjustMissionTooltip(this,...)
 	wipe(bestTimesIndex)
 	key=key or "999999999999999999999"
 	addon:BusyFor() -- with no parames resets cache
-	for _,otherkey in party:IterateIndex() do
+	for _,otherkey in parties:IterateIndex() do
 		if otherkey < key then
-			local candidate=party:GetSelectedParty(otherkey)
+			local candidate=parties:GetSelectedParty(otherkey)
 			local duration=addon:BusyFor(candidate)
 			if duration > 0 then
 				local busy=false
@@ -1107,7 +1120,7 @@ function module:AdjustMissionTooltip(this,...)
 	end
 --@debug@
 	tip:AddLine("Mission Data")
-	for k,v in kpairs(party) do
+	for k,v in kpairs(parties) do
 		local color="Silver"
 		if type(v)=="number" then color="Cyan"
 		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
@@ -1119,7 +1132,7 @@ function module:AdjustMissionTooltip(this,...)
 		tip:AddDoubleLine(k,v,addon.colors("Orange",color))
 	end
 	tip:AddLine("Candidate Data")
-	for k,v in kpairs(candidate) do
+	for k,v in kpairs(party) do
 		local color="Silver"
 		if type(v)=="number" then color="Cyan"
 		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
@@ -1131,10 +1144,7 @@ function module:AdjustMissionTooltip(this,...)
 		tip:AddDoubleLine(k,v,addon.colors("Orange",color))
 	end
 --@end-debug@	
-	local rc,message=pcall(self.AddMembers,self,this)
---@debug@
-  if not rc then error("ALPHA ONLY\n" .. message) end
---@end-debug@
+	self:SafeAddMembers(this)
 	tip:Show()
 end
 function module:RawMissionClick(this,button)
@@ -1151,7 +1161,7 @@ function module:RawMissionClick(this,button)
 		addon.db.profile.blacklist[mission.missionID]= not addon.db.profile.blacklist[mission.missionID]
 		GameTooltip:Hide()
 		missionIDS[this]=nil
-		addon:RefreshMissions()
+		--addon:RefreshMissions()
 		if addon:IsBlacklisted(mission.missionID) then
 			self:Dim(this)
 		else

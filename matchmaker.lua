@@ -453,7 +453,7 @@ function partyManager:Build(...)
 						end
 					else
 						troops=troops +1
-						troopcost=troopcost + value
+						troopcost=troopcost + value + addon:GetFollowerData(followerID,"maxDurability",2) *10 + addon:GetFollowerData(followerID,'quality',2)
 					end
 				end
 			end
@@ -462,6 +462,9 @@ function partyManager:Build(...)
 	local missionEffects=self:GetEffects()
 	missionEffects.xpGainers=xpGainers
 	missionEffects.totalXP=(todefault(missionEffects.bonusXP,0) + todefault(self.baseXP,0))*(missionEffects.xpGainers or 0)	
+	if missionEffects.perc >= 200 then
+	 missionEffects.totalXP=missionEffects.totalXP * 2
+	end
 	missionEffects.champions=champions
 	missionEffects.troops=troops
 	missionEffects.troopcost=troopcost
@@ -474,13 +477,14 @@ function partyManager:Build(...)
 		local id=select(i,...)
 		if id then missionEffects['f' .. i]=id end
 	end
-	local index=format("%04d:%1d:%2d:%1d:%1d:%1d:%2d",
+	local index=format("%04d:%1d:%3d:%1d:%1d:%1d:%2d %3d",
 		1000-missionEffects.perc,
 		#missionEffects,
-		99-troopcost,
+		999-troopcost,
 		missionEffects.improvements,
 		missionEffects.champions,
 		3-missionEffects.xpGainers,
+		missionEffects.perc,
 		self.unique)
 	if #missionEffects==0 then index="EMPTY" end
 	missionEffects.key=index

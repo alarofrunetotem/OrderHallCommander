@@ -261,17 +261,22 @@ function Mixin:Dump(data)
 	tip:Show()
 end
 function Mixin.DumpData(tip,data)
-	for k,v in kpairs(data) do
-		local color="Silver"
-		if type(v)=="number" then color="Cyan"
-		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
-		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
-		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
-		else v=type(v) color="Blue"
-		end
-		if k=="description" then v =v:sub(1,10) end
-		tip:AddDoubleLine(k,v,colors("Orange",color))
+  if type(data)== "table" then
+  	for k,v in kpairs(data) do
+  		local color="Silver"
+  		if type(v)=="number" then color="Cyan"
+  		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
+  		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
+  		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+  		else v=type(v) color="Blue"
+  		end
+  		if k=="description" then v =v:sub(1,10) end
+  		tip:AddDoubleLine(k,v,colors("Orange",color))
+  	end
+	else
+      tip:AddDoubleLine(tostring(data),type(data))
 	end
+	
 end
 function MixinThreats:OnLoad()
 	if not self.threatPool then self.threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end

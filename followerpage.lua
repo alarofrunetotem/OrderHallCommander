@@ -115,7 +115,7 @@ end
 function module:ShowFollowerData(this)
 	local tip=GameTooltip
 	tip:SetOwner(this,"CURSOR_ANCHOR")
-	tip:AddLine(me)
+	tip:AddLine(this:GetName())
 	OrderHallCommanderMixin.DumpData(tip,addon:GetFollowerData(OHFFollowerTab.followerID))
 	tip:Show()
 end

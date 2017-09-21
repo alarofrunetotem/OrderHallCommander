@@ -701,7 +701,7 @@ function addon:GetTroopCost(classSpec)
 	if not troopCosts[classSpec] then
 		local t=G.GetClassSpecCategoryInfo(followerType)
 		for i=1,#t do
-			troopCosts[t[i].classSpec]=t[i].limit
+			troopCosts[t[i].classSpec]=t[i].limit * 100
 		end
 	end
 	return troopCosts[classSpec] or 0
