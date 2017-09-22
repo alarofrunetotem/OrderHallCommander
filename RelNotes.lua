@@ -32,10 +32,16 @@ Fix: #65 Errors from ACE when rapidly changing sliders
 Fix: #66 Not using less than 3 units total
 Fix: #80 Krokul troops should be used more rarely
 Fix: #78 Ignore busy follower will be checked by defaults for new installs
+Errors only appearing in betas
 Fix: #79 Sometimes parties were not filled
 Fix: #83 Error in missionlist line 781
+Fix: #84 Open mission table error
+Fix: #85 beta5 graphis issue
+Fix: #87 beta5 healing troops require reload
+Fix: #88 giving new gear to champs is not reflected on calculations until reload
 Fix: #92 Chat spam
-Fix: #93 Debug function calle
+Fix: #93 Debug function called
+Fix: #94 Chat spam
 ]])
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning

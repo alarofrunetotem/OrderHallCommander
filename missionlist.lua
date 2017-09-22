@@ -356,7 +356,7 @@ function module:CheckShadow()
 		if totChamps==0 then
 			self:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
 		elseif maxChamps  < 3 then
-			self:NoMartiniNoParty(L["Unable to fill missions, raise maximum champions' number"])
+			self:NoMartiniNoParty(format(L['Unable to fill missions, raise "%s"'],L["Max champions"]))
 		else
 			self:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
 		end
@@ -382,7 +382,7 @@ function module:OnSingleUpdate(frame)
 		--if frame.info.missionID ~= missionIDS[frame] then
 		local full= not missionIDS[frame] or missionIDS[frame]~=frame.info.missionID
 		local blacklisted=addon:IsBlacklisted(frame.info.missionID)
-		if full and not blacklisted  then
+		if not blacklisted  then -- always do a full refresh and see what happens
 			self:AdjustMissionButton(frame)
 		else
 		  self:SafeAddMembers(frame)
@@ -392,13 +392,13 @@ function module:OnSingleUpdate(frame)
 		if blacklisted then
 			self:Dim(frame)
 		else
-		local rw=frame.Rewards[1]
-			rw.Icon:SetDesaturated(false)
-			rw.IconBorder:SetDesaturated(false)
-		if mission.class and mission.class=="Artifact" then
-			rw.Quantity:SetText(mission.classValue .. "*")
-			rw.Quantity:Show()
-			end
+  		local rw=frame.Rewards[1]
+  		rw.Icon:SetDesaturated(false)
+  		rw.IconBorder:SetDesaturated(false)
+  	  if mission.class and mission.class=="Artifact" then
+  			rw.Quantity:SetText(mission.classValue .. "*")
+  			rw.Quantity:Show()
+ 			end
 		end
 	end
 end
@@ -861,6 +861,7 @@ local resurrectIcon="Interface/ICONS/Spell_Holy_GuardianSpirit"
 local lockIcon="Interface/CHATFRAME/UI-ChatFrame-LockIcon"
 function module:AddThreats(frame,threats,party,missionID)
 	threats:SetPoint("TOPLEFT",frame.Title,"BOTTOMLEFT",0,-5)
+	threats:Show()
 	local enemies=addon:GetMissionData(missionID,'enemies')
 	if type(enemies)~="table" then
 		enemies=select(8,G.GetMissionInfo(missionID))
@@ -1150,6 +1151,9 @@ end
 function module:RawMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
 	local key=missionKEYS[mission.missionID]
+	if IsShiftKeyDown() then
+	 return -- could hook qui e fast mission submission skipping the mission page
+	end
 	if button=="LeftButton" or button=="missionpage" then
 		if button ~= "missionpage" then self.hooks[this].OnClick(this,button) end
 		if( IsControlKeyDown()) then
