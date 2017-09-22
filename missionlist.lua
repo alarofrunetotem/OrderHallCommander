@@ -205,17 +205,7 @@ function module:OnInitialized()
 		"NOWARN")
 	self:LoadButtons()
 	Current_Sorter=addon:GetString("SORTMISSION")
-	self:SecureHookScript(OHF--[[MissionTab--]],"OnShow","InitialSetup")
-	--@debug@
-	--@end-debug@
-	--hooksecurefunc("Garrison_SortMissions",Garrison_SortMissions_PostHook)--function(missions) module:SortMissions(missions) end)
-	--self:SecureHook("Garrison_SortMissions",function(missionlist) print("Sorting",#missionlist,"missions") end)
-	--function(missions) module:SortMissions(missions) end)
-	--self:SecureHookScript(OrderHallMissionFrameMissionsTab1,"OnClick","CheckShadow")
-	--self:SecureHookScript(OrderHallMissionFrameMissionsTab2,"OnClick","CheckShadow")
-	--self:SecureHook("GarrisonMissionController_OnClickTab","CheckShadow")
-	--self:SecureHook("GarrisonMissionListTab_OnClick","CheckShadow")
-
+	self:SecureHookScript(OHF,"OnShow","InitialSetup")
 		Dialog:Register("OHCUrlCopy", {
 			text = L["URL Copy"],
 			width = 500,
@@ -710,6 +700,12 @@ function module:AdjustMissionButton(frame)
 		self:RawHookScript(missionstats[frame],"OnEnter","MissionTip")
 --@end-debug@
 	end
+  if not missionmembers[frame] then
+    missionmembers[frame]=CreateFrame("Frame",nil,frame,"OHCMembers")
+  end
+  if not missionthreats[frame] then
+    missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
+  end  	
 	local stats=missionstats[frame]
 	local aLevel,aIlevel=addon:GetAverageLevels()
 	if mission.isMaxLevel then
@@ -736,10 +732,11 @@ function module:AdjustMissionButton(frame)
 end
 function  module:SafeAddMembers(frame)
   local rc,errorMessage=pcall(self.AddMembers,self,frame)
+--@debug@  
   if not rc then
     _G.print(C(me,"red"),": Failed addmembers ",errorMessage)
   end
-
+--@end-debug@  
 end
 function module:Dim(frame)
 		frame.Title:SetTextColor(0,0,0)
@@ -776,22 +773,25 @@ function module:UnDim(frame)
 end
 function module:AddMembers(frame)
   if not frame:IsVisible() then return end
+  local stats=missionstats[frame]
+  local members=missionmembers[frame]
+  local threats=missionthreats[frame]
+  if not stats or not members or not threats then
+    -- Called out of sync, just ignore 
+    return 
+  end
 	local start=GetTime()
 	local mission=frame.info
-	if not mission then print("Missing mission for",frame:GetName()) return end
-	local nrewards=#mission.rewards
-	local missionID=mission.missionID
-	local followers=mission.followers
-	if not missionID then print("Missing missionID for",frame:GetName())return end
-  if not missionmembers[frame] then
-    missionmembers[frame]=CreateFrame("Frame",nil,frame,"OHCMembers")
+  local missionID=mission and mission.missionID
+  if not missionID then
+--@debug@   
+    print("Missing mission or missionID for",frame:GetName(),mission)
+--@end-debug@    
+    return
   end
-  if not missionthreats[frame] then
-    missionthreats[frame]=CreateFrame("Frame",nil,frame,"OHCThreats")
-  end  
-	local members=missionmembers[frame]
-	local stats=missionstats[frame]
-	local threats=missionthreats[frame]
+	local nrewards=#mission.rewards
+	local followers=mission.followers
+
 	members:SetNotReady()
 	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
 	if InProgress(frame.info,frame) then
