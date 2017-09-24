@@ -2,7 +2,7 @@ local me,addon=...
 if addon.die then return end
 local C=addon:GetColorTable()
 local module=addon:GetWidgetsModule()
-local Type,Version="OHCGUIContainer",1
+local Type,Version="OHCGUIContainer",2
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 local m={} --#Widget
@@ -19,10 +19,10 @@ function m:SetContentWidth(x)
 	self.content:SetWidth(x)
 end
 function m:SetTitle(...)
-	self.frame.TitleText:SetText(...)
+	--self.frame.TitleText:SetText(...)
 end
 function m:SetTitleColor(...)
-	self.frame.TitleText:SetTextColor(...)
+	--self.frame.TitleText:SetTextColor(...)
 end
 function m._Constructor()
 	local frame=CreateFrame("Frame",Type..AceGUI:GetNextWidgetNum(Type),nil,"OHCBaseFrame")

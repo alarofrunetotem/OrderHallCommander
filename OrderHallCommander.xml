@@ -183,7 +183,7 @@
 		</Frames>		
 	</Frame>
 
-	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="OHCBaseFrame">
+	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="OHCBaseFrame" virtual="true">
 <!-- 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="TooltipBorderedFrameTemplate" virtual="true"> -->
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>

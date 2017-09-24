@@ -2,7 +2,7 @@ local me,addon=...
 if addon.die then return end
 local C=addon:GetColorTable()
 local module=addon:GetWidgetsModule()
-local Type,Version,unique="OHCMissionsList",1,0
+local Type,Version,unique="OHCMissionsList",2,0
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 local C=addon:GetColorTable()
