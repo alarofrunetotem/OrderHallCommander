@@ -189,4 +189,60 @@ function module:DoRunMissions()
 	end
 	multiple=true
 end
+function module:FireMission(missionID,frame,truerun)
+  if not addon:IsBlacklisted(missionID)  then
+    local baseChance=addon:GetNumber('BASECHANCE')
+    local key=addon:GetMissionKey(missionID)
+    local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
+    local members = addon:GetMembersFrame(frame)
+    if party.perc >= baseChance then
+      local info=""
+      for i=1,#members.Champions do
+        local followerID=members.Champions[i]:GetFollower()
+        if followerID then
+          safeguard[followerID]=missionID
+          local rc,res = pcall(G.AddFollowerToMission,missionID,followerID)
+          if rc then
+            info=info .. G.GetFollowerLink(followerID)
+          else
+            addon:Print(C(L["Unable to start mission, aborting"],"red"))
+            self:Cleanup()
+            break
+          end
+        end
+      end
+      local timestring,timeseconds,timeImproved,chance,buffs,missionEffects,xpBonus,materials,gold=G.GetPartyMissionInfo(missionID)
+      if party.perc < chance then
+        addon:Print(C(L["Could not fulfill mission, aborting"],"red"))
+        self:Cleanup()
+        return true
+      end
+      local r,n,i=addon:GetResources(true)
+      if select(2,G.GetMissionCost(missionID)) > r then
+        addon:Print(C(GARRISON_NOT_ENOUGH_MATERIALS_TOOLTIP,"red"))
+        self:Cleanup()
+        return true
+      end
+      if truerun then
+        self:RegisterEvent("GARRISON_MISSION_STARTED")
+        G.StartMission(missionID)           
+        addon:Print(C(L["Started with "],"green") ..info)
+        PlaySound(SOUNDKIT.UI_GARRISON_COMMAND_TABLE_MISSION_START)
+        --@debug@
+        dprint("Calling OHF:UpdateMissions")  
+        --@end-debug@
+        OHFFollowerList.dirtyList=true
+        OHFFollowerList:UpdateFollowers();  
+        OHFMissions:UpdateMissions()            
+        return
+      else
+        addon:Print(C(L["Would start with "],"green") ..info)
+        addon:Print(C("Shift-Click to actually start mission","green"))
+        self:Cleanup()
+      end
+    else
+      addon:Print(C(format(L["%1$d%% lower than %2$d%%. Lower %s"],party.perc,baseChance,L["Base Chance"]),"red"))
+    end
+  end
+end
 

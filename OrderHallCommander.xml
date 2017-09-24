@@ -170,18 +170,8 @@
 			</OnEnter>
 		</Scripts>
 	</Button>
-
-	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="TooltipBorderedFrameTemplate" virtual="true">
-<!-- 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="TooltipBorderedFrameTemplate" virtual="true"> -->
+	<Frame name="OHCBaseFrame" inherits="TooltipBorderedFrameTemplate" virtual="true">
 		<Size x="200" y="30"/>
-		<KeyValues>
-			<KeyValue key="PinOpen" value="true" type="boolean"/>
-			<KeyValue key="DefaultWidth" value="220" type="number"/>
-		</KeyValues>		
-		<Anchors>
-			<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="30"/>
-			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
-		</Anchors>
 		<Frames>
 			<Button parentKey="CloseButton" inherits="UIPanelCloseButton">
 				<Anchors>
@@ -191,6 +181,18 @@
 				</Anchors>
 			</Button>
 		</Frames>		
+	</Frame>
+
+	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="OHCBaseFrame">
+<!-- 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="TooltipBorderedFrameTemplate" virtual="true"> -->
+		<KeyValues>
+			<KeyValue key="PinOpen" value="true" type="boolean"/>
+			<KeyValue key="DefaultWidth" value="220" type="number"/>
+		</KeyValues>		
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="0" y="30"/>
+			<Anchor point="BOTTOMLEFT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+		</Anchors>
 		<Layers>
 			<Layer level="OVERLAY">
 				<FontString parentKey="Title" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightSmallOutline" text="OrderHallCommander">

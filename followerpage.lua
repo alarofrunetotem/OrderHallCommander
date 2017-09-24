@@ -241,22 +241,27 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
-		for _,id in pairs(addon:GetData("Upgrades")) do
+		for _,id in pairs(addon:GetData("U850")) do
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.iLevel <880 then
-		for _,id in pairs(addon:GetData("Upgrades2")) do
+		for _,id in pairs(addon:GetData("U880")) do
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.iLevel <900 then
-		for _,id in pairs(addon:GetData("Upgrades3")) do
+		for _,id in pairs(addon:GetData("U900")) do
 			self:RenderUpgradeButton(id)
 		end
 	end
+  if follower.iLevel <925 then
+    for _,id in pairs(addon:GetData("U925")) do
+      self:RenderUpgradeButton(id)
+    end
+  end
 	if follower.iLevel <950 then
-		for _,id in pairs(addon:GetData("Upgrades4")) do
+		for _,id in pairs(addon:GetData("U950")) do
 			self:RenderUpgradeButton(id)
 		end
 	end

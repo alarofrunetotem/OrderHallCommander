@@ -327,6 +327,9 @@ function module:OnUpdateMissions(frame)
 --@debug@
 	print("Called OnUpdateMissions with ",unpackHash(Refreshers))
 --@end-debug@	
+  if addon:EmptyPermutations() then
+    Refreshers["RefillParties"]="RefillParties"
+  end    
 	for method,_ in pairs(Refreshers) do
 		addon[method](addon)
 	end
@@ -1152,7 +1155,12 @@ function module:RawMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
 	local key=missionKEYS[mission.missionID]
 	if IsShiftKeyDown() then
-	 return -- could hook qui e fast mission submission skipping the mission page
+--@debug@
+    return addon:GetAutopilotModule():FireMission(mission.missionID,this,true)
+--@end-debug@
+--[===[@non-debug@
+    return
+--@end-non-debug@]===]	
 	end
 	if button=="LeftButton" or button=="missionpage" then
 		if button ~= "missionpage" then self.hooks[this].OnClick(this,button) end

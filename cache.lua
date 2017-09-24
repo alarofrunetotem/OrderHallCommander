@@ -662,7 +662,9 @@ end
 function addon:RefreshFollowers()
 	followerCache=G.GetFollowers(followerType)
 	rebuildFollowerIndex()
+--@debug@	
 	print("Followeres refreshed:",#followerCache)
+--@end-debug@	
 end
 function addon:GetFollowerData(...)
 	return module:GetFollowerData(...)
@@ -750,11 +752,13 @@ function addon:GetTroop(classSpec,slot,missionID,durability,ignoreBusy)
 		end
 	end
 end
+function addon:EmptyPermutations()
+  return #fullPermutations==0
+end
 function addon:GetFullPermutations(dowipe)
 	if dowipe then wipe(fullPermutations) end
-	if empty(fullPermutations) then
+	if #fullPermutations==0 then
     self:RefreshFollowers()
-		wipe(fullPermutations) -- better safe than sorry
 		for _,v in pairs(classTroops) do wipe(v) end
 		local seen=new()
 		local all=new()
