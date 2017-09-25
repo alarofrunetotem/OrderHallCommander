@@ -125,119 +125,6 @@ local data={
 	Xp={
 		141028
 	},
-	Equipment={
-		139792,
-		139795,
-		139799,
-		139801,
-		139802,
-		139804,
-		139808,
-		139809,
-		139811,
-		139812,
-		139813,
-		139814,
-		139816,
-		139819,
-		139821,
-		139822,
-		139823,
-		139824,
-		139825,
-		139826,
-		139827,
-		139828,
-		139829,
-		139830,
-		139831,
-		139832,
-		139833,
-		139834,
-		139835,
-		139836,
-		139837,
-		139838,
-		139839,
-		139840,
-		139841,
-		139842,
-		139843,
-		139844,
-		139845,
-		139846,
-		139847,
-		139848,
-		139849,
-		139850,
-		139851,
-		139852,
-		139853,
-		139854,
-		139855,
-		139856,
-		139857,
-		139858,
-		139859,
-		139860,
-		139861,
-		139862,
-		139863,
-		139864,
-		139865,
-		139866,
-		139867,
-		139868,
-		139869,
-		139870,
-		139871,
-		139872,
-		139873,
-		139874,
-		139875,
-		139876,
-		139877,
-		139878,
-		140571,
-		140572,
-		140573,
-		140581,
-		140582,
-		140583,
-		145244,
-		147552,
-		147553,
-		147554,
-		147555,
-		147557,
-		147558,
-		147559,
-		147566,
-		147569,
-		152437,
-		152438,
-		152439,
-		152440,
-		152441,
-		152442,
-		152443,
-		152445,
-		152446,
-		152447,
-		152448,
-		152449,
-		152450,
-		152451,
-		152452,
-		152453,
-		152454,
-		152928,
-		152929,
-		152930,	
-    152933,	   
-		152934,
-		152935,
-	},
 	ArtifactPower={},
 }
 local icon2item={}
@@ -248,28 +135,24 @@ function addon:GetData(key)
 end
 local tickle
 function module:OnInitialized()
-	if addon.allArtifactPower then
-		wipe(data.ArtifactPower)
-	--@debug@
-	addon:Print("Updating artifact with wowhead data")
-	--@end-debug@
-		for k,_ in pairs(addon.allArtifactPower) do
-			tinsert(data.ArtifactPower,todefault(k,1))
-		end
-	end
 	--@debug@
 	addon:Print("Starting coroutine")
 	--@end-debug@
 	addon.coroutineExecute(module,0.1,"TickleServer")
 end
+local GetItemIcon=GetItemIcon
+local GetItemInfo=GetItemInfo
+local pcall=pcall
 function module:AddItem(itemID)
 
 end
 function addon:GetItemIdByIcon(iconid)
+  if not icon2item[iconid] then icon2item[iconid] = GetItemIcon(iconid) end 
 	return icon2item[iconid]
 end
-function addon:GetItemQuality(itemId)
-	return itemquality[itemId]
+function addon:GetItemQuality(itemid)
+  if not itemquality[itemid] then itemquality[itemid] = select(4,pcall(GetItemInfo,itemid)) end
+	return itemquality[itemid]
 end
 
 do
@@ -278,13 +161,12 @@ local type=type
 local GetItemIcon=GetItemIcon
 local GetItemInfo=GetItemInfo
 local coroutine=coroutine
+local pcall=pcall
 local i=0
-local failed=1
-local iteration=2
 local GetTime=GetTime
 function tickle(category)
 	local start=GetTime()
-	for _,itemid in pairs(category) do
+	for itemid,_ in pairs(category) do
 		if type(itemid)=="number" and itemid > 10 then
 			if not itemquality[itemid] then
 				local rc,name,link,quality=pcall(GetItemInfo,itemid)
@@ -297,8 +179,6 @@ function tickle(category)
 						addon:Print(format("Precached %d items so far",i))
 					end
 --@end-debug@
-				else
-					failed=failed+1
 				end
 				if coroutine.running() then coroutine.yield() end
 			end
@@ -307,17 +187,7 @@ function tickle(category)
 end
 function module:TickleServer()
 	local start=debugprofilestop()
-	while true do
-		failed=0
-		tickle(data.Equipment)
-		tickle(data.ArtifactPower)
-		tickle(data.Buffs)
-		tickle(data.Upgrades)
-		tickle(data.Upgrades2)
-		tickle(data.Upgrades3)
-		iteration=iteration-1
-		if failed * iteration == 0 then break end
-	end
+	tickle(data.allArtifactPower)
 	--@debug@
 	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
 	--@end-debug@

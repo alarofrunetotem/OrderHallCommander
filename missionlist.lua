@@ -295,7 +295,7 @@ local artinfo='*' .. L["Artifact shown value is the base value without consideri
 function module:rwWarning(this)
 	if this.itemID  then
 		local tip=GameTooltip
-		if addon.allArtifactPower[tostring(this.itemID)] then
+		if addon.allArtifactPower[this.itemID] then
 			tip:AddLine(artinfo,C.Artifact())
 		end
 		tip:AddLine("Shift-Click for a wowhead link popup")
@@ -540,7 +540,10 @@ function module:InitialSetup(this)
 			addon:Popup(L["OrderHallCommander overrides GarrisonCommander for Order Hall Management.\n You can revert to GarrisonCommander simply disabling OrderhallCommander.\nIf instead you like OrderHallCommander remember to add it to Curse client and keep it updated"],20)
 		end
 	end
-	menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
+	--menu=CreateFrame("Frame",nil,OHFMissionTab,"OHCMenu")
+  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
+  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
+  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
 	menu.Title:SetText(me .. ' ' .. addon.version)
 	menu.Title:SetTextColor(C:Yellow())
 	local obj=addon:GetCacheModule():GetTroopsFrame()
