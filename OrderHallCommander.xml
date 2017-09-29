@@ -20,9 +20,7 @@
 			<KeyValue name="IsCustom" value="true" type="boolean"/>
 		</KeyValues>
 	</Button>
-	<Button name="OHCMiniMissionButton" inherits="GarrisonLandingPageReportMissionTemplate" virtual="true">
-		<Size x="400" y="47"/>
-	</Button>
+
 	<Frame parentKey="Stats" name="OHCStats" virtual="true" enableMouse="true" mixin="OrderHallCommanderMixin">
 		<Size x="110" y="75"/>
 		<Layers>
@@ -102,7 +100,7 @@
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 			<OnLeave method="HideTT"/>
-			<OnShow methot="OnShow"/>
+			<OnShow method="OnShow"/>
 		</Scripts>
 	</Frame>
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
@@ -141,6 +139,16 @@
 	<Frame name="OHCFollowerPortrait" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
 		<Size x="161" y="58"/>
 	</Frame>
+	<Frame name="OHCMiniMissionButton" inherits="GarrisonLandingPageReportMissionTemplate" virtual="true">
+		<Size x="400" y="60"/>
+		<Frames>
+			<Frame parentKey="Followers" inherits="OHCMembers" hidden="false">
+				<Anchors>
+					<Anchor point="RIGHT" x="-30" y="0"/>
+				</Anchors>
+			</Frame>>
+		</Frames>
+	</Frame>	
 	<Button name="OHCFollowerButton" inherits="GarrisonFollowerButtonTemplate" virtual="true">
 		<Size x="260" y="56"/>
 	</Button>
@@ -243,12 +251,13 @@
 							GameTooltip:Show()
 						end
 					</OnEnter>
+					<OnClick></OnClick>
 				</Scripts>								
 			</Button>
 			<Button parentKey="Backward">
 				<Size x="32" y="32"/>
 				<Anchors>
-					<Anchor point="BOTTOMRIGHT"/>
+					<Anchor point="BOTTOMLEFT"/>
 				</Anchors>
 				<NormalTexture file="Interface\Glues\Common\Glue-LeftArrow-Button-Up"/>
 				<PushedTexture file="Interface\Glues\Common\Glue-LeftArrow-Button-Down"/>

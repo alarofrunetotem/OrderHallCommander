@@ -2,7 +2,9 @@
 	<Script file="widgets.lua"/>
 	<Script file="widgets/GUIContainer.lua"/>
 	<Script file="widgets/MissionsList.lua" />
+	<Script file="widgets/MissionDetails.lua" />
 	<Script file="widgets/MissionButton.lua" />
+	<Script file="widgets/MiniMissionButton.lua" />
 	<Script file="widgets/Reward.lua" />
 	<Script file="widgets/Follower.lua" />
 	<Frame name="OHCSpinner" inherits="LoadingSpinnerTemplate" virtual="true">

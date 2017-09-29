@@ -414,7 +414,7 @@ local function sortfuncProgress(a,b)
 end
 local function sortfuncAvailable(a,b)
 	if sortKeys[a.missionID] ~= sortKeys[b.missionID] then
-		return tostring(sortKeys[a.missionID]) < tostring(sortKeys[b.missionID])
+		return tostring(sortKeys[a.missionID]) > tostring(sortKeys[b.missionID])
 	else
 		return strcmputf8i(a.name, b.name) < 0
 	end
@@ -494,11 +494,7 @@ local function OpenMenu()
 	addon.db.profile.showmenu=true
 	button:Hide()
 	menu:Show()
-	if (addon:GetTutorialsModule():HasReadTutorial()) then
-    menu.Tutorial:Hide()
-	else
-    menu.Tutorial:Show()
-  end
+  menu.Tutorial:Show()
 end
 local function CloseMenu()
 	addon.db.profile.showmenu=false
@@ -578,7 +574,7 @@ function module:InitialSetup(this)
 	local LL=LibStub("AceLocale-3.0"):GetLocale("LibInit" .. minor,true)
 	menu.Close:SetScript("OnClick",CloseMenu)
 	addon:RawHookScript(menu.Tutorial,"OnClick","ShowTutorial")
-	menu.Tutorial.tooltip=L["Resume tutorial"]
+	menu.Tutorial.tooltip=L["Show tutorial"]
 	button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
 	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
 	button:SetScript("OnClick",OpenMenu)
@@ -705,7 +701,6 @@ function module:EvOff()
 end
 function module:MainOnShow()
 	addon:GetResources(true)
-	print(OHF.selectedTab)
 	--self:Unhook(OHFMissions,"Update")
 	addon:RefreshFollowerStatus()
 	addon:GetCacheModule():GARRISON_LANDINGPAGE_SHIPMENTS()
@@ -1136,6 +1131,7 @@ function module:AdjustMissionTooltip(this,...)
 	else
 		tip:AddDoubleLine(L["Not blacklisted"],L["Right-Click to blacklist"],0.125,1.0,0.125,C:Red())
 	end
+	tip:AddLine(L["Shift-Click start the mission witout even opening the mission page. Non question asked"])
 	-- Mostrare per ogni tempo di attesa solo la percentuale migliore
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
@@ -1220,12 +1216,7 @@ function module:RawMissionClick(this,button)
 	local mission=this.info or this.missionInfo -- callable also from mission page
 	local key=missionKEYS[mission.missionID]
 	if IsShiftKeyDown() then
---@debug@
     return addon:GetAutopilotModule():FireMission(mission.missionID,this,true)
---@end-debug@
---[===[@non-debug@
-    return
---@end-non-debug@]===]	
 	end
 	if button=="LeftButton" or button=="missionpage" then
 		if button ~= "missionpage" then self.hooks[this].OnClick(this,button) end

@@ -86,27 +86,6 @@ local platestrata = HelpPlateTooltip:GetFrameStrata()
 local currentTutorialIndex
 local fcolor="Yellow"
 local ncolor="Green"
---[[
-  addon:AddBoolean("SAVETROOPS",false,L["Counter kill Troops"],L["Always counter kill troops (ignored if we can only use troops with just 1 durability left)"])
-  addon:AddBoolean("NEVERKILLTROOPS",false,L["Never kill Troops"],L["Makes sure that no troops will be killed"])
-  addon:AddBoolean("PREFERHIGH",false,L["Prefer high durability"],L["Uses troops with the highest durability instead of the ones with the lowest"])
-  addon:AddBoolean("NOTROOPS",false,L["Don't use troops"],L["Only use champions even if troops are available"])
-  addon:AddBoolean("BONUS",true,L["Keep extra bonus"],L["Always counter no bonus loot threat"])
-  addon:AddBoolean("SPARE",false,L["Keep cost low"],L["Always counter increased resource cost"])
-  addon:AddBoolean("MAKEITQUICK",true,L["Keep time short"],L["Always counter increased time"])
-  addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
-  addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
-  addon:AddRange("MAXCHAMP",3,1,3,L["Max champions"],L["Use at most this many champions"],1)
-  addon:AddRange("BONUSCHANCE",100,100,200,L["Bonus Chance"],
-  format(L["If %1$s is lower than this, then we try to achieve at least %2$s without going over 100%%. Ignored for elite missions."],
-   L["Bonus Chance"],L["Base Chance"]),
-  5)
-  addon:AddRange("BASECHANCE",0,5,100,L["Base Chance"],L["When we cant achieve the requested global chance, we try to reach at least this one without overcapping"],5)
-  addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
-  addon:AddBoolean("IGNOREBUSY",true,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
-  addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
-
---]]
 local tutorials={
   {
     text=L["Welcome to a new release of OrderHallCommander\nPlease follow this short tutorial to discover all new functionalities.\nYou will not regret it"],
@@ -126,7 +105,7 @@ local tutorials={
   {
     text=function()
         local c,n,x=C(L["Counter Kill Troops"], fcolor),C(L["Never kill Troops"]),C(L["Prefer high durability"], fcolor)
-        return format(L["With %2$s you ask to never let a troop die.\nThis not only implies %1$s and %3$s, but force OHC to never send to mission a troop which will die.\nThe target for this switch is to avoid troops' death"],
+        return format(L["With %2$s you ask to never let a troop die.\nThis not only implies %1$s and %3$s, but force OHC to never send to mission a troop which will die.\nThe target for this switch is to totally avoid killing troops, even it for this we cant fill the party"],
         c,n,x)
     end,
     parent=function() return module:GetMenuItem("NEVERKILLTROOPS") end,
@@ -144,7 +123,7 @@ local tutorials={
   {
     text=function()
         local c,g,n=C(L["Max champions"], fcolor),C(L["Maximize xp gain"],fcolor),C(addon:GetNumber("MAXCHAMP"),ncolor)
-        return format(L["You can choose to limit how much champoins are sent together.\nRight now OHC is not using more than %3$s champions in the same mission-\n\nNote that %2$s overrides it."],
+        return format(L["You can choose to limit how much champions are sent together.\nRight now OHC is not using more than %3$s champions in the same mission-\n\nNote that %2$s overrides it."],
         c,g,n)
     end,
     parent=function() return module:GetMenuItem("MAXCHAMP") end,
@@ -178,6 +157,26 @@ local tutorials={
     anchor="LEFT"
   },
   {
+    text='Followers can be "locked" to a specific mission.\nWhen you lock a follower, we will not used any other mission\nLocking follower around is a way to optimize your setup, you can keep locking and unlocking followers to different missions to achieve the best overall combination',
+    anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
+    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
+    level=-1,
+    glow=addon:GetMembersFrame(OHFButtons[1])
+  },
+  {
+    text=L['Slots (non the follower in it but just the slot) can be banned.\nWhen you ban a slot, that slot will not be filled for that mission.\nExploiting the fact that troops are always in the leftmost slot(s) you can achieve a nice degree of custom tailoring, reducing the overall number of followers used for a mission'],
+    anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
+    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
+    level=-1,
+    glow=addon:GetMembersFrame(OHFButtons[1])
+  },
+  {
+    text=L["You can blacklist missions right clicking mission button.\nSince 1.5.1 you can start a mission witout passing from mission page shift-clicking the mission button.\nBe sure you liked the party because non confirmation is asked"],
+    parent=function() return OHFButtons[1] or OHF end,
+    anchor=function() return OHFButtons[1] and "BOTTOM" or "CENTER" end,
+    glow=false
+  },
+  {
     text="When you have locked some followers to missions, you can start the mission without going to the mission page.\nShift-Clicking this button will scan missions from top to bottom (so, sort order IS important) and start the first one with at least one locked follower",
     parent=function() return module:GetMenuItem("BUTTON1") end,    
     anchor="TOP",
@@ -196,17 +195,12 @@ local tutorials={
     level=-1,
   },
   {
-    text='Followers can be "locked" to a specific mission.\nWhen you lock a follower, we will not used any other mission\nLocking follower around is a way to optimize your setup, you can keep locking and unlocking followers to different missions to achieve the best overall combination',
-    anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
-    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
-    level=-1
-  },
-  {
-    text='Slots (non the follower in it but just the slot) can be banned. When you ban a slot, that slot will not be filled for that mission.\nExploiting the fact that troops are always in the leftmost slot(s) you can achieve a nice degree of custom tailoring, reducing the overall number of followers used for a mission',
-    anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
-    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
-    level=-1
-  },
+    text=L["Equipment and upgrades are listed here as clickable buttons.\nDue to an issue with Blizzard Taint system, if you drag and drop an item from a bag, you receive an error.\nIn order to assign equipment which are not listed (I updated the list often but sometimes Blizzard is faster), you can right click the item in the bag and the left click the follower.\nThis way you dont receive any error"],
+    anchor="CENTER",
+    parent=OHFFollowerTab,
+    tab=2,
+    glow=false
+  }
 }
 local Clicker
 local Enhancer
@@ -220,6 +214,8 @@ end
 local function plate(self,tutorial)
   local text
   if type(tutorial)=="table" then
+    if type(tutorial.action)=="function" then tutorial.action() end
+    OHF:SelectTab(tutorial.tab or 1)
     text = callOrUse(tutorial.text)
     local a1=callOrUse(tutorial.anchor)
     local o,o2=callOrUse(tutorial.parent)

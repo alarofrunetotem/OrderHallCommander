@@ -390,7 +390,7 @@ function MixinFollowerIcon:SetEmpty(message)
 	self:SetQuality(1)
 	self.locked=false
 	self.Durability:Hide()
-	self.banned=addon:IsBanned(self.Slot,mission.missionID)
+	self.banned=addon:IsBanned(self.Slot,mission and mission.missionID or 0)
 	if message ~=UNUSED then
 		self:GetParent():SetNotReady(true)
 	end
@@ -567,6 +567,7 @@ function MixinMembers:Followers()
 end
 function MixinMembers:OnLoad()
 	for i=1,3 do
+	 addon:Print("Loading member",i)
 		if self.Champions[i] then
 			self.Champions[1]:SetPoint("RIGHT")
 		else

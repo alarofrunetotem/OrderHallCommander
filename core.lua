@@ -247,7 +247,7 @@ function addon:MarkAsNew(obj,key,message,method)
 	local db=self.db.global
 	if not db.news then db.news={} end
 --@debug@	
-	db.new[key]=true
+	db.news[key]=true
 --@end-debug@	
 	if (not db.news[key]) then
 		local f=CreateFrame("Button",nil,obj,"OHCWhatsNew")
