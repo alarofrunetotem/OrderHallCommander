@@ -141,32 +141,32 @@ local function IsIgnored(mission)
 	return addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite')
 end
 local sorters={
-		Garrison_SortMissions_Original=nop,
-		Garrison_SortMissions_Chance=function(mission)
-			return IsLow(mission)  .. format("%010d",MAX - GetPerc(mission,true))
-		end,
-		Garrison_SortMissions_Level=function(mission)
-			return IsLow(mission) ..format("%010d", MAX  -mission.level * 1000 - (mission.iLevel or 0))
-		end,
-		Garrison_SortMissions_Age=function(mission)
-			return IsLow(mission) .. format("%010d", mission.offerEndTime)
-		end,
-		Garrison_SortMissions_Xp=function(mission)
-			local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
-			return IsLow(mission)..  format("%010d",MAX -p.totalXP or 0)
-		end,
-		Garrison_SortMissions_HourlyXp=function(mission)
-			local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
-			return IsLow(mission) .. format("%010d", MAX -(-p.totalXP or 0) * 60 /  (p.timeseconds or  mission.durationSeconds or 36000))
-		end,
-		Garrison_SortMissions_Duration=function(mission)
-			local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
-			return IsLow(mission) .. format("%010d",(p.timeseconds or  mission.durationSeconds or 0))
-		end,
-		Garrison_SortMissions_Class=function(mission)
-			local factor=100000
-			return IsLow(mission) .. format("%010d",tonumber(format("%7d.%07d",todefault(mission.classOrder,factor), factor - math.min(factor,todefault(mission.classValue,0)))))
-		end,
+    Garrison_SortMissions_Original=nop,
+    Garrison_SortMissions_Chance=function(mission)
+      return IsLow(mission)  .. format("%010d",MAX + GetPerc(mission,true))
+    end,
+    Garrison_SortMissions_Level=function(mission)
+      return IsLow(mission) ..format("%010d",  (mission.level * 1000 + (mission.iLevel or 0)))
+    end,
+    Garrison_SortMissions_Age=function(mission)
+      return IsLow(mission) .. format("%010d", MAX - mission.offerEndTime)
+    end,
+    Garrison_SortMissions_Xp=function(mission)
+      local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
+      return IsLow(mission)..  format("%010d",(p.totalXP or 0))
+    end,
+    Garrison_SortMissions_HourlyXp=function(mission)
+      local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
+      return IsLow(mission) .. format("%010d", MAX -(-p.totalXP or 0) * 60 /  (p.timeseconds or  mission.durationSeconds or 36000))
+    end,
+    Garrison_SortMissions_Duration=function(mission)
+      local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
+      return IsLow(mission) .. format("%010d",MAX - (p.timeseconds or  mission.durationSeconds or 0))
+    end,
+    Garrison_SortMissions_Class=function(mission)
+      local factor=100000
+      return IsLow(mission) .. format("%010d",MAX -tonumber(format("%7d.%07d",todefault(mission.classOrder,factor), factor - math.min(factor,todefault(mission.classValue,0)))))
+    end,
 }
 local function InProgress(mission,frame)
 	return (mission and mission.inProgress) or OHFMissions.showInProgress or (frame and frame.IsCustom)

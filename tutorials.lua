@@ -157,24 +157,24 @@ local tutorials={
     anchor="LEFT"
   },
   {
-    text='Followers can be "locked" to a specific mission.\nWhen you lock a follower, we will not used any other mission\nLocking follower around is a way to optimize your setup, you can keep locking and unlocking followers to different missions to achieve the best overall combination',
+    text='Followers can be "locked" to a specific mission.\nWhen you lock a follower, he will not used for any other mission\nLocking follower around is a way to optimize your setup, you can keep locking and unlocking followers to different missions to achieve the best overall combination',
     anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
     parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
     level=-1,
-    glow=addon:GetMembersFrame(OHFButtons[1])
+    glow=addon:GetMembersFrame(OHFButtons[1])  and true or false
   },
   {
     text=L['Slots (non the follower in it but just the slot) can be banned.\nWhen you ban a slot, that slot will not be filled for that mission.\nExploiting the fact that troops are always in the leftmost slot(s) you can achieve a nice degree of custom tailoring, reducing the overall number of followers used for a mission'],
     anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
     parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
     level=-1,
-    glow=addon:GetMembersFrame(OHFButtons[1])
+    glow=addon:GetMembersFrame(OHFButtons[1]) and true or false
   },
   {
     text=L["You can blacklist missions right clicking mission button.\nSince 1.5.1 you can start a mission witout passing from mission page shift-clicking the mission button.\nBe sure you liked the party because non confirmation is asked"],
     parent=function() return OHFButtons[1] or OHF end,
-    anchor=function() return OHFButtons[1] and "BOTTOM" or "CENTER" end,
-    glow=false
+    anchor=function() return OHFButtons[1] and "TOP" or "CENTER" end,
+    glow=OHFButtons[1] and true or false 
   },
   {
     text="When you have locked some followers to missions, you can start the mission without going to the mission page.\nShift-Clicking this button will scan missions from top to bottom (so, sort order IS important) and start the first one with at least one locked follower",
