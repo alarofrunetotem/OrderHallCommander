@@ -323,7 +323,7 @@ function module:OnInitialized()
 	--@debug@
 	addon:Print("Starting coroutine")
 	--@end-debug@
-	addon.coroutineExecute(module,0,"TickleServer")
+	addon.coroutineExecute(module,0.1,"TickleServer")
 end
 function module:AddItem(itemID)
 
@@ -346,8 +346,6 @@ local failed=1
 local iteration=2
 local GetTime=GetTime
 function tickle(category)
-	local start=GetTime()
-	local pause=0
 	for _,itemid in pairs(category) do
 		if type(itemid)=="number" and itemid > 10 then
 			if not itemquality[itemid] then
@@ -356,32 +354,22 @@ function tickle(category)
 					itemquality[itemid]=quality
 					icon2item[GetItemIcon(itemid)]=itemid
 					i=i+1
-				else
-					failed=failed+1
 				end
-				if coroutine.running() and pause > 10 then pause=0 coroutine.yield() end
-				pause=pause+1
+				if coroutine.running() then coroutine.yield() end
 			end
 		end
 	end
 end
 function module:TickleServer()
-	local start=GetTime()
-	while true do
-		local now=GetTime()
-		failed=0
+  	start=debugprofilestop()
 		tickle(data.Equipment)
 		tickle(data.ArtifactPower)
 		tickle(data.Buffs)
 		tickle(data.Upgrades)
 		tickle(data.Upgrades2)
 		tickle(data.Upgrades3)
-		iteration=iteration-1
-		if failed * iteration == 0 then break end
-	end
-	--@debug@
-	addon:Print("Precached " .. i .. " items in " .. GetTime()-start)
-	--@end-debug@
+  	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
+		
 end
 end
 --@do-not-package@
