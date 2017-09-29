@@ -265,7 +265,6 @@ local function plate(self,tutorial)
       Enhancer:SetParent(o)
       Enhancer:ClearAllPoints()
       if o2 then
-        addon:Print(o:GetTop(),o2:GetTop(),o:GetLeft(),o2:GetLeft())
         if o2:GetTop() >= o:GetTop() and o2:GetLeft() <= o:GetLeft() then
           Enhancer:SetPoint("TOPLEFT",o,"TOPLEFT")
           Enhancer:SetPoint("BOTTOMRIGHT",o2,"BOTTOMRIGHT")

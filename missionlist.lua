@@ -300,7 +300,7 @@ end
 function module:printLink(this,button)
 	if button=="RightButton" then
 		local missionID=this:GetParent().info.missionID
-		addon:Print("Mission",missionID,addon:GetMissionData(missionID,'class'))
+		--addon:Print("Mission",missionID,addon:GetMissionData(missionID,'class'))
 	elseif this.itemID and IsShiftKeyDown() then
 		if Dialog:ActiveDialog("OHCUrlCopy") then
 			Dialog:Dismiss("OHCUrlCopy")
@@ -442,9 +442,9 @@ function module:SortMissions()
 		else
 --@end-debug@			
 			local rc,result =pcall(f,mission)
-			if not rc then addon:Print(result) end
 			sortKeys[missionID]=rc and result or 0
 --@debug@
+      if not rc then addon:Print(result) end
 		end
 --@end-debug@			
 	end
@@ -618,8 +618,7 @@ function module:InitialSetup(this)
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
 	collectgarbage("restart")
-  addon:MarkAsNew(obj,addon:NumericVersion(),
-    L["This is a new version of OrderHallCommander. Please take some time to review the tutorial. Click this icon to dismiss it"])
+  addon:MarkAsNew(obj,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismisS this message)"],me .. ' ' .. addon.version))
 --@alpha@
 	do
 		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")

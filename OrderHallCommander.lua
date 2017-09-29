@@ -567,7 +567,6 @@ function MixinMembers:Followers()
 end
 function MixinMembers:OnLoad()
 	for i=1,3 do
-	 addon:Print("Loading member",i)
 		if self.Champions[i] then
 			self.Champions[1]:SetPoint("RIGHT")
 		else
