@@ -233,45 +233,82 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
 	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
+	local data=addon:GetData("Buffs")
 --@debug@
-	print("RefreshUpgrades",follower.name)
---@end-debug@	
-	for _,id in pairs(addon:GetData("Buffs")) do
+print("Buffs",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 		self:RenderUpgradeButton(id)
 	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
-		for _,id in pairs(addon:GetData("U850")) do
+		local data=addon:GetData("U850")
+--@debug@
+print("U850",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.iLevel <880 then
-		for _,id in pairs(addon:GetData("U880")) do
+		local data=addon:GetData("U880")
+--@debug@
+print("U880",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.iLevel <900 then
-		for _,id in pairs(addon:GetData("U900")) do
+		local data=addon:GetData("U900")
+--@debug@
+print("U900",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
   if follower.iLevel <925 then
-    for _,id in pairs(addon:GetData("U925")) do
+    local data=addon:GetData("U925")
+--@debug@
+print("U925",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
       self:RenderUpgradeButton(id)
     end
   end
 	if follower.iLevel <950 then
-		for _,id in pairs(addon:GetData("U950")) do
+		local data=addon:GetData("U950")
+--@debug@
+print("U950",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
-	if not follower.isMaxLevel or  follower.quality ~=LE_ITEM_QUALITY_EPIC then
-		for _,id in pairs(addon:GetData("Xp")) do
+	if not follower.isMaxLevel or  follower.quality < 5 then
+		local data=addon:GetData("Xp")
+--@debug@
+print("Xp",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.quality >=LE_ITEM_QUALITY_RARE then
-		for _,id in pairs(addon:GetData("Equipment")) do
+		local data=addon:GetData("Equipments")
+--@debug@
+print("Equipments",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderEquipmentButton(id)
 		end
 	end

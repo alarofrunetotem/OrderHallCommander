@@ -1,7 +1,7 @@
 local me,ns = ...
 
-ns.wowhead_update=1506326021
--- DataMined from WowHead other-consumables?filter=224;1;0 on 25/09/2017
+ns.wowhead_update=1506605656
+-- DataMined from WowHead other-consumables?filter=224;1;0 on 28/09/2017
 -- Contains 538 items
 ns.allArtifactPower={
   [127999]=0, -- Shard of Potentiation
@@ -122,7 +122,7 @@ ns.allArtifactPower={
   [140391]=150, -- Argussian Diamond
   [140392]=150, -- Safety Valve
   [140393]=150, -- Repentia's Whip
-  [140396]=40, -- Friendly Brawler's Wager
+  [140396]='', -- Friendly Brawler's Wager
   [140409]=900, -- Tome of Dimensional Awareness
   [140410]=1000, -- Mark of the Rogues
   [140421]=1200, -- Ancient Qiraji Idol
@@ -323,7 +323,7 @@ ns.allArtifactPower={
   [142533]=600, -- Titan's Boon
   [142534]=600, -- Plume of the Fallen Val'kyr
   [142535]=200, -- Soulcatcher of the Encroaching Mist
-  [142555]=300, -- Aoire's Crook
+  [142555]='', -- Aoire's Crook
   [143333]=500, -- Badge of Vengeance
   [143486]=250, -- Arcshaper's Barrier
   [143487]=800, -- Enchanted Dusk Lily
@@ -543,7 +543,7 @@ ns.allArtifactPower={
   [153266]=850, -- Undulating Orb of Fel Inferno
   [153278]=850, -- Vile Temptresses' Aphrodisiac
 }
--- DataMined from WowHead other-consumables?filter=107;0;Equip%20a%20champion on 25/09/2017
+-- DataMined from WowHead other-consumables?filter=107;0;Equip%20a%20champion on 28/09/2017
 -- Contains 126 items
 ns.allEquipments={
   139792, -- Fruitful Bauble

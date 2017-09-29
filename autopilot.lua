@@ -169,6 +169,7 @@ function module:DoRunMissions()
 						OHFMissions:UpdateMissions()						
 						--@debug@												
 						if multiple then
+						  addon:Print("Multiple is running")
 							self:ScheduleTimer("DoRunMissions",1)
 						end
 						--@end-debug@
@@ -184,7 +185,7 @@ function module:DoRunMissions()
 			end
 		end
 	end
-	if nothing then
+	if nothing and not multiple then
 		addon:Print(C(L["No suitable missions. Have you reserved at least one follower?"],"red"))
 	end
 	multiple=true

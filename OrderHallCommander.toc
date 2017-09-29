@@ -40,6 +40,7 @@ cache.lua
 followerpage.lua
 matchmaker.lua
 missionlist.lua
+tutorials.lua
 missionpage.lua
 widgets.xml
 RelNotes.lua

@@ -157,11 +157,9 @@ function addon:BusyFor(candidate)
 	return busyUntil
 end
 function addon:TroopsWillDieAnyway(candidate)
-	print("willdie")
 	for i=1,#candidate do
 		if candidate['f' .. i] >= "T" then
 			local followerID=candidate[i]
-			print("willdie?",self:GetFollowerName(followerID),self:GetFollowerData(followerID,'durability',3))
 			if self:GetFollowerData(followerID,'durability',3)>1 then
 				return false
 			end
@@ -348,7 +346,6 @@ function partyManager:GetSelectedParty(key,dbg)
 				end
 			end
 			if self.bestkey and not self.maximizeXP then break end
-			if candidate.perc < self.minChance then candidate.reason = "UNDERMINCHANCE" break end
 --@debug@
 			if dbg then
 				print(i,candidate.key,candidate.reason)
@@ -521,9 +518,6 @@ function partyManager:Match()
 	end
 	self:Build()
 	self:GenerateIndex()
-	--@debug@
-	print("Match started for ", missionID, self.numFollowers,"followers",#addon:GetFullPermutations(),"builds",n,"indexed",#self.candidatesIndex,self.candidatesIndex)
-	--@end-debug@
 	return true
 end
 function partyManager:GenerateIndex()
@@ -545,9 +539,11 @@ function module:OnInitialized()
 	addon:AddBoolean("MAKEITVERYQUICK",false,L["Keep time VERY short"],L["Only accept missions with time improved"])
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	addon:AddRange("MAXCHAMP",3,1,3,L["Max champions"],L["Use at most this many champions"],1)
-	addon:AddRange("MINCHANCE",5,5,100,L["Absolute Minimum Chance"],L["Dont bother filling missions under this success chance. (Can speed up the whole selection)."],5)
-	addon:AddRange("BONUSCHANCE",100,100,200,L["Global Chance"],L["If global chance is lower than this, then we try to cap at 100. Ignored for elite missions."],5)
-	addon:AddRange("BASECHANCE",5,5,100,L["Base Chance"],L["When we cant achieve the requested global chance, we try to reach at least this one without overcapping"],5)
+	addon:AddRange("BONUSCHANCE",100,100,200,L["Bonus Chance"],
+	format(L["If %1$s is lower than this, then we try to achieve at least %2$s without going over 100%%. Ignored for elite missions."],
+	 L["Bonus Chance"],L["Base Chance"]),
+	5)
+	addon:AddRange("BASECHANCE",0,5,100,L["Base Chance"],format(L["When we cant achieve the requested %1$s, we try to reach at least this one without (if possible) going over 100%%"],L["Bonus Chance"]),5)
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
 	addon:AddBoolean("IGNOREBUSY",true,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
@@ -562,9 +558,8 @@ function module:OnInitialized()
 		"MAKEITVERYQUICK",
 		"MAXIMIZEXP",
 		'MAXCHAMP',
-		'MINCHANCE',
+    'BONUSCHANCE',
 		'BASECHANCE',
-		'BONUSCHANCE',
 		'USEALLY',
 		'IGNOREBUSY',
 		'IGNOREINACTIVE')

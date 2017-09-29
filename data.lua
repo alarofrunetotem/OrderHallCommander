@@ -125,7 +125,7 @@ local data={
 	Xp={
 		141028
 	},
-	ArtifactPower={},
+	Equipments={}
 }
 local icon2item={}
 local itemquality={}
@@ -135,6 +135,7 @@ function addon:GetData(key)
 end
 local tickle
 function module:OnInitialized()
+  data.Equipments=addon.allEquipments
 	--@debug@
 	addon:Print("Starting coroutine")
 	--@end-debug@
@@ -147,51 +148,53 @@ function module:AddItem(itemID)
 
 end
 function addon:GetItemIdByIcon(iconid)
-  if not icon2item[iconid] then icon2item[iconid] = GetItemIcon(iconid) end 
+  if not icon2item[iconid] then icon2item[iconid] = select(2,pcall,GetItemIcon,iconid) end 
 	return icon2item[iconid]
 end
 function addon:GetItemQuality(itemid)
-  if not itemquality[itemid] then itemquality[itemid] = select(4,pcall(GetItemInfo,itemid)) end
+  if not itemquality[itemid] then itemquality[itemid] = select(4,pcall,GetItemInfo,itemid) end
 	return itemquality[itemid]
 end
 
 do
-local pairs=pairs
-local type=type
-local GetItemIcon=GetItemIcon
-local GetItemInfo=GetItemInfo
-local coroutine=coroutine
-local pcall=pcall
-local i=0
-local GetTime=GetTime
-function tickle(category)
-	local start=GetTime()
-	for itemid,_ in pairs(category) do
-		if type(itemid)=="number" and itemid > 10 then
-			if not itemquality[itemid] then
-				local rc,name,link,quality=pcall(GetItemInfo,itemid)
-				if rc and name then
-					itemquality[itemid]=quality
-					icon2item[GetItemIcon(itemid)]=itemid
-					i=i+1
---@debug@
-					if i % 100 == 0 then
-						addon:Print(format("Precached %d items so far",i))
-					end
---@end-debug@
-				end
-				if coroutine.running() then coroutine.yield() end
-			end
-		end
-	end
-end
-function module:TickleServer()
-	local start=debugprofilestop()
-	tickle(data.allArtifactPower)
-	--@debug@
-	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
-	--@end-debug@
-end
+  local pairs=pairs
+  local type=type
+  local GetItemIcon=GetItemIcon
+  local GetItemInfo=GetItemInfo
+  local coroutine=coroutine
+  local pcall=pcall
+  local i=0
+  local debugprofilestop=debugprofilestop
+  local start=0
+  local function tickle(category,useleft)
+    for left,right in pairs(category) do
+      local itemid=useleft and left or right
+  		if type(itemid)=="number" and itemid > 10 then
+  			if not itemquality[itemid] then
+  				local rc,name,link,quality=pcall(GetItemInfo,itemid)
+  				if rc and name then
+  					itemquality[itemid]=quality
+  					icon2item[GetItemIcon(itemid)]=itemid
+  					i=i+1
+  --@debug@
+  					if i % 100 == 0 then
+  						addon:Print(format("Precached %d items in %.3f so far",i,(debugprofilestop()-start)))
+  					end
+  --@end-debug@
+  				end
+  				if coroutine.running() then coroutine.yield() end
+  			end
+  		end
+  	end
+  end
+  function module:TickleServer()
+  	start=debugprofilestop()
+  	tickle(data.Equipments)
+    tickle(addon.allArtifactPower,true)
+  	--@debug@
+  	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
+  	--@end-debug@
+  end
 end
 --@do-not-package@
 --[[

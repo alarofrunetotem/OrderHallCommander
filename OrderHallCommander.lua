@@ -130,6 +130,7 @@ end
 function addon:SetDbDefaults(default)
 	default.profile=default.profile or {}
 	default.profile.blacklist={}
+	default.global.tutorialStep={}
 end
 do 
 local banned={}
@@ -282,15 +283,8 @@ function MixinThreats:OnLoad()
 	if not self.threatPool then self.threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
 	self.usedPool={}
 end
-
 function MixinThreats:AddIcons(mechanics,biases)
-	local icons=OHF.abilityCountersForMechanicTypes
 	local frame=self:GetParent()
-	if not icons then
-		--@debug@
-		--@end-debug@
-		return false
-	end
 	for i=1,#self.usedPool do
 		self.threatPool:Release(self.usedPool[i])
 	end
@@ -300,7 +294,7 @@ function MixinThreats:AddIcons(mechanics,biases)
 		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
 		if mechanic and (mechanic.icon or mechanic.id) then
-			th.Icon:SetTexture(mechanic.icon or icons[mechanic.id].icon)
+			th.Icon:SetTexture(mechanic.icon)
 			th.Name=mechanic.name
 			th.Description=mechanic.description
 			th.Ability=mechanic.ability and mechanic.ability.name or mechanic.name
@@ -367,6 +361,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 			self:GetParent():SetNotReady(true)
 			self.Level:SetText(status);
 		end
+		self.Durability:Hide()
 		self.Portrait:SetDesaturated(true)
 		self:SetQuality(1)
 	else
@@ -448,6 +443,7 @@ function MixinFollowerIcon:ShowTooltip()
 		self.AddLine(gft,C(L["Locked follower are only used in this mission"],"CYAN"))
 --@debug@
 		self.AddLine(gft,tostring(self.followerID))
+		self.AddLine(gft,tostring(addon:GetFollowerData(self.followerID,'classSpec')))
 --@end-debug@		
 		if not gft.Status then
 			gft.Status=gft:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
@@ -609,6 +605,6 @@ function MixinMembers:Lock()
 	end
 end
 function MixinMenu:OnLoad()
-	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
+	self.Close:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end
 

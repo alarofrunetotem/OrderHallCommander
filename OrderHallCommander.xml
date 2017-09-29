@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<Script file="OrderHallCommander.lua"/>
-	<Button name="OrderHallCommanderWhatsNew" inherits="UIPanelInfoButton" hidden="true" virtual="true">
+	<Button name="OHCWhatsNew" inherits="UIPanelInfoButton" hidden="true" virtual="true">
 		<Size x="32" y="32"/>
 		<Scripts>
 			<OnLeave function="GameTooltip_Hide"/>
@@ -150,7 +150,7 @@
 	<Button name="OHCPin" virtual="true" enableMouse="true" hidden="true">
 		<Size x="64" y="64" />
 		<Anchors>
-			<Anchor point="TOPLEFT" relativeTo="OrderHallMissionFrame" relativePoint="TOPRIGHT" x="-15" y="13"/>
+			<Anchor point="TOPLEFT" relativeTo="OrderHallMissionFrame" relativePoint="TOPRIGHT" x="-15" y="43"/>
 		</Anchors>
 		<NormalTexture file="Interface\CHATFRAME\UI-ChatIcon-ScrollUp-Up">
 			<Size x="66" y="66" />
@@ -173,16 +173,89 @@
 	<Frame name="OHCBaseFrame" inherits="TooltipBorderedFrameTemplate" virtual="true">
 		<Size x="200" y="30"/>
 		<Frames>
-			<Button parentKey="CloseButton" inherits="UIPanelCloseButton">
+			<Button parentKey="Close" inherits="UIPanelCloseButton">
+				<Size x="32" y="32"/>
 				<Anchors>
 					<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT">
 						<Offset x="0" y="0"/>
 					</Anchor>
 				</Anchors>
+				<Scripts>
+					<OnLeave function="GameTooltip_Hide"/>
+					<OnEnter>
+						if self.tooltip then
+							GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
+							GameTooltip:AddLine(self.tooltip)
+							GameTooltip:Show()
+						end
+					</OnEnter>
+				</Scripts>				
 			</Button>
 		</Frames>		
 	</Frame>
-
+	<Frame name="OHCNavigator" virtual="true">
+		<Size x="200" y="30"/>
+		<Frames>
+			<Button parentKey="Forward">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT"/>
+				</Anchors>
+				<NormalTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Up"/>
+				<PushedTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Down"/>
+				<HighlightTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Highlight" alphaMode="ADD"/>
+			</Button>
+			<Button parentKey="Close" inherits="UIPanelCloseButton">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="5" y="5"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="tooltip" value="CLOSE" type="string"/>
+				</KeyValues>
+				<Scripts>
+					<OnLeave function="GameTooltip_Hide"/>
+					<OnEnter>
+						if self.tooltip then
+							GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
+							GameTooltip:AddLine(self.tooltip)
+							GameTooltip:Show()
+						end
+					</OnEnter>
+				</Scripts>								
+			</Button>
+			<Button parentKey="Home" inherits="UIPanelCloseButton">
+				<Size x="16" y="16"/>
+				<Anchors>
+					<Anchor point="TOPLEFTT" x="0" y="0"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="tooltip" value="HOME" type="string"/>
+				</KeyValues>
+				<NormalTexture file="Interface\BUTTONS\UI-HomeButton"/>
+				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
+				<Scripts>
+					<OnLeave function="GameTooltip_Hide"/>
+					<OnEnter>
+						if self.tooltip then
+							GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
+							GameTooltip:AddLine(self.tooltip)
+							GameTooltip:Show()
+						end
+					</OnEnter>
+				</Scripts>								
+			</Button>
+			<Button parentKey="Backward">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT"/>
+				</Anchors>
+				<NormalTexture file="Interface\Glues\Common\Glue-LeftArrow-Button-Up"/>
+				<PushedTexture file="Interface\Glues\Common\Glue-LeftArrow-Button-Down"/>
+				<HighlightTexture file="Interface\Glues\Common\Glue-LeftArrow-Button-Highlight" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+	</Frame>
 	<Frame name="OHCMenu" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinMenu" inherits="OHCBaseFrame" virtual="true">
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
@@ -193,12 +266,20 @@
 				<FontString parentKey="Title" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightSmallOutline" text="OrderHallCommander">
 					<Size x="95" y="30"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" x="0" y="-5"/>
+						<Anchor point="TOPLEFT" x="32" y="-5"/>
 						<Anchor point="TOPRIGHT" x="-32" y="-5"/>
 					</Anchors>
 				</FontString>
 			</Layer>
-		</Layers>		
+		</Layers>
+		<Frames>
+			<Button parentKey="Tutorial" inherits="OHCWhatsNew">
+				<Size x="15" y="16"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="2" y="-8"/>
+				</Anchors>
+			</Button>
+		</Frames>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 			<OnLeave>GameTooltip:Hide()</OnLeave>

@@ -14,15 +14,18 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,1,[[
+Feature: Added an (hopefully) nice tutorial
+Fix: Threat icons in missions panel are now consistent with the ones in mission page
+]])
 self:RelNotes(1,5,0,[[
 Feature: Left Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones
 Feature: Right clicking a follower slot forbids using it, so you can force OHC to use less follower for a specific mission. Usable only on the leftmost slot
 Feature: Autostart. Mission can be launched whith just one click via the "Quick start mission button". The first mission in the list is started.
 Blacklisted missions or missions which are aunder the "Absolute Minimum Chance" value are not autolaunched
-Feature: You can now set a minimum requested bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
-Feature: You can now set a minimum requested success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
-Feature: You can now set an absolute minimum chance under which OHC ignore missions (this should also reduce lag if you experienced it)
-Feature: For troops, durability is shwon in the mission button icon
+Feature: You can now set a minimum success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
+Feature: You can now set a minimum bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
+Feature: For troops, durability is shown in the mission button icon
 Feature: Reorganized troops' related switches
 Feature: Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly 
 Feature: You can now choose if OHC prefers low or high durability troops

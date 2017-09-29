@@ -733,9 +733,6 @@ function addon:GetTroop(classSpec,slot,missionID,durability,ignoreBusy)
 			if ignoreBusy and module:GetFollowerData(followerID,'status') then break end
 			if durability then
 				local d=module:GetFollowerData(followerID,'durability',0)
-				--@debug@
-				print(addon:GetFollowerName(followerID),d,durability) 
-				--@end-debug@
 				if durability < 0 then
 					if d < math.abs(durability) then break end
 				else  

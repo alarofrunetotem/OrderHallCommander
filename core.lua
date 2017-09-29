@@ -246,16 +246,18 @@ local newsframes={}
 function addon:MarkAsNew(obj,key,message,method)
 	local db=self.db.global
 	if not db.news then db.news={} end
-	--@debug@
-	db.news[key]=false
-	--@end-debug@
+--@debug@	
+	db.new[key]=true
+--@end-debug@	
 	if (not db.news[key]) then
-		local f=CreateFrame("Button",nil,obj,"OrderHallCommanderWhatsNew")
+		local f=CreateFrame("Button",nil,obj,"OHCWhatsNew")
 		f.tooltip=message
 		f.texture:ClearAllPoints()
 		f.texture:SetAllPoints()
-		f:SetPoint("TOPLEFT",obj,"TOPRIGHT")
-		f:SetFrameStrata("HIGH")
+    f:GetHighlightTexture():ClearAllPoints()		
+    f:GetHighlightTexture():SetAllPoints()    
+		f:SetPoint("TOPLEFT",obj,"TOPLEFT",0,0)
+		f:SetFrameStrata("TOOLTIP")
 		f:Show()
 		if method then
 			f:SetScript("OnClick",function(frame) self[method](self,frame) self:MarkAsSeen(key) end)
@@ -263,6 +265,7 @@ function addon:MarkAsNew(obj,key,message,method)
 			f:SetScript("OnClick",function(frame) self:MarkAsSeen(key) end)
 		end
 		newsframes[key]=f
+		return true
 	end
 end
 function addon:MarkAsSeen(key)
