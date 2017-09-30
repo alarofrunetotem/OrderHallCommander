@@ -131,10 +131,13 @@ local function GetPerc(mission,realvalue)
 	end
 end
 local function IsLow(mission)
-    if GetPerc(mission) == 0 then return "1" end
-		if addon:GetBoolean("ELITEMODE") and not mission.elite then return "2" end
-		if addon:IsBlacklisted(mission.missionID) then return "3" end
-		return "0"
+    if addon:IsBlacklisted(mission.missionID) then return "0" end
+		if addon:GetBoolean("ELITEMODE") and not mission.elite then return "1" end
+		if addon:GetBoolean("IGNORELOW") then
+      local p=addon:GetSelectedParty(mission.missionID,missionKEYS[mission.missionID])
+      if not p or #p==0 then return "2" end
+    end
+		return "3"
 end
 local function IsIgnored(mission)
 	--return addon:GetBoolean("ELITEMODE") and mission.class=="0"
@@ -421,11 +424,11 @@ local function sortfuncAvailable(a,b)
 end
 function module:SortMissions()
 --@debug@
-  addon:Print("Sort called")
+  dprint("Sort called")
 --@end-debug@     
   if not OHF:IsVisible() then return end
 --@debug@
-  addon:Print("Sort executed")
+  dprint("Sort executed")
 --@end-debug@     
   if OHFMissions.showInProgress then
     sort(OHFMissions.inProgressMissions,sortfuncProgress)
@@ -444,12 +447,18 @@ function module:SortMissions()
 			local rc,result =pcall(f,mission)
 			sortKeys[missionID]=rc and result or 0
 --@debug@
-      if not rc then addon:Print(result) end
+      if not rc then dprint(result) end
 		end
 --@end-debug@			
 	end
 
 	sort(OHFMissions.availableMissions,sortfuncAvailable)
+--@debug@
+  for i=1,#OHFMissions.availableMissions do
+    local mission=OHFMissions.availableMissions[i]
+    dprint(sortKeys[mission.missionID],mission.name)
+  end
+--@end-debug@     
 end
 local timer
 function addon:PauseRefresh()
@@ -459,10 +468,17 @@ function addon:Apply(flag,value)
 	self:GetTutorialsModule():Refresh()
 	timer:Start(0.05)
 end
-function addon:ApplySORTMISSION(value)
-	Current_Sorter=value
+function addon:ApplyIGNORELOW(value)
+  dprint("Sorting missions again")
+	module:SortMissions()
 	OHFMissions:UpdateMissions()
 	
+end
+function addon:ApplySORTMISSION(value)
+  Current_Sorter=value
+  module:SortMissions()
+  OHFMissions:UpdateMissions()
+  
 end
 function addon:ApplyELITEMODE(value)
 	OHFMissions:UpdateMissions()
@@ -618,7 +634,7 @@ function module:InitialSetup(this)
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
 	collectgarbage("restart")
-  addon:MarkAsNew(obj,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismisS this message)"],me .. ' ' .. addon.version))
+  addon:MarkAsNew(obj,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
 --@alpha@
 	do
 		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")

@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,2,[[
+Fix: #108 Ignored/Blacklisted missions aren't sorted at the bottom since 1.5.1
+]])
 self:RelNotes(1,5,1,[[
 Feature: Added an (hopefully) nice tutorial
 Fix: Threat icons in missions panel are now consistent with the ones in mission page
