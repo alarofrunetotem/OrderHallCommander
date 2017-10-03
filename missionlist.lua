@@ -464,7 +464,16 @@ local timer
 function addon:PauseRefresh()
 end
 function addon:Apply(flag,value)
-  addon:makedirty("FORCED")
+	if not timer then timer=addon:NewDelayableTimer(function() addon:RefreshMissions() end) end
+	self:GetTutorialsModule():Refresh()
+	timer:Start(0.05)
+end
+function addon:ApplyIGNOREBUSY(flag,value)
+	if not timer then timer=addon:NewDelayableTimer(function() OHFMissions:UpdateMissions() end) end
+	self:GetTutorialsModule():Refresh()
+	timer:Start(0.05)
+end
+function addon:ApplyIGNOREINACTIVE(flag,value)
 	if not timer then timer=addon:NewDelayableTimer(function() OHFMissions:UpdateMissions() end) end
 	self:GetTutorialsModule():Refresh()
 	timer:Start(0.05)
