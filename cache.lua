@@ -835,8 +835,6 @@ function addon:UnpackFollower(s)
   end    
 end
 function addon:GetFullPermutations(dowipe)
-  _G.print(GetTime())
-  _G.print(debugprofilestop())
   if dowipe then wipe(fullPermutations) end
   if #fullPermutations==0 then
     self:RefreshFollowers()
@@ -854,7 +852,7 @@ function addon:GetFullPermutations(dowipe)
         local skip = addon:GetBoolean("IGNOREINACTIVE") and status==GARRISON_FOLLOWER_INACTIVE 
         if not skip then skip = not addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY end
         local durability=f.durability or 0
-        local busyuntil=status==GARRISON_FOLLOWER_ON_MISSION and G.GetFollowerMissionTimeLeftSeconds(f.followerID) + now or 0
+        local busyuntil=status==GARRISON_FOLLOWER_ON_MISSION and (G.GetFollowerMissionTimeLeftSeconds(f.followerID) or 0) + now
         if not skip then tinsert(all,module:Serialize(fType,cost,f.followerID,status,busy,durability,busyuntil)) end
       end
     end
@@ -879,8 +877,6 @@ function addon:GetFullPermutations(dowipe)
     table.sort(fullPermutations)
     del(all)
   end
-  _G.print(GetTime())
-  _G.print(debugprofilestop())
   return fullPermutations
 end
 function addon:DumpPermutations()
