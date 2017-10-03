@@ -5,14 +5,14 @@ print('Loaded',__FILE__)
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
---*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0"
+--*MIXINS "AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceSerializer-3.0"
 --*MINOR 35
 -- Auto Generated
 local me,ns=...
 if ns.die then return end
 local addon=ns --#Addon (to keep eclipse happy)
 ns=nil
-local module=addon:NewSubModule('Cache',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")  --#Module
+local module=addon:NewSubModule('Cache',"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceSerializer-3.0")  --#Module
 function addon:GetCacheModule() return module end
 -- Template
 local G=C_Garrison
@@ -759,7 +759,7 @@ function addon:ParsePermutationFollower(data,translate)
   end
   return fType,followerID,value,slot
 end
-function addon:GetFullPermutations(dowipe)
+function addon:GetOldFullPermutations(dowipe)
 	if dowipe then wipe(fullPermutations) end
 	if #fullPermutations==0 then
     self:RefreshFollowers()
@@ -822,12 +822,27 @@ function addon:GetFullPermutations(dowipe)
 	end
 	return fullPermutations
 end
-function addon:GetxFullPermutations(dowipe)
+function addon:PackFollower(...)
+  return module:Serialize(...)
+end
+function addon:UnpackFollower(s)
+  if type(s) ~= "string" then return 'Z',0,nil end
+  local rc,fType,cost,followerID,status,busy,durability,busyuntil=module:Deserialize(s)
+  if rc then
+    return fType,cost,followerID,status,busy,durability,busyuntil
+  else
+    return 'Z',0,nil
+  end    
+end
+function addon:GetFullPermutations(dowipe)
+  _G.print(GetTime())
+  _G.print(debugprofilestop())
   if dowipe then wipe(fullPermutations) end
   if #fullPermutations==0 then
     self:RefreshFollowers()
     local all=new()
     local tbl=module:GetFollowerData()
+    local now=GetTime()
     for i=1,#tbl do
       local f=tbl[i]
       if f.isCollected then
@@ -835,24 +850,26 @@ function addon:GetxFullPermutations(dowipe)
         local fType=t and "T" or "H"
         local cost=t and self:GetTroopCost(f.classSpec)+f.quality or f.level+(f.level==MAX_LEVEL and f.quality or 0)
         local status=G.GetFollowerStatus(f.followerID) or GARRISON_FOLLOWER_AVAILABLE
-        local skip=addon:GetBoolean("IGNOREBUSY") and status==GARRISON_FOLLOWER_ON_MISSION
-        local skip=skip or addon:GetBoolean("")
-        local durability=f.durability
+        local busy=status==GARRISON_FOLLOWER_ON_MISSION
+        local skip = addon:GetBoolean("IGNOREINACTIVE") and status==GARRISON_FOLLOWER_INACTIVE 
+        if not skip then skip = not addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY end
+        local durability=f.durability or 0
+        local busyuntil=status==GARRISON_FOLLOWER_ON_MISSION and G.GetFollowerMissionTimeLeftSeconds(f.followerID) + now or 0
+        if not skip then tinsert(all,module:Serialize(fType,cost,f.followerID,status,busy,durability,busyuntil)) end
       end
     end
     table.sort(all) -- We need champions first and a predictable order
     for i=1,#all do
-      local class,id,value=strsplit('|',all[i])
+      local class=addon:UnpackFollower(all[i])
       if class=="T" then -- champions ended, troops only parties are invalid
         break
       end
       tinsert(fullPermutations,'1,' .. all[i])
-      for j=i+1,#t do
+      for j=i+1,#all do
         if all[j] then
-          local class,value,id=strsplit('|',all[j])
           tinsert(fullPermutations,'2,'.. strjoin(',',all[i],all[j]))
         end
-        for k=j+1,#t do
+        for k=j+1,#all do
           if all[k] then
             tinsert(fullPermutations,'3,'.. strjoin(',',all[i],all[j],all[k]))
           end
@@ -862,6 +879,8 @@ function addon:GetxFullPermutations(dowipe)
     table.sort(fullPermutations)
     del(all)
   end
+  _G.print(GetTime())
+  _G.print(debugprofilestop())
   return fullPermutations
 end
 function addon:DumpPermutations()

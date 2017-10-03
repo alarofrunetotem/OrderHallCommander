@@ -69,6 +69,7 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local GARRISON_FOLLOWER_AVAILABLE=AVAILABLE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
@@ -210,28 +211,19 @@ function partyManager:SatisfyCondition(candidate,index)
 		return self:Fail("Slot ".. index .. "banned")
 	end	
 	if type(candidate) ~= "table" then return self:Fail("Internal error") end
-	local followerID=candidate[index]
-	if not followerID then return self:Fail("No follower id for party slot",index) end
-	local fType,classSpec,value,slot=addon:ParsePermutationFollower(candidate['f'..index])
+  local fType,cost,followerID,status,busy,durability,busyuntil=addon:UnpackFollower(candidate['f'..index])    
 	if fType=="T" then
 		if self.noTroops then return self:Fail("Cant use troops") end
 		if candidate.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("Cant kill troops") end
-		local durability
-		if self.saveTroops and candidate.hasKillTroopsEffect then durability = 1 end
-		if self.dontKillTroops then durability= -2 end
-		followerID=addon:GetTroop(tonumber(classSpec),slot or 1,missionID,durability,self.ignoreBusy)
-		if followerID then candidate[index]=followerID return true,'OK' else return self:Fail(format("No troop available for [%s]",tostring(classSpec))) end
-	else
-		local reserved=addon:IsReserved(followerID)
-		if reserved then
-			-- Always increment because, when reserved is not equal missionID we refuse the whole party
-			candidate.reservedChampions=candidate.reservedChampions +1 
-			return reserved==missionID and true or self:Fail(G.GetFollowerName(followerID),'is','reserved')
-		end
-		self.lastChecked=followerID
+		if self.saveTroops and candidate.hasKillTroopsEffect and durability > 1 then return self:Fail("Lethal non countered")end
+		if self.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("Troops must not die") end
 	end
-	local status=G.GetFollowerStatus(followerID)
-	if status then
+  local reserved=addon:IsReserved(followerID)
+	if reserved then
+		candidate.reservedChampions=candidate.reservedChampions +1 
+		return reserved==missionID and true or self:Fail(G.GetFollowerName(followerID),'is','reserved')
+	end
+	if status~=GARRISON_FOLLOWER_AVAILABLE then
 		if addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY then
 			return true
 		end
@@ -451,8 +443,7 @@ function partyManager:Build(...)
 		for i=1,self.numFollowers or 3 do
 			local s=select(i,...)
 			if s then
-				local fType,followerID,value,slot=addon:ParsePermutationFollower(s,true)
-        if not followerID then print(s,"not converted") end
+        local fType,cost,followerID,status,busy,durability,busyuntil=addon:UnpackFollower(s)    
 				if followerID then
 					local rc,res = pcall(G.AddFollowerToMission,missionID,followerID)
 					if not rc or not res then
@@ -463,12 +454,12 @@ function partyManager:Build(...)
 					tinsert(followers,followerID)
 					if fType=="H" then -- Champion
 						champions=champions+1
-						if value < addon:MAXQLEVEL() then
+						if cost < addon:MAXQLEVEL() then
 							xpGainers=xpGainers+1
 						end
 					else
 						troops=troops +1
-						troopcost=troopcost + value + addon:GetFollowerData(followerID,'quality',2)
+						troopcost=troopcost + cost
 					end
 				end
 			end
