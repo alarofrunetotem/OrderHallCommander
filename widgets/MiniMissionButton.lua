@@ -11,6 +11,7 @@ function m:OnAcquire()
   self.frame.Followers:SetScale(0.7)
 end
 function m:OnRelease()
+  self.frame.info=nil
 end
 function m:Show()
   return self.frame:Show()
@@ -30,10 +31,16 @@ end
 function m:SetScale(s)
   return self.frame:SetScale(s)
 end
-function m:SetMission(title,reason,followers)
+function m:SetMission(mission,perc,reason,followers)
   local frame=self.frame
-  frame.Title:SetText(title)
+  frame.info=mission
+  frame.Title:SetFormattedText("%s%%",perc)
   frame.Status:SetText(reason)
+  if type(followers)=="table" then
+    for i=1,#followers do
+      frame.Followers.Champions[i]:SetFollower(followers[i])
+    end
+  end
 end
 function m._Constructor()
   local frame=CreateFrame("Frame",Type..AceGUI:GetNextWidgetNum(Type),nil,"OHCMiniMissionButton")

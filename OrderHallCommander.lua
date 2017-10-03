@@ -130,7 +130,7 @@ end
 function addon:SetDbDefaults(default)
 	default.profile=default.profile or {}
 	default.profile.blacklist={}
-	default.global.tutorialStep={}
+	default.global.tutorialStep=1
 end
 do 
 local banned={}
@@ -195,6 +195,7 @@ function addon:Unban(slot,missionID)
 end
 function addon:IsBanned(slot,missionID)
 	if not slot then return banned end
+	if not missionID then return false end
 	return banned[slot..':'.. missionID]
 end
 end -- DO closed
@@ -204,11 +205,14 @@ _G.OrderHallCommanderMixinThreats={}
 _G.OrderHallCommanderMixinFollowerIcon={}
 _G.OrderHallCommanderMixinMenu={}
 _G.OrderHallCommanderMixinMembers={}
+_G.OrderHallCommanderMixinTooltip={}
+
 local Mixin=OrderHallCommanderMixin --#Mixin
 local MixinThreats=OrderHallCommanderMixinThreats --#MixinThreats
 local MixinMenu=OrderHallCommanderMixinMenu --#MixinMenu
 local MixinFollowerIcon= OrderHallCommanderMixinFollowerIcon --#MixinFollowerIcon
 local MixinMembers=OrderHallCommanderMixinMembers --#MixinMembers
+local MixinTooltip=OrderHallCommanderMixinTooltip --#MixinTooltip
 
 function Mixin:CounterTooltip()
 	local tip=self:AnchorTT()
@@ -327,7 +331,8 @@ function MixinFollowerIcon:GetFollower()
 end
 function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	local info=addon:GetFollowerData(followerID)
-	local missionID=self:GetParent():GetParent().info.missionID
+	local mission=self:GetParent():GetParent().info
+	local missionID=mission and mission.missionID
 	if not info or not info.followerID then
 		local rc
 		rc,info=pcall(G.GetFollowerInfo,followerID)
@@ -368,7 +373,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 		self.Portrait:SetDesaturated(false)
 	end
 	self:ShowLocks()
-	return status
+	return self,status
 end
 function MixinFollowerIcon:ShowLocks()
 	if self.locked then 
@@ -381,6 +386,13 @@ function MixinFollowerIcon:ShowLocks()
 	else
 		self.IgnoreIcon:Hide()
 	end	
+end
+function MixinFollowerIcon:SmartHide()
+  if self.followerID then
+    self:Show()
+  else
+    self:Hide()
+  end
 end
 function MixinFollowerIcon:SetEmpty(message)
 	local mission=self:GetParent():GetParent().info
@@ -395,10 +407,12 @@ function MixinFollowerIcon:SetEmpty(message)
 		self:GetParent():SetNotReady(true)
 	end
 	self:ShowLocks()
+	return self
 end
 local gft -- =GarrisonFollowerTooltip
 function MixinFollowerIcon:ShowTooltip()
 	local mission=self:GetParent():GetParent().info
+	if not mission then return end
 	local missionID=mission.missionID
 	gft = mission.inProgress and GarrisonFollowerTooltip or OHCFollowerTip
 	if not self.followerID then
@@ -607,4 +621,47 @@ end
 function MixinMenu:OnLoad()
 	self.Close:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end
+function MixinTooltip:OnEnter()
+    if type(self.tooltip)=="function" then
+      return self:tooltip()
+    elseif self.tooltip then     
+      GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
+      if type(self.tooltip)=="string" then
+        GameTooltip:AddLine(self.tooltip)
+      elseif type(self.tooltip)=="table" then
+        for left,right in pairs(self.tooltip) do
+          if type(left)=="number" then
+            GameTooltip:AddLine(right)
+          else
+            GameTooltip:AddDoubleLine(left,right)
+          end
+        end
+      end
+      GameTooltip:Show()
+    end
 
+
+end
+function MixinTooltip:SetTitle(text)
+  if self.Title then self.Title:SetText(text) end
+end
+function MixinTooltip:MakeMovable(button,region)
+  self:EnableMouse(true)
+  self:SetMovable(true)
+  if self.Highlight then self.Highlight:Show() end
+  if region and region.RegisterForDrag then
+    region:RegisterForDrag(button or "LeftButton")
+    region.useParent=true
+  else
+    self:RegisterForDrag(button or "LeftButton")
+  end
+end
+function MixinTooltip:OnDragStart()
+  if self.useParent then self:GetParent():StartMoving() else self:StartMoving() end
+end
+function MixinTooltip:OnDragStop()
+  _G.print("Drag stop")
+  if self.useParent then self:GetParent():StopMovingOrSizing() else self:StopMovingOrSizing() end
+end
+
+  

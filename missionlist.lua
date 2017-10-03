@@ -542,6 +542,27 @@ function module:GetMenuItem(flag)
   if flag then return optionlist[flag] end
 end
 function module:Menu(flag)
+  --@debug@
+  menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
+  menu:SetPoint("TOPLEFT",OHF,"TOPRIGHT",0,30)     
+  menu:SetPoint("BOTTOMLEFT",OHF,"BOTTOMRIGHT",0,0)     
+  --@end-debug@
+--[===[@non-debug@
+  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
+  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
+  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
+--@end-non-debug@]===]
+  menu.Title:SetText(me .. ' ' .. addon.version)
+  menu.Title:SetTextColor(C:Yellow())
+  menu.Close:SetScript("OnClick",CloseMenu)
+  menu.Tutorial:RegisterForClicks("LeftButtonUp","RightButtonUp")
+  addon:RawHookScript(menu.Tutorial,"OnClick",function(this,button) _G.print(this,button) if button=="LeftButton" then addon:ShowTutorial() else addon:GetTutorialsModule():Home() end end)
+  menu.Tutorial.tooltip="Left-Click  " .. L["Resume tutorial"] .. "\n" .. "Right-Click  " .. L["Restart tutorial from beginning"]
+  button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
+  button.tooltip=L["Show/hide OrderHallCommander mission menu"]
+  button:SetScript("OnClick",OpenMenu)
+  button:GetNormalTexture():SetRotation(math.rad(270))
+  button:GetHighlightTexture():SetRotation(math.rad(270))
 	local previous
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
@@ -580,22 +601,6 @@ function module:InitialSetup(this)
 			addon:Popup(L["OrderHallCommander overrides GarrisonCommander for Order Hall Management.\n You can revert to GarrisonCommander simply disabling OrderhallCommander.\nIf instead you like OrderHallCommander remember to add it to Curse client and keep it updated"],20)
 		end
 	end
-  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
-  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
-  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
-	menu.Title:SetText(me .. ' ' .. addon.version)
-	menu.Title:SetTextColor(C:Yellow())
-	local obj=addon:GetCacheModule():GetTroopsFrame()
-	local _,minor=LibStub("LibInit")
-	local LL=LibStub("AceLocale-3.0"):GetLocale("LibInit" .. minor,true)
-	menu.Close:SetScript("OnClick",CloseMenu)
-	addon:RawHookScript(menu.Tutorial,"OnClick","ShowTutorial")
-	menu.Tutorial.tooltip=L["Show tutorial"]
-	button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
-	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
-	button:SetScript("OnClick",OpenMenu)
-	button:GetNormalTexture():SetRotation(math.rad(270))
-	button:GetHighlightTexture():SetRotation(math.rad(270))
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
 	self:Unhook(this,"OnShow")
@@ -634,42 +639,36 @@ function module:InitialSetup(this)
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
 	collectgarbage("restart")
-  addon:MarkAsNew(obj,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
+  addon:MarkAsNew(OHF,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
 --@alpha@
-	do
-		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
-		frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
-		frame.label:SetAllPoints(frame)
-		frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
-		frame.label:SetWidth(OHF:GetWidth()-10)
-		frame.label:SetText("You are using an|cffff0000ALPHA VERSION|r.\nThings can and will break.")
-		frame.label:SetJustifyV("CENTER")
-		frame.label:SetJustifyH("CENTER")
-		frame:SetHeight(frame.label:GetStringHeight()+15)
-		frame:SetWidth(OHF:GetWidth())
-		frame.label:SetPoint("CENTER")
-		return
-	end
+    addon.version="BetaInternal"
 --@end-alpha@
+
 	if addon.version:find("Beta") then
 		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
 		frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
 		frame.label:SetAllPoints(frame)
 		frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
 		frame.label:SetWidth(OHF:GetWidth()-10)
-		frame.label:SetText("You are using |cffff0000BETA VERSION|r "..addon.version ..".\nIf something doesnt work usually typing /reload will fix it.")
+		if addon.version=="BetaInternal" then
+		  addon.version=GetAddOnMetadata(me,"X-Revision") or "Internal"
+      frame.label:SetText("You are using |cffff0000ALFA VERSION|r "..addon.version ..".\nIf something doesnt work usually typing /reload will fix it.")
+    else
+		  frame.label:SetText("You are using |cffff0000BETA VERSION|r "..addon.version ..".\nIf something doesnt work usually typing /reload will fix it.")
+		end
 		frame.label:SetJustifyV("CENTER")
 		frame.label:SetJustifyH("CENTER")
 		frame:SetHeight(frame.label:GetStringHeight()+15)
 		frame:SetWidth(OHF:GetWidth())
 		frame.label:SetPoint("CENTER")
 	end
+	addon:ShowTutorial();
 end
 function addon:ShowTutorial()
   OpenMenu()
   addon:GetTutorialsModule():Show()
 end
-    
+
 function addon:Reset()
   local w=module:GetMenuItem("BASECHANCE")
   if w then w:SetValue(5) end
@@ -896,7 +895,6 @@ function module:AddMembers(frame)
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
 	end
 	local perc=party.perc or 0
-	local maxChance=addon:GetNumber('MINCHANCE') 
 	stats.Chance:SetFormattedText(ps,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 	missionKEYS[missionID]=key
@@ -904,15 +902,12 @@ function module:AddMembers(frame)
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
 		missionNonFilled=false
-			if members.Champions[i]:SetFollower(party:Follower(i),true) then
+			if select(2,members.Champions[i]:SetFollower(party:Follower(i),true)) then
 				stats.Chance:SetTextColor(C.Grey())
 			end
 		else
 			if i==1 then emptymarker = nil end
 			members.Champions[i]:SetEmpty(emptymarker)
-			if perc < maxChance then
-				stats.Chance:SetTextColor(C.Grey())
-			end
 		end
 		members.Champions[i]:Show()
 	end
@@ -1146,16 +1141,16 @@ function module:AdjustMissionTooltip(this,...)
 	else
 		tip:AddDoubleLine(L["Not blacklisted"],L["Right-Click to blacklist"],0.125,1.0,0.125,C:Red())
 	end
-	tip:AddLine(L["Shift-Click start the mission witout even opening the mission page. Non question asked"])
+	tip:AddLine(L["Shift-Click start the mission witout even opening the mission page. No question asked"])
 	-- Mostrare per ogni tempo di attesa solo la percentuale migliore
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
 	key=key or "999999999999999999999"
 	addon:BusyFor() -- with no parames resets cache
-	for i=1,#parties do
-    local otherkey=parties[i]	 
+	for p=1,#parties.candidatesIndex do
+	  local otherkey=parties.candidatesIndex[p]
 		if otherkey < key then
-			local candidate=parties:GetSelectedParty(otherkey)
+		  local candidate=parties.candidates[otherkey]
 			local duration=addon:BusyFor(candidate)
 			if duration > 0 then
 				local busy=false
@@ -1267,5 +1262,13 @@ function module:RawMissionClick(this,button)
 --@end-debug@
 	end
 end
-
+-- Placeholder for newly added module
+do local warned function addon:GetTutorialsModule()
+  if not warned then
+    warned=true
+    addon:Popup("You need to close and restart World of Warcraft in order to update this version of OrderHallCommander.\nSimply reloading UI is not enough")
+  end
+  return addon:GetFakeModule()
+end
+end
 

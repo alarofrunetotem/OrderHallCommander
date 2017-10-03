@@ -69,6 +69,9 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local GARRISON_FOLLOWER_IN_PARTY=GARRISON_FOLLOWER_IN_PARTY
+local GARRISON_FOLLOWER_AVAILABLE=AVAILABLE
+
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
@@ -81,11 +84,7 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CATEGORY_INFO_FORMAT=GARRISON_LANDING_COMPLETED:gsub("%%d/%%d","%%d/%%d %%d")
 local CATEGORY_INFO_FORMAT_SHORT="%d/%d %d " .. READY
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin=pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin
-local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
-local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
-local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
-local GARRISON_FOLLOWER_IN_PARTY=GARRISON_FOLLOWER_IN_PARTY
 local missionsRefresh,followersRefresh=0,0
 local volatile={
 followers={
@@ -589,7 +588,7 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS()
 		t[2]=0
 	end
 	for i = 1, #followerShipments do
-		local name, texture, shipmentCapacity, shipmentsReady, shipmentsTotal, creationTime, duration, timeleftString, _, _, _, _, followerID = C_Garrison.GetLandingPageShipmentInfoByContainerID(followerShipments[i]);
+		local name, texture, shipmentCapacity, shipmentsReady, shipmentsTotal, creationTime, duration, timeleftString, _, _, _, _, followerID = G.GetLandingPageShipmentInfoByContainerID(followerShipments[i]);
 		if name and shipmentCapacity > 0 then
 			shipmentInfo[texture]=shipmentInfo[texture] or {}
 			shipmentInfo[texture][1]=shipmentsReady
@@ -702,7 +701,7 @@ function addon:GetTroopCost(classSpec)
 	if not troopCosts[classSpec] then
 		local t=G.GetClassSpecCategoryInfo(followerType)
 		for i=1,#t do
-			troopCosts[t[i].classSpec]=t[i].limit * 100
+			troopCosts[t[i].classSpec]=(5-t[i].limit) * 10
 		end
 	end
 	return troopCosts[classSpec] or 0
@@ -751,6 +750,15 @@ end
 function addon:EmptyPermutations()
   return #fullPermutations==0
 end
+function addon:ParsePermutationFollower(data,translate)
+  local fType,value,followerID,slot=strsplit('|',data)
+  value=tonumber(value) or 0
+  if fType=='T' then
+    slot=tonumber(slot) or 1
+    if translate then followerID=addon:GetTroop(tonumber(followerID),1) end
+  end
+  return fType,followerID,value,slot
+end
 function addon:GetFullPermutations(dowipe)
 	if dowipe then wipe(fullPermutations) end
 	if #fullPermutations==0 then
@@ -768,13 +776,13 @@ function addon:GetFullPermutations(dowipe)
 					end 
 					tinsert(classTroops[f.classSpec],f.followerID) 
 					if not seen[f.classSpec] then
-						tinsert(all,strjoin('|','T',f.classSpec,self:GetTroopCost(f.classSpec)))
+						tinsert(all,strjoin('|','T',self:GetTroopCost(f.classSpec)+f.quality,f.classSpec))
 						seen[f.classSpec]=1
 					else
 						seen[f.classSpec]=seen[f.classSpec] +1
 					end
 				else
-					tinsert(all,strjoin('|','H',f.followerID,f.level+(f.level==MAX_LEVEL and f.quality or 0)))
+					tinsert(all,strjoin('|','H',f.level+(f.level==MAX_LEVEL and f.quality or 0),f.followerID))
 				end
 			end
 		end
@@ -790,7 +798,7 @@ function addon:GetFullPermutations(dowipe)
 			tinsert(fullPermutations,'1,' .. all[i])
 			for j=i+1,#t do
 				if all[j] then
-					local class,id,value=strsplit('|',all[j])
+					local class,value,id=strsplit('|',all[j])
 					tinsert(fullPermutations,'2,'.. strjoin(',',all[i],all[j]))
 					if class=="T" and seen[tonumber(id)] > 1 then
 						-- I only see a classSpec once. Here if i know I have more than one troop for this spec, i force
@@ -813,6 +821,48 @@ function addon:GetFullPermutations(dowipe)
 		del(seen)
 	end
 	return fullPermutations
+end
+function addon:GetxFullPermutations(dowipe)
+  if dowipe then wipe(fullPermutations) end
+  if #fullPermutations==0 then
+    self:RefreshFollowers()
+    local all=new()
+    local tbl=module:GetFollowerData()
+    for i=1,#tbl do
+      local f=tbl[i]
+      if f.isCollected then
+        local t=f.isTroop
+        local fType=t and "T" or "H"
+        local cost=t and self:GetTroopCost(f.classSpec)+f.quality or f.level+(f.level==MAX_LEVEL and f.quality or 0)
+        local status=G.GetFollowerStatus(f.followerID) or GARRISON_FOLLOWER_AVAILABLE
+        local skip=addon:GetBoolean("IGNOREBUSY") and status==GARRISON_FOLLOWER_ON_MISSION
+        local skip=skip or addon:GetBoolean("")
+        local durability=f.durability
+      end
+    end
+    table.sort(all) -- We need champions first and a predictable order
+    for i=1,#all do
+      local class,id,value=strsplit('|',all[i])
+      if class=="T" then -- champions ended, troops only parties are invalid
+        break
+      end
+      tinsert(fullPermutations,'1,' .. all[i])
+      for j=i+1,#t do
+        if all[j] then
+          local class,value,id=strsplit('|',all[j])
+          tinsert(fullPermutations,'2,'.. strjoin(',',all[i],all[j]))
+        end
+        for k=j+1,#t do
+          if all[k] then
+            tinsert(fullPermutations,'3,'.. strjoin(',',all[i],all[j],all[k]))
+          end
+        end
+      end
+    end
+    table.sort(fullPermutations)
+    del(all)
+  end
+  return fullPermutations
 end
 function addon:DumpPermutations()
 	addon:Dump("Permutations",fullPermutations)
