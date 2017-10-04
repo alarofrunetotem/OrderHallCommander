@@ -648,3 +648,6 @@ end
 function module:ProfileStats()
 	addon:LoadProfileData(partyManager,"Matchmaker")
 end
+function addon:GetPartyManager()
+  return partyManager
+end
