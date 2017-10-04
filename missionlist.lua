@@ -895,6 +895,9 @@ function module:AddMembers(frame)
 	local lastkey=missionKEYS[missionID]
 	local parties=addon:GetMissionParties(missionID)	
 	local party,key=parties:GetSelectedParty(lastkey)
+	if not party then
+	 party,key=parties:GetSelectedParty()
+	end
 	local ps=UNCAPPED_PERC
 	if key ~= parties.xpkey then
 		local bestchance,uncappedchance=parties:GetChanceForKey(key),parties:GetChanceForKey(parties.uncappedkey)
