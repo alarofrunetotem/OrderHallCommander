@@ -14,6 +14,7 @@
 ## Author: Alar of Runetotem
 ## Version: @project-version@ 70300
 ## X-Revision: @project-abbreviated-hash@
+## X-Branch: ${BRANCH}
 ## eMail: alar@aspide.it
 ## URL: http://wow.aspide.it
 ## OptionalDeps: Ace3,LibInit
