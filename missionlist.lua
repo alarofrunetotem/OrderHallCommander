@@ -602,6 +602,11 @@ function addon:UpdateStop(n)
 	stopper:RawHookScript(OrderHallMissionFrameMissions,"OnUpdate",GarrisonMissionListMixin.OnUpdate)
 end
 function module:InitialSetup(this)
+  if not LibStub("AceSerializer-3.0",true) then
+    addon:Popup("You need to close and restart World of Warcraft in order to update this version of OrderHallCommander.\nSimply reloading UI is not enough")
+    return
+    
+  end
 	collectgarbage("stop")
 	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
 	if type(addon.db.global.warn02_seen)~="number" then	addon.db.global.warn02_seen =0 end
@@ -651,17 +656,19 @@ function module:InitialSetup(this)
 	collectgarbage("restart")
   addon:MarkAsNew(OHF,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
 --@alpha@
-    addon.version="BetaInternal"
+	addon.version="1.6.0 Alpha"
 --@end-alpha@
-
-	if addon.version:find("Beta") then
+	local _,_,versiontype=addon.version:find("(Beta)")
+	_G.print("vv",addon.version,versiontype)
+	if not versiontype then _,_,versiontype=addon.version:find("(Alpha)") end
+  _G.print("vv",addon.version,versiontype)
+	if versiontype then
 		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
 		frame.label=frame:CreateFontString(nil,"OVERLAY","GameFontNormalHuge")
 		frame.label:SetAllPoints(frame)
 		frame:SetPoint("BOTTOM",OHF,"TOP",0,30)
 		frame.label:SetWidth(OHF:GetWidth()-10)
-		if addon.version=="BetaInternal" then
-		  addon.version=GetAddOnMetadata(me,"X-Revision") or "Internal"
+		if versiontype=="Alpha" then
       frame.label:SetText("You are using |cffff0000ALFA VERSION|r "..addon.version ..".\nIf something doesnt work usually typing /reload will fix it.")
     else
 		  frame.label:SetText("You are using |cffff0000BETA VERSION|r "..addon.version ..".\nIf something doesnt work usually typing /reload will fix it.")
@@ -903,6 +910,10 @@ function module:AddMembers(frame)
 		local bestchance,uncappedchance=parties:GetChanceForKey(key),parties:GetChanceForKey(parties.uncappedkey)
 		ps=(bestchance==uncappedchance) and UNCAPPED_PERC or CAPPED_PERC
 	end
+	--@debug@
+  if type(mission.durationSeconds)~="number" then DevTools_Dump(mission) mission.durationSeconds=0 end
+	if type(party.timeseconds)~="number" then DevTools_Dump(party) party.timeseconds=mission.durationSeconds end
+	--@end-debug@
 	if party.timeseconds ~= mission.durationSeconds then
 		local color=party.timeseconds > mission.durationSeconds and RED_FONT_COLOR_CODE or GREEN_FONT_COLOR_CODE
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
