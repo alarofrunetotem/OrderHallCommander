@@ -545,6 +545,7 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 	local numCategories = #categoryInfo;
 	local prevCategory, firstCategory;
 	local nCategories=#categoryInfo
+	local previous
 	for i=1,#categoryInfo do
 		local category=categoryInfo[i]
 		local index=category.classSpec
@@ -567,10 +568,19 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 			category.count, category.limit,unpack(shipmentInfo[category.icon]));
 		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)
 		categoryInfoFrame:ClearAllPoints();
-		local padding= 600 / (nCategories * 1.5)
-		local w= padding + categoryInfoFrame.Count:GetWidth()
+    local padding= 600 / (nCategories * 1.5)
+    local w= padding + categoryInfoFrame.Count:GetWidth()
 		categoryInfoFrame:SetWidth(w)
-		categoryInfoFrame:SetPoint("TOPLEFT",50 +(w) *(i-1), 0);
+		if nCategories>2 then
+		  if previous then
+		    categoryInfoFrame:SetPoint("TOPLEFT",previous,"TOPRIGHT",10, 0);
+		  else
+        categoryInfoFrame:SetPoint("TOPLEFT",50, 0);
+      end
+      previous=categoryInfoFrame
+    else
+		  categoryInfoFrame:SetPoint("TOPLEFT",50 +(w) *(i-1), 0);
+		end
 		categoryInfoFrame:Show();
 	end
 end
