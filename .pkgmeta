@@ -40,3 +40,4 @@ ignore:
 - OrderHallCommander.template.lua
 - tree.json
 - wohead.sh
+- variables.txt
