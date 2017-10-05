@@ -365,6 +365,8 @@ function partyManager:GetSelectedParty(key,dbg)
 	if self.maximizeXP and self.xpkey then
     self.candidates[self.xpkey].reason="Best xp value"
 		selected = self.candidates[self.xpkey]
+  elseif self.cappedkey then
+    selected = self.candidates[self.cappedkey]
 	elseif self.bestkey then
 		selected = self.candidates[self.bestkey]
 	elseif self.lastkey then
