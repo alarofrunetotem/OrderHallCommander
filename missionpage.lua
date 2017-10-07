@@ -359,7 +359,14 @@ function module:FillParty(missionID,key)
 	local main=OHF
 	main:ClearParty()
 	local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
-	local missionPage=main:GetMissionPage()
+--@debug@	
+	if party then
+    dprint(addon:GetFollowerNames(party[1],party[2],party[3]))
+  else 
+  	dprint("Unable to retrieve a party")
+  end
+--@end-debug@	
+  local missionPage=main:GetMissionPage()
 	for i=#party,1,-1 do
 		local followerID=party[i]
 		if followerID and not G.GetFollowerStatus(followerID) then
