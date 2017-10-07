@@ -48,7 +48,7 @@ local MAX_LEVEL=110
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
 
-local dprint=print
+local dprint=_G.print
 local ddump
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
@@ -214,9 +214,9 @@ function partyManager:SatisfyCondition(candidate,index)
   local fType,cost,followerID,status,busy,durability,busyuntil=addon:UnpackFollower(candidate['f'..index])    
 	if fType=="T" then
 		if self.noTroops then return self:Fail("Cant use troops") end
-		if candidate.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("Cant kill troops") end
+		if candidate.hasKillTroopsEffect and self.neverKillTroops then return self:Fail("Cant kill troops") end
 		if self.saveTroops and candidate.hasKillTroopsEffect and durability > 1 then return self:Fail("Lethal non countered")end
-		if self.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("Troops must not die") end
+		if self.neverKillTroops and (self.hasKillTroopsEffect or durability <2) then return self:Fail("Troops must not die") end
 	end
   local reserved=addon:IsReserved(followerID)
 	if reserved then
@@ -296,7 +296,7 @@ function partyManager:GetSelectedParty(key,dbg)
 	self.ignoreBusy=addon:GetBoolean("IGNOREBUSY")
 	self.noTroops=addon:GetBoolean("NOTROOPS")
 	self.saveTroops=addon:GetBoolean("SAVETROOPS")
-	self.dontKillTroops=addon:GetBoolean("NEVERKILLTROOPS")
+	self.neverKillTroops=addon:GetBoolean("NEVERKILLTROOPS")
 	self.capChance=self.elite and 100 or 200
 	self.maxXp=0
 	self.bestkey,self.xpkey,self.absolutebestkey,self.lastkey,self.uncappedkey,self.cappedkey=nil,nil,nil,nil,nil,nil
