@@ -523,8 +523,8 @@ function module:GetTroopsFrame()
 		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,-2)
 		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",2,-2)
 		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
-		frame:EnableMouse(true)
-		frame:SetMovable(true)
+		--frame:SetMovable(true)
+    frame:EnableMouse(true)
 		frame:RegisterForDrag("LeftButton")
 		frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
 		frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
@@ -551,8 +551,14 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 		local index=category.classSpec
 		if not catPool[index] then
 			catPool[index]=CreateFrame("Frame","FollowerIcon",main,"OrderHallClassSpecCategoryTemplate")
+			local frame=catPool[index]
+      frame:EnableMouse(true)
+      frame:RegisterForDrag("LeftButton")
+      frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
+      frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
 		end
 		local categoryInfoFrame = catPool[index];
+		
 		if not shipmentInfo[category.icon] then
 			shipmentInfo[category.icon]={0,0}
 		end
