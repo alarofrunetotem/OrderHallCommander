@@ -859,11 +859,9 @@ function addon:GetFullPermutations(dowipe)
         local cost=t and self:GetTroopCost(f.classSpec)+f.quality or f.level+(f.level==MAX_LEVEL and f.quality or 0)
         local status=G.GetFollowerStatus(f.followerID) or GARRISON_FOLLOWER_AVAILABLE
         local busy=status==GARRISON_FOLLOWER_ON_MISSION
-        local skip = addon:GetBoolean("IGNOREINACTIVE") and status==GARRISON_FOLLOWER_INACTIVE 
-        if not skip then skip = not addon:GetBoolean("USEALLY") and status==GARRISON_FOLLOWER_COMBAT_ALLY end
         local durability=f.durability or 0
         local busyuntil=status==GARRISON_FOLLOWER_ON_MISSION and (G.GetFollowerMissionTimeLeftSeconds(f.followerID) or 0) + now
-        if not skip then tinsert(all,module:Serialize(fType,cost,f.followerID,status,busy,durability,busyuntil)) end
+        tinsert(all,module:Serialize(fType,cost,f.followerID,status,busy,durability,busyuntil))
       end
     end
     table.sort(all) -- We need champions first and a predictable order
