@@ -685,6 +685,12 @@ function addon:GetFollowerName(id)
 	local rc,error=pcall(G.GetFollowerName,id)
 	return strconcat(tostringall(id,'(',error,')'))
 end
+function addon:GetFollowerNames(...)
+  local s=""
+  for i=1,select('#',...) do
+    s= s .. self:GetFollowerName(select(i,...))
+  end
+end
 
 local fullPermutations={}
 local classTroops={}
