@@ -542,6 +542,28 @@ function module:GetMenuItem(flag)
   if flag then return optionlist[flag] end
 end
 function module:Menu(flag)
+
+  --@debug@
+  menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
+  menu:SetPoint("TOPLEFT",OHF,"TOPRIGHT",0,30)     
+  menu:SetPoint("BOTTOMLEFT",OHF,"BOTTOMRIGHT",0,0)     
+  --@end-debug@
+--[===[@non-debug@
+  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
+  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
+  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
+--@end-non-debug@]===]
+  menu.Title:SetText(me .. ' ' .. addon.version)
+  menu.Title:SetTextColor(C:Yellow())
+  menu.Close:SetScript("OnClick",CloseMenu)
+  menu.Tutorial:RegisterForClicks("LeftButtonUp","RightButtonUp")
+  addon:RawHookScript(menu.Tutorial,"OnClick",function(this,button)  if button=="LeftButton" then addon:ShowTutorial() else addon:GetTutorialsModule():Home() end end)
+  menu.Tutorial.tooltip="Left-Click  " .. L["Resume tutorial"] .. "\n" .. "Right-Click  " .. L["Restart tutorial from beginning"]
+  button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
+  button.tooltip=L["Show/hide OrderHallCommander mission menu"]
+  button:SetScript("OnClick",OpenMenu)
+  button:GetNormalTexture():SetRotation(math.rad(270))
+  button:GetHighlightTexture():SetRotation(math.rad(270))
 	local previous
 	local factory=addon:GetFactory()
 	for _,v in pairs(addon:GetRegisteredForMenu("mission")) do
@@ -580,22 +602,6 @@ function module:InitialSetup(this)
 			addon:Popup(L["OrderHallCommander overrides GarrisonCommander for Order Hall Management.\n You can revert to GarrisonCommander simply disabling OrderhallCommander.\nIf instead you like OrderHallCommander remember to add it to Curse client and keep it updated"],20)
 		end
 	end
-  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
-  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
-  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
-	menu.Title:SetText(me .. ' ' .. addon.version)
-	menu.Title:SetTextColor(C:Yellow())
-	local obj=addon:GetCacheModule():GetTroopsFrame()
-	local _,minor=LibStub("LibInit")
-	local LL=LibStub("AceLocale-3.0"):GetLocale("LibInit" .. minor,true)
-	menu.Close:SetScript("OnClick",CloseMenu)
-	addon:RawHookScript(menu.Tutorial,"OnClick","ShowTutorial")
-	menu.Tutorial.tooltip=L["Show tutorial"]
-	button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
-	button.tooltip=L["Show/hide OrderHallCommander mission menu"]
-	button:SetScript("OnClick",OpenMenu)
-	button:GetNormalTexture():SetRotation(math.rad(270))
-	button:GetHighlightTexture():SetRotation(math.rad(270))
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
 	self:Unhook(this,"OnShow")
@@ -634,7 +640,7 @@ function module:InitialSetup(this)
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
 	collectgarbage("restart")
-  addon:MarkAsNew(obj,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
+  addon:MarkAsNew(OHF,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
 --@alpha@
 	do
 		local frame=CreateFrame("Frame",nil,OHF,"TooltipBorderedFrameTemplate")
@@ -664,6 +670,7 @@ function module:InitialSetup(this)
 		frame:SetWidth(OHF:GetWidth())
 		frame.label:SetPoint("CENTER")
 	end
+	addon:ShowTutorial();
 end
 function addon:ShowTutorial()
   OpenMenu()
@@ -886,17 +893,31 @@ function module:AddMembers(frame)
 	local lastkey=missionKEYS[missionID]
 	local parties=addon:GetMissionParties(missionID)	
 	local party,key=parties:GetSelectedParty(lastkey)
+	if not party then
+	 party,key=parties:GetSelectedParty()
+	end
 	local ps=UNCAPPED_PERC
 	if key ~= parties.xpkey then
 		local bestchance,uncappedchance=parties:GetChanceForKey(key),parties:GetChanceForKey(parties.uncappedkey)
 		ps=(bestchance==uncappedchance) and UNCAPPED_PERC or CAPPED_PERC
+	end
+  if type(mission.durationSeconds)~="number" then 
+	--@debug@
+  	DevTools_Dump(mission) 
+	--@end-debug@
+ 		mission.durationSeconds=0 
+ 	end
+	if type(party.timeseconds)~="number" then 
+	--@debug@
+		DevTools_Dump(party) 
+	--@end-debug@
+		party.timeseconds=mission.durationSeconds 
 	end
 	if party.timeseconds ~= mission.durationSeconds then
 		local color=party.timeseconds > mission.durationSeconds and RED_FONT_COLOR_CODE or GREEN_FONT_COLOR_CODE
 		frame.Summary:SetFormattedText(PARENS_TEMPLATE,color .. party.timestring .. FONT_COLOR_CODE_CLOSE)
 	end
 	local perc=party.perc or 0
-	local maxChance=addon:GetNumber('MINCHANCE') 
 	stats.Chance:SetFormattedText(ps,perc)
 	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
 	missionKEYS[missionID]=key
@@ -910,9 +931,6 @@ function module:AddMembers(frame)
 		else
 			if i==1 then emptymarker = nil end
 			members.Champions[i]:SetEmpty(emptymarker)
-			if perc < maxChance then
-				stats.Chance:SetTextColor(C.Grey())
-			end
 		end
 		members.Champions[i]:Show()
 	end

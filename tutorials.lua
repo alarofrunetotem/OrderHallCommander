@@ -208,6 +208,7 @@ tutorials={
     level=-1,
     onmissing=missingMessage,
   },
+  --[[
   {
     back=1,
     action=function()  
@@ -235,12 +236,14 @@ tutorials={
     onmissing=missingMessage,
     tab=false,
   },
+  --]]
   {
     text=L["You can choose not to use a troop type clicking its icon"],
     parent=function() return addon:GetCacheModule():GetTroopsFrame() end,
     anchor="BOTTOM",
   },
   {
+    back=2,
     anchor="CENTER",
     parent=OHF,
     text=format(L["Thank you for reading this, enjoy %s"],me),
