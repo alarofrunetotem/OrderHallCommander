@@ -1152,10 +1152,10 @@ function module:AdjustMissionTooltip(this,...)
 	wipe(bestTimesIndex)
 	key=key or "999999999999999999999"
 	addon:BusyFor() -- with no parames resets cache
-	for i=1,#parties do
-    local otherkey=parties[i]	 
+	for p=1,#parties.candidatesIndex do
+	  local otherkey=parties.candidatesIndex[p]
 		if otherkey < key then
-			local candidate=parties:GetSelectedParty(otherkey)
+		  local candidate=parties.candidates[otherkey]
 			local duration=addon:BusyFor(candidate)
 			if duration > 0 then
 				local busy=false
