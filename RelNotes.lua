@@ -14,6 +14,14 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,3,[[
+Feature: you can now disable a troop type clicking its icon nin the OHC troop bar
+Fix: Maximize xp was ignoring cap
+Fix: #119 Bad display when more than 5 types of troops
+Fix: #109 Future mission were missing in tooltip
+Fix: #118 Troops with random abilities should now be considered
+Fix: #99 Caused by same issue of 118, should be fixed
+]])
 self:RelNotes(1,5,2,[[
 Fix: #108 Ignored/Blacklisted missions aren't sorted at the bottom since 1.5.1
 ]])
