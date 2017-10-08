@@ -102,7 +102,7 @@ function module:GenerateMissionCompleteList(title,anchor)
 	title=format("%s %s %s",title,w.frame:GetName(),GetTime()*1000)
 --@end-debug@
 	w:SetTitle(title)
-	w:SetCallback("OnClose",function(widget) return addon.OnLeaveCombat(module,"MissionsCleanup") end)
+	w:SetCallback("OnClose",function(widget) return module:MissionsCleanup() end)
 	--report:SetPoint("TOPLEFT",GMFMissions.CompleteDialog.BorderFrame)
 	--report:SetPoint("BOTTOMRIGHT",GMFMissions.CompleteDialog.BorderFrame)
 	w:ClearAllPoints()
@@ -169,7 +169,7 @@ end
 Eventi correlati al completamento missione
 GARRISON_MISSION_COMPLETE_RESPONSE,missionID,true,true
 GARRISON_FOLLOWER_DURABILITY_CHANGED,4(followertype?),followerID,0
-GARRISON_FOLLOWER_XP_CHANGED,4(followertype?),followerID,240,42,104,1
+GARRISON_FOLLOWER_XP_CHANGED,4(followertype?)followerID,240,42,104,1
 GARRISON_MISSION_BONUS_ROLL_COMPLETE,missionID,true (standard loot)
 GARRISON_MISSION_LIST_UPDATE,4(followwertype)
 GARRISON_MISSION_BONUS_ROLL_LOOT,139611(itemid) (bonus loot)

@@ -79,7 +79,22 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
  
-local fakeModule=setmetatable({},{__index=function() return function() end end})
+--local missionPanelMissionList=OrderHallMissionFrameMissions
+--[[
+Su OrderHallMissionFrameMissions viene chiamato Update() per aggiornare le missioni
+.listScroll = padre della scrolllist delle missioni
+<code>
+	local scrollFrame = self.listScroll;
+	local offset = HybridScrollFrame_GetOffset(scrollFrame);
+</code>
+--]]
+--[[
+OHC- OrderHallMissionFrame.FollowerTab.DurabilityFrame : OnShow :  table: 0000000033557BD0
+OHC- OrderHallMissionFrame.FollowerTab.QualityFrame : OnShow :  table: 0000000033557C20
+OHC- OrderHallMissionFrame.FollowerTab.PortraitFrame : OnShow :  table: 0000000033557D60
+OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 0000000033557F40
+OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
+--]]
 -- Upvalued functions
 local GetItemInfo=GetItemInfo
 --if I then GetItemInfo=I:GetCachingGetItemInfo() end
@@ -232,7 +247,7 @@ function addon:MarkAsNew(obj,key,message,method)
 	local db=self.db.global
 	if not db.news then db.news={} end
 --@debug@	
-	db.news[key]=false
+	db.news[key]=true
 --@end-debug@	
 	if (not db.news[key]) then
 		local f=CreateFrame("Button",nil,obj,"OHCWhatsNew")
@@ -241,7 +256,7 @@ function addon:MarkAsNew(obj,key,message,method)
 		f.texture:SetAllPoints()
     f:GetHighlightTexture():ClearAllPoints()		
     f:GetHighlightTexture():SetAllPoints()    
-		f:SetPoint("TOPLEFT",obj,"TOPLEFT",0,32)
+		f:SetPoint("TOPLEFT",obj,"TOPLEFT",0,0)
 		f:SetFrameStrata("TOOLTIP")
 		f:Show()
 		if method then
@@ -259,9 +274,149 @@ function addon:MarkAsSeen(key)
 	db.news[key]=true
 	if newsframes[key] then newsframes[key]:Hide() end
 end	
-function addon.GetFakeModule()
-  return fakeModule
+
+--@do-not-package@
+
+local gamu=GetAddOnMemoryUsage
+local uamu=UpdateAddOnMemoryUsage
+local redpattern="c|FFFF0000%dM|r"
+local greenpattern="%dM"
+local function wrap(obj,func)
+	addon:Print("Hook func",func)
+	local old=obj[func]
+	obj[func] = function(...)
+		local r1,r2,r3,r4,r5,r6,r7,r8,r9=old(...)
+		local m2=gamu(me)
+		addon:Print("Called",func,format(greenpattern,m2/1024))
+		return r1,r2,r3,r4,r5,r6,r7,r8,r9
+	end
 end
+local profile={}
+local min=5
+function addon:LoadProfileData(obj,objname)
+	for name,func in pairs(obj) do
+		if type(func)=="function" then
+			local total,times=GetFunctionCPUUsage(func,true)
+			if times >= min then
+				local average=total/(times>0 and times or 1)
+				profile[format("%06d.%s:%s",999999-average*1000,objname,name)]={total=total,times=times,average=average}
+			end
+		end
+	end
+end
+function addon:ProfileStats(newmin)
+	if newmin then min = newmin end
+	wipe(profile)
+	local profiling=GetCVarBool("scriptProfile")
+	if not profiling then
+		SetCVar("scriptProfile",true)
+		ReloadUI()
+	end
+	for name,module in self:IterateModules() do
+		self:LoadProfileData(module,name)
+		if module.ProfileStats then
+			module:ProfileStats()
+		end
+	end
+	self:LoadProfileData(self,"MAIN")
+	if ViragDevTool_AddData then
+		ViragDevTool_AddData(profile,"OHC_PROFILE")
+	end
+end
+function addon:Resolve(frame) 
+	local name
+	if type(frame)=="table" and frame.GetName then
+		name=frame:GetName()
+		if not name then
+			local parent=frame:GetParent()
+			if not parent then return "UIParent" end
+			for k,v in pairs(parent) do
+				if v==frame then
+					name=self:Resolve(parent) .. '.'..k
+					return name
+				end
+			end
+			return tostring(frame)
+		else
+			return name
+		end
+	end
+	return "unk"
+end
+local events=CreateFrame("Frame")
+addon.evt=setmetatable({},{__index=function(t,v) return 0 end})
+addon.evtCount=setmetatable({},{__index=function(t,v) return 0 end})
+events:RegisterAllEvents()
+events:SetScript("OnEvent", 
+	function(this,event,...)
+		if event:find("GARRISON") then
+			addon.evtCount[event]=addon.evtCount[event] +1
+			local signature=strjoin(' , ',event,tostringall(...))
+			addon.evt[signature]=addon.evt[signature] +1
+		end
+	end
+)
+
+function addon:GetScroller(title,type,h,w)
+	h=h or 800
+	w=w or 400
+	type=type or "Frame"
+	local scrollerWindow=AceGUI:Create("Frame")
+	--scrollerWindow.frame:SetAlpha(1)
+	scrollerWindow:SetTitle(title)
+	scrollerWindow:SetLayout("Fill")
+	--local scrollcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
+	--scrollcontainer:SetFullWidth(true)
+	--scrollcontainer:SetFullHeight(true) -- probably?
+	--scrollcontainer:SetLayout("Fill") -- important!
+	--scrollerWindow:AddChild(scrollcontainer)
+	local scroll = AceGUI:Create("ScrollFrame")
+	scroll:SetLayout("Flow") -- probably?
+	scroll:SetFullWidth(true)
+	scroll:SetFullHeight(true)
+	scrollerWindow:AddChild(scroll)
+	scrollerWindow:SetCallback("OnClose","Release")
+	scrollerWindow:SetHeight(h)
+	scrollerWindow:SetWidth(w)
+	scrollerWindow:SetPoint("CENTER")
+	scrollerWindow:Show()
+	scroll.addRow=scroll.AddRow
+	return scroll
+end
+function addon:cutePrint(scroll,level,k,v)
+	if (type(level)=="table") then
+		for k,v in kpairs(level,safesort) do
+			self:cutePrint(scroll,"",k,v)
+		end
+		return
+	end
+	if (type(v)=="table") then
+		if (level:len()>6) then return end
+		self:AddRow(scroll,level..C(k,"Azure")..":" ..C("Table","Orange") .. " " .. tostring(#v))
+		for kk,vv in pairs(v) do
+			self:cutePrint(scroll,level .. "  ",kk,vv)
+		end
+	else
+		if (type(v)=="string" and v:sub(1,2)=='0x') then
+			v=v.. " " ..tostring(self:GetFollowerData(v,'name'))
+		end
+		self:AddRow(scroll,level..C(k,"White")..":" ..C(v,"Yellow"))
+	end
+end
+function addon:Dump(title,data)
+	if type(data)=="string" then
+		data=_G[data]
+	end
+	if type(data) ~= "table" then
+		print(data,"is not a table")
+		return
+	end
+	local scroll=self:GetScroller(title)
+	print("Dumping",title)
+	self:cutePrint(scroll,data)
+	return scroll
+end
+--@end-do-not-package@
 if not _G.OHC then
 _G.OHC=addon
 end

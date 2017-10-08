@@ -17,38 +17,23 @@ local GARRISON_FOLLOWER_DISBANDED=GARRISON_FOLLOWER_DISBANDED
 local BONUS_LOOT_LABEL=C(" (".. BONUS_LOOT_LABEL .. ")","Green")
 local GetItemInfo,GetItemIcon=GetItemInfo,GetItemIcon
 local m={} --#Widget
-function m:OnRelease()
-  self.frame.info=nil
-end
 function m:Show()
   self.frame:Show()
 end
 function m:Hide()
   self.frame:Hide()
-  self:ReleaseChildren()
   self:Release()
 end
-function m:LoadCandidates()
-  addon:Print("LoadCandidates called")
-  local missionID=self.frame.info.missionID
+function m:LoadMission(missionID)
   local parties=addon:GetMissionParties(missionID)
   if not parties then addon:Print("Non trovo la missione",missionID) return end
   local obj=self.scroll
-  for i=1,#parties.candidatesIndex do
-    local key=parties.candidatesIndex[i]
-    local party=parties.candidates[key]
-    local b=AceGUI:Create("OHCMiniMissionButton")
-    addon:Print(party.perc,party.reason,party[1],party[2],party[3])
-    b:SetMission(self.frame.info,party.perc,party.reason,party)
-    b:SetFullWidth(true)
-    obj:AddChild(b)
-    if coroutine.running() then coroutine.yield() end
-  end
-end
-function m:LoadMission(missionID)
-  self.frame.info=addon:GetMissionData(missionID)
-  --self:LoadCandidates()
-  addon.coroutineExecute(m,0.1,"LoadCandidates",false,m)
+  local b=AceGUI:Create("OHCMiniMissionButton")
+  b:SetMission("Prova titolo","Prova reason")
+  --b:SetScale(0.7)
+  --b:SetFullWidth(true)
+  --self.missions[mission.missionID]=b
+  obj:AddChild(b)
 
 end
 function m._Constructor()

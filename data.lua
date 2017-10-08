@@ -198,19 +198,6 @@ do
 end
 --@do-not-package@
 --[[
---local missionPanelMissionList=OrderHallMissionFrameMissions
-Su OrderHallMissionFrameMissions viene chiamato Update() per aggiornare le missioni
-.listScroll = padre della scrolllist delle missioni
-<code>
-  local scrollFrame = self.listScroll;
-  local offset = HybridScrollFrame_GetOffset(scrollFrame);
-</code>
-
-OHC- OrderHallMissionFrame.FollowerTab.DurabilityFrame : OnShow :  table: 0000000033557BD0
-OHC- OrderHallMissionFrame.FollowerTab.QualityFrame : OnShow :  table: 0000000033557C20
-OHC- OrderHallMissionFrame.FollowerTab.PortraitFrame : OnShow :  table: 0000000033557D60
-OHC- OrderHallMissionFrame.FollowerTab.ModelCluster : OnShow :  table: 0000000033557F40
-OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 
 dbOHCperChar = {
 	"GameTooltip/GarrisonMissionListTooltipThreatsFrame", -- [299]

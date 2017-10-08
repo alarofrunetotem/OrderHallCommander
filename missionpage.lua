@@ -69,7 +69,6 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
-local GARRISON_FOLLOWER_IN_PARTY=GARRISON_FOLLOWER_IN_PARTY
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
@@ -81,12 +80,6 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 --*BEGIN 
 local GARRISON_MISSION_AVAILABILITY2=C(GARRISON_MISSION_AVAILABILITY,'Yellow') .. " %s"
 local GARRISON_MISSION_ID="MissionID: %d"
-local button,expires,missionid,panel,listpanel
-function module:OnInitialized()
-end
-function module:GetAnalyzeButton()
-  return button
-end
 function module:FillMissionPage(missionInfo,key)
 
 	if type(missionInfo)=="number" then missionInfo=addon:GetMissionData(missionInfo) end
@@ -98,258 +91,26 @@ function module:FillMissionPage(missionInfo,key)
 	local missionpage=main:GetMissionPage()
 	local stage=main.MissionTab.MissionPage.Stage
 	local model=stage.MissionInfo.MissionTime
-	if not expires then
-		expires=stage:CreateFontString()
-		expires:SetFontObject(model:GetFontObject())
-		expires:SetDrawLayer(model:GetDrawLayer())
+	if not stage.expires then
+		stage.expires=stage:CreateFontString()
+		stage.expires:SetFontObject(model:GetFontObject())
+		stage.expires:SetDrawLayer(model:GetDrawLayer())
 	end
-	expires:SetFormattedText(GARRISON_MISSION_AVAILABILITY2,missionInfo.offerTimeRemaining or "")
-	expires:SetTextColor(addon:GetAgeColor(missionInfo.offerEndTime))
-	expires:SetPoint("TOPLEFT",stage.MissionInfo,"BOTTOMLEFT",0,-2)
-	if not button then
-    button=addon:GetFactory():Button(OHFMissionPage,L["Analyze parties"],L["See all possible parties for this mission"])
-    button:SetPoint("TOPRIGHT",-32,0)
-    button:Show()
-  end
-  button:SetOnChange(function() module:Analyze(missionInfo) end)
+	stage.expires:SetFormattedText(GARRISON_MISSION_AVAILABILITY2,missionInfo.offerTimeRemaining or "")
+	stage.expires:SetTextColor(addon:GetAgeColor(missionInfo.offerEndTime))
+	stage.expires:SetPoint("TOPLEFT",stage.MissionInfo,"BOTTOMLEFT")
 --@debug@
-	if not missionid then
-		missionid=stage:CreateFontString()
-		missionid:SetFontObject(model:GetFontObject())
-		missionid:SetDrawLayer(model:GetDrawLayer())
-		missionid:SetPoint("TOPLEFT",button,"BOTTOMLEFT",0,-2)
+	if not stage.missionid then
+		stage.missionid=stage:CreateFontString()
+		stage.missionid:SetFontObject(model:GetFontObject())
+		stage.missionid:SetDrawLayer(model:GetDrawLayer())
+		stage.missionid:SetPoint("TOPLEFT",stage.expires,"BOTTOMLEFT")
 	end
-	missionid:SetFormattedText(GARRISON_MISSION_ID,missionInfo.missionID)
+	stage.missionid:SetFormattedText(GARRISON_MISSION_ID,missionInfo.missionID)
 --@end-debug@
 	if( IsControlKeyDown()) then self:Print("Ctrl key, ignoring mission prefill") return end
 	if (addon:GetBoolean("NOFILL")) then return end
 	self:FillParty(missionInfo.missionID,key)
-	if panel and panel:IsVisible() then
-    self:Analyze(missionInfo)
-	end
-end
-function module:Tooltip(frame)
-  local tip=GameTooltip
-  tip:SetOwner(frame,"ANCHOR_RIGHT")
-  tip:AddLine(frame.key)
-  _G.OrderHallCommanderMixin.DumpData(tip,addon:GetSelectedParty(frame.info.missionID,frame.key))  
-  tip:Show()
-end
-function module:TooltipList(frame)
-  local tip=GameTooltip
-  tip:SetOwner(frame,"ANCHOR_RIGHT")
-  tip:AddLine("Will contain a better explanation of selctions done on this party")
-  tip:AddLine(frame.key)
-  tip:Show()
-end
-function module:UpdateList(scrollFrame)
-  local offset = HybridScrollFrame_GetOffset(scrollFrame);
-  local buttons = scrollFrame.buttons;
-  local numButtons = #buttons;
-  local permutations=addon:GetFullPermutations()
-  local numPermutations=#permutations
-  for i=1,#buttons do
-    local tuple=permutations[i+offset]
-    local total,f1,f2,f3=strsplit(',',tuple)
-    local button=buttons[i]
-    button.Perc:SetText(i+offset)
-    button.Title:SetText(tuple)
-    button.Status:SetText((f2 or '') .. ',' .. (f3 or '') )
-    local fType,followerID,value,slot=addon:ParsePermutationFollower(f1 or '',true)
-    button.Followers.Champions[1]:SetFollower(followerID):SmartHide()
-    local fType,followerID,value,slot=addon:ParsePermutationFollower(f2 or '',true)
-    button.Followers.Champions[2]:SetFollower(followerID):SmartHide()
-    local fType,followerID,value,slot=addon:ParsePermutationFollower(f3 or '',true)
-    button.Followers.Champions[3]:SetFollower(followerID):SmartHide()
-    button.Followers:SetNotReady(false)
-  end
-  local totalHeight = numPermutations * scrollFrame.buttonHeight;
-  local displayedHeight = numButtons * scrollFrame.buttonHeight;
-  HybridScrollFrame_Update(scrollFrame, totalHeight, displayedHeight);   
-  
-end
-function module:Update(scrollFrame)
-  local offset = HybridScrollFrame_GetOffset(scrollFrame);
-  local buttons = scrollFrame.buttons;
-  local numButtons = #buttons;
-  local mission=scrollFrame:GetParent().info
-  local parties=addon:GetMissionParties(mission.missionID)
-  local numParties=#parties.candidatesIndex
-  local skip=0
-  for i=1,#buttons do
-    local key,button,party,index
-    button=buttons[i]
-    while true do
-      index=i+offset+skip
-      if index > numParties then
-        key="EMPTY"
-        break
-      end
-      key=parties.candidatesIndex[i+offset+skip]
-      party=parties.candidates[key]
-      if not scrollFrame.readyOnly then break end
-      if key=="EMPTY" then break end
-      if party.busy then
-        skip=skip+1
-      else
-        break
-      end
-    end
-    if key and key ~="EMPTY" then
-      local discarded=false
-      button.info=mission
-      button.key=key
-      button.party=party
-      button.Perc:SetFormattedText(PERCENTAGE_STRING,party.perc)
-      button.Perc:SetTextColor(addon:GetDifficultyColors(party.perc,true))
-      local text=''
-      if key==parties.absolutebestkey then
-        text=text .. C("Absolute best ","Purple")
-      end
-      if key==parties.uncappedkey then
-        text=text .. C("Uncapped best ","Purple")
-      end
-      if key==parties.cappedkey then
-        text=text .. C("Capped best ","Orange")
-      end
-      if key==parties.xpkey then
-        text=text .. C("XP best ","Cyan")
-      end
-      if key==parties.selectedkey then
-        button.Title:SetText("==> " .. text .. " <==")
-      elseif text=='' then
-        button.Title:SetText(C("Discarded","Red"))
-      else
-        button.Title:SetText(text)
-      end      
-      button.Status:SetText(party.reason)
-      button:Show()
-      for j=1,3 do
-        local champion=button.Followers.Champions[j]
-        if party[j] then 
-          local status=G.GetFollowerStatus(party[j])
-          if status== GARRISON_FOLLOWER_IN_PARTY then status = nil end
-          champion:SetFollower(party[j],status)
-          champion:Show()
-        else 
-          champion:Hide()
-        end
-      end 
-     button.Followers:SetNotReady(false)
-    else
-      button.info=nil
-      button.party=nil
-      button:Hide()
-    end
-  end
-  local totalHeight = numParties * scrollFrame.buttonHeight;
-  local displayedHeight = numButtons * scrollFrame.buttonHeight;
-  HybridScrollFrame_Update(scrollFrame, totalHeight, displayedHeight);  
-end
-local function fix(button,w)
-      --button.Perc:SetWidth(50)
-      button.Title:ClearAllPoints()
-      button.Title:SetPoint("TOPLEFT",button.Perc,"TOPRIGHT",10,-10)
-      button.Title:SetWidth(w-100)
-      button.Status:ClearAllPoints()
-      button.Status:SetPoint("TOPLEFT",button.Title,"BOTTOMLEFT",0,-10)
-      button.Status:SetWidth(w-100)
-      button.Status:SetJustifyH("LEFT")
-      button:SetWidth(w-30)
-      button.BG:SetWidth(button:GetWidth())      
-end
-function addon:ShowPermutations()
-  local panel=listpanel
-  local w=1000
-  local elapsed=debugprofilestop()
-  local combinations=#addon:GetFullPermutations(true)
-  elapsed=debugprofilestop()-elapsed
-  if not panel then
-    panel= CreateFrame("Frame","OHCPermutations",UIParent,"OHCBaseFrame")
-    panel.list=CreateFrame("Scrollframe","OHCPermutationsList",panel,"BasicHybridScrollFrameTemplate")
-    panel.list:ClearAllPoints()
-    panel.list:SetPoint("BOTTOMLEFT",0,12)
-    panel.list:SetPoint("BOTTOMRIGHT",-30,12)
-    panel.list:SetPoint("TOP",panel.Title,"BOTTOM")
-    panel:SetHeight(OHFMissionPage:GetHeight())
-    panel:SetWidth(w)
-    panel:SetPoint("LEFT",50,0)
-    panel:MakeMovable()
-    panel:Show()
-    panel:SetFrameStrata("HIGH")
-    HybridScrollFrame_CreateButtons(panel.list,"OHCMiniMissionButton", 10, -5, nil, nil, nil,10)
-    for i=1,#panel.list.buttons do
-      local button=panel.list.buttons[i]
-      fix(button,w)
-      button.tooltip=function(frame) module:TooltipList(frame) end
-    end
-  end
-  local scrollFrame=panel.list
-  panel:SetTitle(format("Permutation listing. %d combinations generated in %f seconds",combinations,elapsed/1000))
-  panel.list.update=function(frame) module:UpdateList(frame) end
-  panel.list.range=1
-  module:UpdateList(scrollFrame)
-  panel:Show()
-end  
-local function click(self)
-  if self.info and self.key then
-    if IsShiftKeyDown() then
-      local parties=addon:GetMissionParties(self.info.missionID)
-      local candidate=parties.candidates[self.key]
-      parties.current=candidate      
-      for i=1,3 do
-        addon:Print("Checking",addon:GetFollowerName(candidate[i]))
-        addon:Print(addon:ParsePermutationFollower(candidate['f'..i]))        
-        addon:Print(parties:SatisfyCondition(candidate,i))
-      end
-    else 
-      module:FillMissionPage(self.info,self.key)
-    end 
-  else 
-  addon:Print(self:GetName(),"No mission data") 
-  end 
-end
-function module:Analyze(mission)
-  if not panel then
-    local w=600
-    panel= CreateFrame("Frame","OHCAnalyzer",OHFMissionPage,"OHCBaseFrame")
-    panel.list=CreateFrame("Scrollframe","OHCAnalizerList",panel,"BasicHybridScrollFrameTemplate")
-    panel.list:ClearAllPoints()
-    panel.list:SetPoint("BOTTOMLEFT",0,10)
-    panel.list:SetPoint("BOTTOMRIGHT",-25,10)
-    panel.list:SetPoint("TOP",panel.Title,"BOTTOM")
-    panel.checkbox=addon:GetFactory():Checkbox(panel,false,L["Only show ready parties"],L["Shows only parties with available followers"])
-    panel.checkbox:SetOnChange(function(this,value) panel.list.readyOnly=value module:Update(panel.list) end)
-    panel.checkbox:SetPoint("TOPLEFT",15,-3)
-    panel:SetHeight(OHFMissionPage:GetHeight())
-    panel:SetWidth(w)
-    panel:SetPoint("RIGHT",OHFMissionPage,"LEFT",0,0)
-    --panel:MakeMovable()
-    panel:Show()
-    panel:SetFrameStrata("HIGH")
-    HybridScrollFrame_CreateButtons(panel.list,"OHCMiniMissionButton", 10, -5, nil, nil, nil,10)
-    for i=1,#panel.list.buttons do
-      local button=panel.list.buttons[i]
-      fix(button,w)
---      button.Title:ClearAllPoints()
---      button.Title:SetPoint("TOPLEFT",button.Perc,"TOPRIGHT",10,-10)
---      button.Status:ClearAllPoints()
---      button.Status:SetPoint("BOTTOMLEFT",button.Perc,"BOTTOMRIGHT",0,10)
---      button:SetWidth(panel.list:GetWidth()-30)
---      button.BG:SetWidth(button:GetWidth())
---      button.Title:SetWidth(button:GetWidth()-button.Perc:GetWidth())
---      button.Status:SetWidth(button:GetWidth()-button.Perc:GetWidth())
-      button.tooltip=function(frame) module:Tooltip(frame) end
-      button:SetScript("OnClick",click)
-    end
-  end
-  local scrollFrame=panel.list
-  panel.info=mission
-  panel:SetTitle(mission.name .. ' analisys')
-  panel.list.update=function(frame) module:Update(frame) end
-  panel.list.range=1
-  module:Update(scrollFrame)
-  panel:Show()
 end
 function module:FillParty(missionID,key)
 	--addon:HoldEvents()
@@ -357,7 +118,7 @@ function module:FillParty(missionID,key)
 	main:ClearParty()
 	local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
 	local missionPage=main:GetMissionPage()
-	for i=#party,1,-1 do
+	for i=1,#party do
 		local followerID=party[i]
 		if followerID and not G.GetFollowerStatus(followerID) then
 			missionPage:AddFollower(followerID)

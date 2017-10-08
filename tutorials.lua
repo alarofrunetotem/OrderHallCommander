@@ -86,9 +86,7 @@ local platestrata = HelpPlateTooltip:GetFrameStrata()
 local currentTutorialIndex
 local fcolor="Yellow"
 local ncolor="Green"
-local missingMessage=L["A requested window is not open\nTutorial will resume as soon as possible"]
-local tutorials
-tutorials={
+local tutorials={
   {
     text=L["Welcome to a new release of OrderHallCommander\nPlease follow this short tutorial to discover all new functionalities.\nYou will not regret it"],
     anchor="CENTER",
@@ -159,90 +157,50 @@ tutorials={
     anchor="LEFT"
   },
   {
-    text=L["Equipment and upgrades are listed here as clickable buttons.\nDue to an issue with Blizzard Taint system, drag and drop from bags raise an error.\nif you drag and drop an item from a bag, you receive an error.\nIn order to assign equipments which are not listed (I update the list often but sometimes Blizzard is faster), you can right click the item in the bag and the left click the follower.\nThis way you dont receive any error"],
-    anchor="CENTER",
-    parent=OHFFollowerTab,
-    tab=2,
-  },
-  {
-    back=1,
-    text=L["You can blacklist missions right clicking mission button.\nSince 1.5.1 you can start a mission witout passing from mission page shift-clicking the mission button.\nBe sure you liked the party because no confirmation is asked"],
-    parent=function() return OHFButtons[1] end,
-    anchor="TOP",
-    onmissing=missingMessage,
-  },
-  {
-    back=2,
     text='Followers can be "locked" to a specific mission.\nWhen you lock a follower, he will not used for any other mission\nLocking follower around is a way to optimize your setup, you can keep locking and unlocking followers to different missions to achieve the best overall combination',
-    anchor="TOP",
-    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] end end,
+    anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
+    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
     level=-1,
-    onmissing=missingMessage,
+    glow=addon:GetMembersFrame(OHFButtons[1])  and true or false
   },
   {
-    back=3,
     text=L['Slots (non the follower in it but just the slot) can be banned.\nWhen you ban a slot, that slot will not be filled for that mission.\nExploiting the fact that troops are always in the leftmost slot(s) you can achieve a nice degree of custom tailoring, reducing the overall number of followers used for a mission'],
-    anchor="TOP",
-    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[3] or f.Champions[2] or f.Champions[1] end end,
+    anchor=function() return addon:GetMembersFrame(OHFButtons[1]) and "TOP" or "CENTER" end,
+    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] else return OHF end end,
     level=-1,
-    onmissing=missingMessage,
+    glow=addon:GetMembersFrame(OHFButtons[1]) and true or false
+  },
+  {
+    text=L["You can blacklist missions right clicking mission button.\nSince 1.5.1 you can start a mission witout passing from mission page shift-clicking the mission button.\nBe sure you liked the party because non confirmation is asked"],
+    parent=function() return OHFButtons[1] or OHF end,
+    anchor=function() return OHFButtons[1] and "TOP" or "CENTER" end,
+    glow=OHFButtons[1] and true or false 
   },
   {
     text="When you have locked some followers to missions, you can start the mission without going to the mission page.\nShift-Clicking this button will scan missions from top to bottom (so, sort order IS important) and start the first one with at least one locked follower",
     parent=function() return module:GetMenuItem("BUTTON1") end,    
     anchor="TOP",
     level=-1,
-    onmissing=missingMessage,
   },
   {
     text="You can quickly remove all locks and bans clicking here",
     parent=function() return module:GetMenuItem("BUTTON2") end,    
     anchor="TOP",
     level=-1,
-    onmissing=missingMessage,
   },
   {
     text="If you cant see missions filled, maybe you have a too restrictive set of switches checked on.\nClicking here reset OHC to a very permissive setup.\nTry this before filing a ticket, please :)",
     parent=function() return module:GetMenuItem("BUTTON3") end,    
     anchor="TOP",
     level=-1,
-    onmissing=missingMessage,
   },
   {
-    back=1,
-    action=function()  
-      if OHFButtons[1] then 
-        addon:GetMissionlistModule():RawMissionClick(OHFButtons[1],"LeftButton") 
-      end 
-    end,
-    anchor="TOP",
-    text=L["If you dont understand why OHC choosed a setup for a mission, you can request a full analysis.\nAnalyze party will show all the possible combinations and how OHC evaluated them"],
-    parent=function() local b=addon:GetMissionpageModule():GetAnalyzeButton() return (b and b:IsVisible()) and b end,
-    level=-1,
-    onmissing=missingMessage,
-  },
-  {
-    back=2,
-    action=function() 
-      if OHFMissionPage:IsVisible() and addon:GetMissionpageModule():GetAnalyzeButton() then
-        addon:GetMissionpageModule():GetAnalyzeButton():Click()        
-      end
-    end,
-    anchor="RIGHT",
-    text=L["Clicking a party button will assign its followers to the current mission.\nUse it to verify OHC calculated chance with Blizzard one.\nIf they differs please take a screenshot and open a ticket :)."],
-    parent=function() addon:Print("Retrieving",_G.OHCAnalyzer) return _G.OHCAnalyzer end,
-    level=-1,
-    onmissing=missingMessage,
-    tab=false,
-  },
-  {
+    text=L["Equipment and upgrades are listed here as clickable buttons.\nDue to an issue with Blizzard Taint system, if you drag and drop an item from a bag, you receive an error.\nIn order to assign equipment which are not listed (I updated the list often but sometimes Blizzard is faster), you can right click the item in the bag and the left click the follower.\nThis way you dont receive any error"],
     anchor="CENTER",
-    parent=OHF,
-    text=format(L["Thank you for reading this, enjoy %s"],me),
-    action=function() addon.db.global.tutorialStep=#tutorials +1 end
+    parent=OHFFollowerTab,
+    tab=2,
+    glow=false
   }
-  
-  
 }
 local Clicker
 local Enhancer
@@ -255,13 +213,9 @@ local function callOrUse(data)
 end
 local function plate(self,tutorial)
   local text
-  local rc=false
   if type(tutorial)=="table" then
-    if tutorial.tab==nil then tutorial.tab=1 end
-    if tutorial.tab then
-      OHF:SelectTab(tutorial.tab)
-    end
     if type(tutorial.action)=="function" then tutorial.action() end
+    OHF:SelectTab(tutorial.tab or 1)
     text = callOrUse(tutorial.text)
     local a1=callOrUse(tutorial.anchor)
     local o,o2=callOrUse(tutorial.parent)
@@ -271,7 +225,6 @@ local function plate(self,tutorial)
     local x=20
     local y=0
     local a2="RIGHT"
-    if not o then a1="CENTER" end
     if a1=="RIGHT" then
       a2="LEFT"
       arrow="ArrowLEFT"
@@ -301,47 +254,41 @@ local function plate(self,tutorial)
     HelpPlateTooltip.HookedByOHC=true
     if arrow then HelpPlateTooltip[arrow]:Show() end
     if glow then HelpPlateTooltip[glow]:Show() end
-    HelpPlateTooltip:SetPoint(a1, o or OHF, a2, x, y)
-    HelpPlateTooltip:SetParent(o or OHF)
+    HelpPlateTooltip:SetPoint(a1, o, a2, x, y)
+    HelpPlateTooltip:SetParent(o)
     HelpPlateTooltip:SetFrameStrata("TOOLTIP")
     Clicker:SetParent(HelpPlateTooltip)
     Clicker:Show()
     if tutorial.noglow then
       Enhancer:Hide()
     else
-      if o then 
-        Enhancer:SetParent(o)
-        Enhancer:ClearAllPoints()
-        if o2 then
-          if o2:GetTop() >= o:GetTop() and o2:GetLeft() <= o:GetLeft() then
-            Enhancer:SetPoint("TOPLEFT",o,"TOPLEFT")
-            Enhancer:SetPoint("BOTTOMRIGHT",o2,"BOTTOMRIGHT")
-          elseif o2:GetTop() <= o:GetTop() and o2:GetLeft() >= o:GetLeft() then
-            Enhancer:SetPoint("TOPLEFT",o,"TOPLEFT")
-            Enhancer:SetPoint("BOTTOMRIGHT",o2,"BOTTOMRIGHT")
-          else
-            Enhancer:SetAllPoints()
-          end
-        else  
+      Enhancer:SetParent(o)
+      Enhancer:ClearAllPoints()
+      if o2 then
+        if o2:GetTop() >= o:GetTop() and o2:GetLeft() <= o:GetLeft() then
+          Enhancer:SetPoint("TOPLEFT",o,"TOPLEFT")
+          Enhancer:SetPoint("BOTTOMRIGHT",o2,"BOTTOMRIGHT")
+        elseif o2:GetTop() <= o:GetTop() and o2:GetLeft() >= o:GetLeft() then
+          Enhancer:SetPoint("TOPLEFT",o,"TOPLEFT")
+          Enhancer:SetPoint("BOTTOMRIGHT",o2,"BOTTOMRIGHT")
+        else
           Enhancer:SetAllPoints()
         end
-        Enhancer:SetFrameStrata(o:GetFrameStrata())
-        if tutorial.level then
-          Enhancer:SetFrameLevel(o:GetFrameLevel() + (tutorial.level))
-        end
-        Enhancer:Show()
-      else
-        Enhancer:Hide()
-        text=tutorial.onmissing
-        rc=true
+      else  
+        Enhancer:SetAllPoints()
       end
+      Enhancer:SetFrameStrata(o:GetFrameStrata())
+      if tutorial.level then
+        Enhancer:SetFrameLevel(o:GetFrameLevel() + (tutorial.level))
+      end
+      Enhancer:Show()
     end
   else
     text=tutorial
   end
   HelpPlateTooltip.Text:SetText(C(me .. ' ' .. addon.version,'Green') .. "\n" .. text .. "\n\n" )
   HelpPlateTooltip:Show()  
-  return rc
+  
   --HelpPlateTooltip:SetScript("OnMouseDown",function(this) this:SetScript("OnMouseDown",this.oldClick) HelpPlate_TooltipHide() end)
 end
 function module:Refresh()
@@ -377,20 +324,16 @@ function module:Home()
   self:Show()
 end  
 function module:HasReadTutorial()
-  return addon.db.global.tutorialStep and addon.db.global.tutorialStep >= #tutorials
+  return addon.db.global.tutorialStep[addon.version] and addon.db.global.tutorialStep[addon.version] >= #tutorials
 end
 function module:Show()
   HelpPlateTooltip.HookedByOHC=nil
-  if not currentTutorialIndex then currentTutorialIndex=addon.db.global.tutorialStep or 1 end
+  if not currentTutorialIndex then currentTutorialIndex=addon.db.global.tutorialStep[addon.version] or 1 end
   local tutorial=tutorials[currentTutorialIndex]
-  addon.db.global.tutorialStep=currentTutorialIndex
   if tutorial then
-    if plate(self,tutorial) then
-      Clicker.Forward:Hide()
-    elseif currentTutorialIndex < #tutorials 
-    then Clicker.Forward:Show() 
-    else Clicker.Forward:Hide() 
-    end
+    addon.db.global.tutorialStep[addon.version]=currentTutorialIndex
+    plate(self,tutorial)
+    if currentTutorialIndex < #tutorials then Clicker.Forward:Show() else Clicker.Forward:Hide() end
     if currentTutorialIndex > 1 then 
       Clicker.Backward:Show() 
       Clicker.Home:Show() 
@@ -399,6 +342,8 @@ function module:Show()
       Clicker.Home:Hide() 
     end
     return
+  else
+    addon.db.global.tutorialStep[addon.version]=nil
   end
 end
 function module:OnInitialized()
