@@ -654,6 +654,7 @@ function module:InitialSetup(this)
 		frame:SetHeight(frame.label:GetStringHeight()+15)
 		frame:SetWidth(OHF:GetWidth())
 		frame.label:SetPoint("CENTER")
+    addon:ShowTutorial();
 		return
 	end
 --@end-alpha@
