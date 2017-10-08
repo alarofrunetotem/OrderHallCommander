@@ -334,7 +334,7 @@ function partyManager:GetSelectedParty(key,dbg)
 			local key = candidate.key 
 			candidate.reservedChampions=0
 			if self:CheckParty(candidate) then
-				if self.maximizeXP and candidate.totalXP >self.maxXp then 
+				if self.maximizeXP and candidate.totalXP >self.maxXp and candidate.perc <=self.capChance then 
 					self.maxXp=candidate.totalXP
 					self.xpkey=key 
 				end
