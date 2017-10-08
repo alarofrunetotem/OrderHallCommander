@@ -103,6 +103,7 @@
 			<OnShow method="OnShow"/>
 		</Scripts>
 	</Frame>
+	<Frame name="OHCTroop" enableMouse="true" inherits="OrderHallClassSpecCategoryTemplate" virtual="true" />
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
 		<Size x="52" y="60"/>
 		<Scripts>
