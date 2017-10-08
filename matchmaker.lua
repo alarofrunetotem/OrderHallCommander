@@ -199,14 +199,16 @@ function partyManager:SatisfyCondition(candidate,index)
 	if type(candidate) ~= "table" then return self:Fail("NOTABLE") end
 	local followerID=candidate[index]
 	if not followerID then return self:Fail("No follower id for party slot",index) end
-	local fType,classSpec,value,slot=strsplit('|',candidate['f'..index])
+	local fType,troopkey,value,slot=strsplit('|',candidate['f'..index])
 	if fType=="T" then
 		if self.noTroops then return self:Fail("NOTROOPS") end
+    local ban="BAN" .. (strsplit('@',troopkey))
+    if addon:GetBoolean(ban) then return self:Fail("Troop banned") end
 		if candidate.hasKillTroopsEffect and self.dontKillTroops then return self:Fail("WOULDKILLTROOPS") end
 		local durability
 		if self.saveTroops and candidate.hasKillTroopsEffect then durability = 1 end
 		if self.dontKillTroops then durability= -2 end
-		followerID=addon:GetTroop(tonumber(classSpec),slot or 1,missionID,durability,self.ignoreBusy)
+		followerID=addon:GetTroop(troopkey,slot or 1,missionID,durability,self.ignoreBusy)
 		if followerID then candidate[index]=followerID return true,'OK' else return false,"NOAVAILABLETROOPS" end
 	else
 		local reserved=addon:IsReserved(followerID)
@@ -432,7 +434,7 @@ function partyManager:Build(...)
 				value=tonumber(value) or 0
 				if fType=='T' then
 					slot=tonumber(slot) or 1
-					followerID=addon:GetTroop(tonumber(followerID),slot)
+					followerID=addon:GetTroop(followerID,slot)
 					if not followerID then print(s,"not converted") end
 				end
 				if followerID then
