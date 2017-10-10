@@ -554,6 +554,7 @@ function MixinFollowerIcon:Click(button)
 		end
 	end
 	self:ShowTooltip()
+  addon:PushRefresher("CleanMissionsCache")
 	addon:RedrawMissions()
 end
 function MixinFollowerIcon:Lock(missionID)
