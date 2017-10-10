@@ -89,6 +89,16 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+-- Dependency check
+
+if not LibStub("AceSerializer-3.0",true) then
+   ns.die=true
+end
+if ns.die then 
+  addon:Popup(L["You need to close and restart World of Warcraft in order to update this version of OrderHallCommander.\nSimply reloading UI is not enough"])
+  ns.die=true
+  return
+end  
 local MISSING=ITEM_MISSING:format(""):gsub(' ','')
 local IGNORED=IGNORED
 local UNUSED=UNUSED
