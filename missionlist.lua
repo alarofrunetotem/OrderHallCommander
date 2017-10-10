@@ -674,8 +674,10 @@ function module:InitialSetup(this)
 	addon:ShowTutorial();
 end
 function addon:ShowTutorial()
-  OpenMenu()
-  addon:GetTutorialsModule():Show()
+  if not self:GetTutorialsModule():HasReadTutorial() then
+    OpenMenu()
+    addon:GetTutorialsModule():Show()
+  end
 end
     
 function addon:Reset()
