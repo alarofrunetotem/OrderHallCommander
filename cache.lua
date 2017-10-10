@@ -80,6 +80,7 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 --*BEGIN
 local CATEGORY_INFO_FORMAT=GARRISON_LANDING_COMPLETED:gsub("%%d/%%d","%%d/%%d %%d")
 local CATEGORY_INFO_FORMAT_SHORT="%d/%d %d " .. READY
+local CATEGORY_INFO_FORMAT_VERY_SHORT="%d/%d (%d) "
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin=pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
@@ -551,16 +552,21 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
   categoryInfo = G.GetClassSpecCategoryInfo(followerType)
 	if not OHF:IsVisible() then return end
 	local main=self:GetTroopsFrame()
-	local numCategories = #categoryInfo;
 	local prevCategory, firstCategory;
-	local nCategories=#categoryInfo
+	local nCategories=_G.XX or #categoryInfo
+	if nCategories < 1 then return end
 	local previous
-	for i=1,#categoryInfo do
-		local category=categoryInfo[i]
+	local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
+	local W=main:GetWidth() - 60
+	local w=W/nCategories
+	_G.print("Allotted space",w)
+	for i=1,nCategories do
+		local category=categoryInfo[i % 3 + 1]
 		local index=category.classSpec
-		if not catPool[index] then
-			catPool[index]=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
-			local frame=catPool[index]
+    local frame = catPool[i];
+		if not frame then
+			frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
+			catPool[i]=frame
       frame:SetMovable(true)
       frame:EnableMouse(true)
       frame:RegisterForDrag("LeftButton")
@@ -578,7 +584,6 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
         GameTooltip:Show()
       end)
 		end
-		local frame = catPool[index];
 		if not shipmentInfo[category.icon] then
 			shipmentInfo[category.icon]={0,0}
 		end
@@ -587,19 +592,17 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 		frame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
 		frame.TroopPortraitCover:Hide()
 		frame.Icon:SetHeight(15)
-		frame.Icon:SetWidth(35)
+		frame.Icon:SetWidth(30)
 		frame.name = category.name;
 		frame.description = category.description;
-		frame.Count:SetFormattedText(
-			nCategories <5 and CATEGORY_INFO_FORMAT or CATEGORY_INFO_FORMAT_SHORT,
-			category.count, category.limit,unpack(shipmentInfo[category.icon]));
-		frame.Count:SetWidth(frame.Count:GetStringWidth()+10)
+		frame.Count:SetFormattedText(mask,category.count, category.limit,unpack(shipmentInfo[category.icon]));
+		frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
 		frame:ClearAllPoints();
-    local padding= 600 / (nCategories * 1.5)
-    local w= padding + frame.Count:GetWidth()
-		frame:SetWidth(w)
+    local padding  = math.max(w,frame.Count:GetWidth())
+    _G.print(format("Calculated for %d_ %d (%d %d)",nCategories,padding,w,frame.Count:GetWidth()))
+		frame:SetWidth(padding)
 		paintCat(frame)
-		if nCategories>3 then
+		if nCategories>12 then
 		  if previous then
 		    frame:SetPoint("TOPLEFT",previous,"TOPRIGHT",10, 0);
 		  else
@@ -607,7 +610,7 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
       end
       previous=frame
     else
-		  frame:SetPoint("TOPLEFT",50 +(w) *(i-1), 0);
+		  frame:SetPoint("TOPLEFT",45 +(w) *(i-1), 0);
 		end
 		frame:Show();
 	end
