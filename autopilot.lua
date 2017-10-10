@@ -74,7 +74,22 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN 
@@ -123,7 +138,7 @@ function module:DoRunMissions()
 				local key=addon:GetMissionKey(missionID)
 				local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
 				local members = addon:GetMembersFrame(frame)
-				addon:Print(format(L["Attempting %s"],C(mission.name,'orange')))
+				addon:Print(safeformat(L["Attempting %s"],C(mission.name,'orange')))
 				 
 				if party.perc >= baseChance then
 					local info=""
@@ -176,11 +191,11 @@ function module:DoRunMissions()
 						break
 					else
 						addon:Print(C(L["Would start with "],"green") ..info)
-						addon:Print(C("Shift-Click to actually start mission","green"))
+						addon:Print(C(safeformat(L["%s to actually start mission"],SHIFT_KEY_TEXT .. KEY_BUTTON1),"green"))
 						self:Cleanup()
 					end
 				else
-					addon:Print(C(format(L["%1$d%% lower than %2$d%%. Lower %s"],party.perc,baseChance,L["Base Chance"]),"red"))
+					addon:Print(C(safeformat(L["%1$d%% lower than %2$d%%. Lower %s"],party.perc,baseChance,L["Base Chance"]),"red"))
 				end
 			end
 		end
@@ -238,11 +253,11 @@ function module:FireMission(missionID,frame,truerun)
         return
       else
         addon:Print(C(L["Would start with "],"green") ..info)
-        addon:Print(C("Shift-Click to actually start mission","green"))
+        addon:Print(C(safeformat(L["%s to actually start mission"],SHIFT_KEY_TEXT .. KEY_BUTTON1),"green"))
         self:Cleanup()
       end
     else
-      addon:Print(C(format(L["%1$d%% lower than %2$d%%. Lower %s"],party.perc,baseChance,L["Base Chance"]),"red"))
+      addon:Print(C(safeformat(L["%1$d%% lower than %2$d%%. Lower %s"],party.perc,baseChance,L["Base Chance"]),"red"))
     end
   end
 end

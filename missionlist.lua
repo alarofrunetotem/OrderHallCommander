@@ -71,13 +71,29 @@ local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
-local KEY_BUTTON1 = " \124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t " -- left mouse button
-local KEY_BUTTON2 = " \124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t " -- right mouse button
+local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
+local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
+
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
-local pairs,wipe,format,tinsert,unpack=pairs,wipe,format,tinsert,unpack
+local pairs,wipe,tinsert,unpack=pairs,wipe,tinsert,unpack
 local UNCAPPED_PERC=PERCENTAGE_STRING
 local CAPPED_PERC=PERCENTAGE_STRING .. "**"
 local Dialog = LibStub("LibDialog-1.0")
@@ -184,7 +200,7 @@ function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
 	addon:AddBoolean("NOWARN",false,L["Remove no champions warning"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-	addon:AddBoolean("QUICKSTART",nil,format(L["%s starts missions"],CTRL_SHIFT_KET_TEXT),L["Allow to start a mission directly from the mission list page (no single mission page shown)"])
+	addon:AddBoolean("QUICKSTART",nil,safeformat(L["%s starts missions"],CTRL_SHIFT_KET_TEXT),L["Allow to start a mission directly from the mission list page (no single mission page shown)"])
 	addon:RegisterForMenu("mission",
 --@debug@
 		"ELITEMODE",
@@ -285,7 +301,7 @@ function module:RewardWarning(this)
 		if addon.allArtifactPower[this.itemID] then
 			tip:AddLine(artinfo,C.Artifact())
 		end
-		tip:AddLine(format(L["%s for a wowhead link popup"],SHIFT_KEY_TEXT .. KEY_BUTTON1))
+		tip:AddLine(safeformat(L["%s for a wowhead link popup"],SHIFT_KEY_TEXT .. KEY_BUTTON1))
 		tip:Show()
 	end
 end
@@ -293,6 +309,7 @@ function module:PrintLink(this,button)
   if this.itemID and ChatEdit_TryInsertChatLink((select(2,GetItemInfo(this.itemID)))) then return end 
 	if button=="RightButton" then
 		local missionID=this:GetParent().info.missionID
+		---TODO: Manage rewards blacklisting
 		--addon:Print("Mission",missionID,addon:GetMissionData(missionID,'class'))
 	elseif this.itemID and IsShiftKeyDown() then
 		if Dialog:ActiveDialog("OHCUrlCopy") then
@@ -335,7 +352,7 @@ function module:CheckShadow()
 		if totChamps==0 then
 			self:NoMartiniNoParty(GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
 		elseif maxChamps  < 3 then
-			self:NoMartiniNoParty(format(L['Unable to fill missions, raise "%s"'],L["Max champions"]))
+			self:NoMartiniNoParty(safeformat(L['Unable to fill missions, raise "%s"'],L["Max champions"]))
 		else
 			self:NoMartiniNoParty(L["Unable to fill missions. Check your switches"])
 		end
@@ -471,7 +488,9 @@ local PushRefresher,RunRefreshers,ListRefreshers do
       if type(obj)=="boolean" then
         obj=addon
       end
+--@debug@      
       addon:Print("Running refresher",method)
+--@end-debug@
       obj[method](obj)
     end
     wipe(Refreshers)
@@ -494,7 +513,9 @@ function addon:ListRefreshers()
   return ListRefreshers()
 end
 function addon:ReloadMissions()
+--@debug@
   addon:Print("ReloadMissions")
+--@end-debug@  
   addon:RunRefreshers()
   addon:SortTroop()
   if OHF.MissionTab.MissionPage:IsVisible() then
@@ -505,7 +526,9 @@ function addon:ReloadMissions()
   end
 end
 function addon:RedrawMissions()
+--@debug@
   addon:Print("RedrawMissions")
+--@end-debug@  
   addon:RunRefreshers()
   addon:SortTroop()
   for i=1,#OHFButtons do
@@ -638,7 +661,7 @@ function module:InitialSetup(this)
 	local level=OHFMissionScroll:GetFrameLevel()+5
 	local option1=addon:GetFactory():Button(OHFMissionScroll,
 	L["Quick start first mission"],
-	format(L["Launch the first filled mission with at least one locked follower.\nKeep %s pressed to actually launch, a simple click will only print mission name with its followers list"],SHIFT_KEY_TEXT),200)
+	safeformat(L["Launch the first filled mission with at least one locked follower.\nKeep %s pressed to actually launch, a simple click will only print mission name with its followers list"],SHIFT_KEY_TEXT),200)
 	option1:SetPoint("BOTTOMLEFT",100,-25)
 	option1.obj=module
 	option1:SetOnChange("RunMission")
@@ -660,7 +683,7 @@ function module:InitialSetup(this)
 	-- For some strange reason, we need this to avoid leaking memory
 	addon:UpdateStop()
 	collectgarbage("restart")
-  addon:MarkAsNew(OHF,addon:NumericVersion(),format(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
+  addon:MarkAsNew(OHF,addon:NumericVersion(),safeformat(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
 --@alpha@
 	addon.version="1.6.0 Alpha"
 --@end-alpha@
@@ -1182,12 +1205,12 @@ function module:AdjustMissionTooltip(this,...)
 		end
 	end
 	if addon:IsBlacklisted(this.info.missionID) then
-		tip:AddDoubleLine(L["Blacklisted"],format(L["%s to remove from blacklist"],KEY_BUTTON2),1,0.125,0.125,C:Green())
+		tip:AddDoubleLine(L["Blacklisted"],safeformat(L["%s to remove from blacklist"],KEY_BUTTON2),1,0.125,0.125,C:Green())
 		--GameTooltip:AddLine(L["Blacklisted missions are ignored in Mission Control"])
 	else
-		tip:AddDoubleLine(L["Not blacklisted"],format(L["%s to blacklist"],KEY_BUTTON2),0.125,1.0,0.125,C:Red())
+		tip:AddDoubleLine(L["Not blacklisted"],safeformat(L["%s to blacklist"],KEY_BUTTON2),0.125,1.0,0.125,C:Red())
 	end
-	tip:AddLine(format(L["%s start the mission witout even opening the mission page. No question asked"],CTRL_KEY_TEXT ..'-'..SHIFT_KEY_TEXT.. ' ' .. KEY_BUTTON1))
+	tip:AddLine(safeformat(L["%s start the mission witout even opening the mission page. No question asked"],CTRL_KEY_TEXT ..'-'..SHIFT_KEY_TEXT.. ' ' .. KEY_BUTTON1))
 	-- Mostrare per ogni tempo di attesa solo la percentuale migliore
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
@@ -1277,7 +1300,7 @@ function module:RawMissionClick(this,button)
 	local key=missionKEYS[mission.missionID]
 	if button=="LeftButton" and shift then
     if not addon.db.global.changedkeywarned then	
-      addon:Popup(format(L["You now need to press both %s and %s to start mission"],SHIFT_KEY_TEXT,CTRL_KEY_TEXT))
+      addon:Popup(safeformat(L["You now need to press both %s and %s to start mission"],SHIFT_KEY_TEXT,CTRL_KEY_TEXT))
       addon.db.global.changedkeywarned=true
     end
 	  if ctrl  then

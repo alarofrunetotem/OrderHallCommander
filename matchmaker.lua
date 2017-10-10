@@ -74,7 +74,22 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -102,7 +117,7 @@ __index = function(t,key)
 }
 --upvalues
 local assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent=assert,ipairs,pairs,wipe,GetFramesRegisteredForEvent
-local select,tinsert,format,pcall,setmetatable,coroutine=select,tinsert,format,pcall,setmetatable,coroutine
+local select,tinsert,setmetatable,coroutine=select,tinsert,setmetatable,coroutine
 local tostringall,strsplit,strjoin=tostringall,strsplit,strjoin
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local emptyTable=setmetatable({},{__newindex=function() end})
@@ -339,7 +354,7 @@ function partyManager:GetSelectedParty(key,dbg)
 					self.xpkey=key 
 				end
 				if candidate.champions > math.max(candidate.reservedChampions,self.maxChampions) then 
-					self:Fail(format("TOOMANYCHAMPIONS %d over %d",candidate.champions,self.maxChampions))
+					self:Fail(safeformat("TOOMANYCHAMPIONS %d over %d",candidate.champions,self.maxChampions))
 				else
 					if not self.uncappedkey then self.uncappedkey=key end
 					if not self.absolutebestkey then self.absolutebestkey=key end
@@ -542,10 +557,10 @@ function module:OnInitialized()
 	addon:AddBoolean("MAXIMIZEXP",false,L["Maximize xp gain"],L["Favours leveling follower for xp missions"])
 	addon:AddRange("MAXCHAMP",3,1,3,L["Max champions"],L["Use at most this many champions"],1)
 	addon:AddRange("BONUSCHANCE",100,100,200,L["Bonus Chance"],
-	format(L["If %1$s is lower than this, then we try to achieve at least %2$s without going over 100%%. Ignored for elite missions."],
+	safeformat(L["If %1$s is lower than this, then we try to achieve at least %2$s without going over 100%%. Ignored for elite missions."],
 	 L["Bonus Chance"],L["Base Chance"]),
 	5)
-	addon:AddRange("BASECHANCE",0,5,100,L["Base Chance"],format(L["When we cant achieve the requested %1$s, we try to reach at least this one without (if possible) going over 100%%"],L["Bonus Chance"]),5)
+	addon:AddRange("BASECHANCE",0,5,100,L["Base Chance"],safeformat(L["When we cant achieve the requested %1$s, we try to reach at least this one without (if possible) going over 100%%"],L["Bonus Chance"]),5)
 	addon:AddBoolean("USEALLY",false,L["Use combat ally"],L["Combat ally is proposed for missions so you can consider unassigning him"])
 	addon:AddBoolean("IGNOREBUSY",true,L["Ignore busy followers"],L["When no free followers are available shows empty follower"])
 	addon:AddBoolean("IGNOREINACTIVE",true,L["Ignore inactive followers"],L["If not checked, inactive followers are used as last chance"])
