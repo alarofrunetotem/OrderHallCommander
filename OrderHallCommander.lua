@@ -533,7 +533,7 @@ function MixinFollowerIcon:Click(button)
 		end
 	end
 	self:ShowTooltip()
-	addon:RefreshMissions()
+	addon:RedrawMissions()
 end
 function MixinFollowerIcon:Lock(missionID)
 	addon:Reserve(self.followerID,missionID)
