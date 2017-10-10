@@ -559,7 +559,6 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 	local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
 	local W=main:GetWidth() - 60
 	local w=W/nCategories
-	_G.print("Allotted space",w)
 	for i=1,nCategories do
 		local category=categoryInfo[i % 3 + 1]
 		local index=category.classSpec
@@ -567,7 +566,6 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 		if not frame then
 			frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
 			catPool[i]=frame
-      frame:SetMovable(true)
       frame:EnableMouse(true)
       frame:RegisterForDrag("LeftButton")
       frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
@@ -599,19 +597,9 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 		frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
 		frame:ClearAllPoints();
     local padding  = math.max(w,frame.Count:GetWidth())
-    _G.print(format("Calculated for %d_ %d (%d %d)",nCategories,padding,w,frame.Count:GetWidth()))
 		frame:SetWidth(padding)
 		paintCat(frame)
-		if nCategories>12 then
-		  if previous then
-		    frame:SetPoint("TOPLEFT",previous,"TOPRIGHT",10, 0);
-		  else
-        frame:SetPoint("TOPLEFT",50, 0);
-      end
-      previous=frame
-    else
-		  frame:SetPoint("TOPLEFT",45 +(w) *(i-1), 0);
-		end
+	  frame:SetPoint("TOPLEFT",45 +(w) *(i-1), 0);
 		frame:Show();
 	end
 end
