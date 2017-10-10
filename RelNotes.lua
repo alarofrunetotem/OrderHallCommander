@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,4,[[
+Fix: #119 Bad display when more than 5 types of troops (really!) Tested up to 10 troops
+Fix: Side menu no longer get reopened at each start
+]])
 self:RelNotes(1,5,3,[[
 Feature: you can now disable a troop type clicking its icon nin the OHC troop bar
 Fix: Maximize xp was ignoring cap
