@@ -71,11 +71,10 @@ local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
-local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
-local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+local KEY_BUTTON1 = " \124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t " -- left mouse button
+local KEY_BUTTON2 = " \124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t " -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
-
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local pairs,wipe,format,tinsert,unpack=pairs,wipe,format,tinsert,unpack
@@ -185,7 +184,7 @@ function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
 	addon:AddBoolean("NOWARN",false,L["Remove no champions warning"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-	addon:AddBoolean("QUICKSTART",nil,L["Ctrl-Shift-Click starts missions"],L["Allow to start a mission simply shift-clicking it (no mission page shown)"])
+	addon:AddBoolean("QUICKSTART",nil,format(L["%s starts missions"],CTRL_SHIFT_KET_TEXT),L["Allow to start a mission directly from the mission list page (no single mission page shown)"])
 	addon:RegisterForMenu("mission",
 --@debug@
 		"ELITEMODE",
@@ -286,7 +285,7 @@ function module:RewardWarning(this)
 		if addon.allArtifactPower[this.itemID] then
 			tip:AddLine(artinfo,C.Artifact())
 		end
-		tip:AddLine("Shift-Click for a wowhead link popup")
+		tip:AddLine(format(L["%s for a wowhead link popup"],SHIFT_KEY_TEXT .. KEY_BUTTON1))
 		tip:Show()
 	end
 end
@@ -581,7 +580,7 @@ function module:Menu(flag)
   menu.Close:SetScript("OnClick",CloseMenu)
   menu.Tutorial:RegisterForClicks("LeftButtonUp","RightButtonUp")
   addon:RawHookScript(menu.Tutorial,"OnClick",function(this,button)  if button=="LeftButton" then addon:ShowTutorial() else addon:GetTutorialsModule():Home() end end)
-  menu.Tutorial.tooltip="Left-Click  " .. L["Resume tutorial"] .. "\n" .. "Right-Click  " .. L["Restart tutorial from beginning"]
+  menu.Tutorial.tooltip=KEY_BUTTON1 .. L["Resume tutorial"] .. "\n" .. KEY_BUTTON2 .. L["Restart tutorial from beginning"]
   button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
   button.tooltip=L["Show/hide OrderHallCommander mission menu"]
   button:SetScript("OnClick",OpenMenu)
@@ -639,7 +638,7 @@ function module:InitialSetup(this)
 	local level=OHFMissionScroll:GetFrameLevel()+5
 	local option1=addon:GetFactory():Button(OHFMissionScroll,
 	L["Quick start first mission"],
-	L["Launch the first filled mission with at least one locked follower.\nKeep SHIFT pressed to actually launch, a simple click will only print mission name with its followers list"],200)
+	format(L["Launch the first filled mission with at least one locked follower.\nKeep %s pressed to actually launch, a simple click will only print mission name with its followers list"],SHIFT_KEY_TEXT),200)
 	option1:SetPoint("BOTTOMLEFT",100,-25)
 	option1.obj=module
 	option1:SetOnChange("RunMission")
@@ -1183,12 +1182,12 @@ function module:AdjustMissionTooltip(this,...)
 		end
 	end
 	if addon:IsBlacklisted(this.info.missionID) then
-		tip:AddDoubleLine(L["Blacklisted"],L["Right-Click to remove from blacklist"],1,0.125,0.125,C:Green())
+		tip:AddDoubleLine(L["Blacklisted"],format(L["%s to remove from blacklist"],KEY_BUTTON2),1,0.125,0.125,C:Green())
 		--GameTooltip:AddLine(L["Blacklisted missions are ignored in Mission Control"])
 	else
-		tip:AddDoubleLine(L["Not blacklisted"],L["Right-Click to blacklist"],0.125,1.0,0.125,C:Red())
+		tip:AddDoubleLine(L["Not blacklisted"],format(L["%s to blacklist"],KEY_BUTTON2),0.125,1.0,0.125,C:Red())
 	end
-	tip:AddLine(L["Shift-Click start the mission witout even opening the mission page. No question asked"])
+	tip:AddLine(format(L["%s start the mission witout even opening the mission page. No question asked"],CTRL_KEY_TEXT ..'-'..SHIFT_KEY_TEXT.. ' ' .. KEY_BUTTON1))
 	-- Mostrare per ogni tempo di attesa solo la percentuale migliore
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
