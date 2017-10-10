@@ -566,19 +566,6 @@ function module:OnInitialized()
 		'IGNOREBUSY',
 		'IGNOREINACTIVE')
 end
-function module:remEvents()
-	self:RegisterEvent("GARRISON_FOLLOWER_XP_CHANGED","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_UPGRADED","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
-	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
-	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")
-	self:RegisterEvent("FOLLOWER_LIST_UPDATE","Refresh")
-end
-function module:Refresh(event)
-	self:ResetParties()
-	addon.lastChange=GetTime()
-	return addon:RefreshMissions()
-end
 function module:ResetParties()
 	partiesPool:ReleaseAll()
 	wipe(missionParties)
