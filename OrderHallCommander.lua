@@ -89,6 +89,12 @@ local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+
+-- It's here because localization gets not sync'd
+--@debug@
+_G.GAMELOCALE="itIT"
+--@end-debug@
+
 -- Dependency check
 
 if not LibStub("AceSerializer-3.0",true) then
