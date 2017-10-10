@@ -240,7 +240,7 @@ tutorials={
   {
     text=L["You can choose not to use a troop type clicking its icon"],
     parent=function() return addon:GetCacheModule():GetTroopsFrame() end,
-    anchor="BOTTOM",
+    anchor="TOP",
   },
   {
     back=2,
