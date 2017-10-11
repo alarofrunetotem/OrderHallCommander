@@ -637,6 +637,28 @@ function addon:UpdateStop(n)
 	stopper:UnhookAll()
 	stopper:RawHookScript(OrderHallMissionFrameMissions,"OnUpdate",GarrisonMissionListMixin.OnUpdate)
 end
+function module:OptionsButton()
+  local level=OHFMissionScroll:GetFrameLevel()+5
+  local h=-150
+  local option1=addon:GetFactory():Button(OHFMissionScroll,
+  L["Quick start first mission"],
+  L["Launch the first filled mission with at least one locked follower.\nKeep SHIFT pressed to actually launch, a simple click will only print mission name with its followers list"],200)
+  option1:SetPoint("BOTTOMLEFT",100,h)
+  option1.obj=module
+  option1:SetOnChange("RunMission")
+  local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower and slots at once"])
+  option2:SetPoint("BOTTOM",0,h)
+  option2:SetOnChange(function() addon:UnReserve() addon:Unban() addon:RefreshMissions() end)
+  local option3=addon:GetFactory():Button(OHFMissionScroll,RESET,L["Sets all switches to a very permissive setup"])
+  option3:SetPoint("BOTTOMRIGHT",-100,h)
+  option3:SetOnChange(function() addon:Reset() end ) --addon:RefreshMissions() end)
+  optionlist["BUTTON1"]=option1
+  optionlist["BUTTON2"]=option2
+  optionlist["BUTTON3"]=option3
+  for _,f in pairs(optionlist) do
+    f:SetFrameLevel(level)
+  end
+end
 function module:InitialSetup(this)
 	collectgarbage("stop")
 	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
@@ -658,25 +680,7 @@ function module:InitialSetup(this)
 	OHF.TroopsStatusInfo=OHF:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 	OHF.TroopsStatusInfo:SetPoint("TOPLEFT",80,-5)
 	OHF.TroopsStatusInfo:SetText("")
-	local level=OHFMissionScroll:GetFrameLevel()+5
-	local option1=addon:GetFactory():Button(OHFMissionScroll,
-	L["Quick start first mission"],
-	safeformat(L["Launch the first filled mission with at least one locked follower.\nKeep %s pressed to actually launch, a simple click will only print mission name with its followers list"],SHIFT_KEY_TEXT),200)
-	option1:SetPoint("BOTTOMLEFT",100,-25)
-	option1.obj=module
-	option1:SetOnChange("RunMission")
-	local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower and slots at once"])
-	option2:SetPoint("BOTTOM",0,-25)
-	option2:SetOnChange(function() addon:UnReserve() addon:Unban() addon:RedrawMissions() end)
-  local option3=addon:GetFactory():Button(OHFMissionScroll,RESET,L["Sets all switches to a very permissive setup"])
-  option3:SetPoint("BOTTOMRIGHT",-100,-25)
-  option3:SetOnChange(function() addon:Reset() end ) --addon:RefreshMissions() end)
-  optionlist["BUTTON1"]=option1
-  optionlist["BUTTON2"]=option2
-  optionlist["BUTTON3"]=option3
-  for _,f in pairs(optionlist) do
-    f:SetFrameLevel(level)
-  end
+	self:OptionsButton()
 	self:EvOn()
 	self:MainOnShow()
   addon:ReloadMissions()
