@@ -16,12 +16,14 @@ typing /ohc silent in chat will eliminate every chat message from OrderHallComma
 ]])
 self:RelNotes(1,5,4,[[
 Feature: #120 Starting mission from list now requires ctrl-shift
+Feature: #124 Moved action buttons to a safer spot
+Fix: #121 Window is now draggable even by the troop status bar
 Fix: #124 Sorting should now be more responsive to config changes
 Fix: #119 Bad display when more than 5 types of troops (really!) Tested up to 10 troops
 Fix: Side menu no longer get reopened at each start
 ]])
 self:RelNotes(1,5,3,[[
-Feature: you can now disable a troop type clicking its icon nin the OHC troop bar
+Feature: you can now disable a troop type clicking its icon in the OHC troop bar
 Fix: Maximize xp was ignoring cap
 Fix: #119 Bad display when more than 5 types of troops
 Fix: #109 Future mission were missing in tooltip
