@@ -135,6 +135,9 @@ end
 function addon:OnInitialized()
 	addon.KL=1
   _G.dbOHCperChar=_G.dbOHCperChar or {}
+  if type(self.db.global.tutorialStep)~="number" then
+    self.db.global.tutorialStep=1
+  end
 	menu=CreateFrame("Frame")
 --@debug@
 --[[

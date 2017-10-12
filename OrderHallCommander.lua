@@ -161,7 +161,7 @@ end
 function addon:SetDbDefaults(default)
 	default.profile=default.profile or {}
 	default.profile.blacklist={}
-	default.global.tutorialStep={}
+	default.global.tutorialStep=1
 end
 do 
 local banned={}
