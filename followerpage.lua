@@ -74,7 +74,22 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -115,7 +130,7 @@ end
 function module:ShowFollowerData(this)
 	local tip=GameTooltip
 	tip:SetOwner(this,"CURSOR_ANCHOR")
-	tip:AddLine(me)
+	tip:AddLine(this:GetName())
 	OrderHallCommanderMixin.DumpData(tip,addon:GetFollowerData(OHFFollowerTab.followerID))
 	tip:Show()
 end
@@ -233,40 +248,82 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
 	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
 	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
 	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
+	local data=addon:GetData("Buffs")
 --@debug@
-	print("RefreshUpgrades",follower.name)
---@end-debug@	
-	for _,id in pairs(addon:GetData("Buffs")) do
+print("Buffs",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 		self:RenderUpgradeButton(id)
 	end
 	if follower.isTroop then return end
 	if follower.iLevel <850  then
-		for _,id in pairs(addon:GetData("Upgrades")) do
+		local data=addon:GetData("U850")
+--@debug@
+print("U850",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.iLevel <880 then
-		for _,id in pairs(addon:GetData("Upgrades2")) do
+		local data=addon:GetData("U880")
+--@debug@
+print("U880",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.iLevel <900 then
-		for _,id in pairs(addon:GetData("Upgrades3")) do
+		local data=addon:GetData("U900")
+--@debug@
+print("U900",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
+  if follower.iLevel <925 then
+    local data=addon:GetData("U925")
+--@debug@
+print("U925",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
+      self:RenderUpgradeButton(id)
+    end
+  end
 	if follower.iLevel <950 then
-		for _,id in pairs(addon:GetData("Upgrades4")) do
+		local data=addon:GetData("U950")
+--@debug@
+print("U950",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
-	if not follower.isMaxLevel or  follower.quality ~=LE_ITEM_QUALITY_EPIC then
-		for _,id in pairs(addon:GetData("Xp")) do
+	if not follower.isMaxLevel or  follower.quality < 5 then
+		local data=addon:GetData("Xp")
+--@debug@
+print("Xp",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderUpgradeButton(id)
 		end
 	end
 	if follower.quality >=LE_ITEM_QUALITY_RARE then
-		for _,id in pairs(addon:GetData("Equipment")) do
+		local data=addon:GetData("Equipments")
+--@debug@
+print("Equipments",#data)
+--@end-debug@
+	for i=1,#data do
+		local id=data[i]
 			self:RenderEquipmentButton(id)
 		end
 	end

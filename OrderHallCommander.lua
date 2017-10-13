@@ -85,10 +85,41 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+
+-- It's here because localization gets not sync'd
+--@debug@
+_G.GAME_LOCALE="itIT"
+--@end-debug@
+
+-- Dependency check
+
+if not LibStub("AceSerializer-3.0",true) then
+   ns.die=true
+end
+if ns.die then 
+  addon:Popup(L["You need to close and restart World of Warcraft in order to update this version of OrderHallCommander.\nSimply reloading UI is not enough"])
+  ns.die=true
+  return
+end  
 local MISSING=ITEM_MISSING:format(""):gsub(' ','')
 local IGNORED=IGNORED
 local UNUSED=UNUSED
@@ -130,6 +161,7 @@ end
 function addon:SetDbDefaults(default)
 	default.profile=default.profile or {}
 	default.profile.blacklist={}
+	default.global.tutorialStep=1
 end
 do 
 local banned={}
@@ -261,31 +293,29 @@ function Mixin:Dump(data)
 	tip:Show()
 end
 function Mixin.DumpData(tip,data)
-	for k,v in kpairs(data) do
-		local color="Silver"
-		if type(v)=="number" then color="Cyan"
-		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
-		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
-		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
-		else v=type(v) color="Blue"
-		end
-		if k=="description" then v =v:sub(1,10) end
-		tip:AddDoubleLine(k,v,colors("Orange",color))
+  if type(data)== "table" then
+  	for k,v in kpairs(data) do
+  		local color="Silver"
+  		if type(v)=="number" then color="Cyan"
+  		elseif type(v)=="string" then color="Yellow" v=v:sub(1,30)
+  		elseif type(v)=="boolean" then v=v and 'True' or 'False' color="White"
+  		elseif type(v)=="table" then color="Green" if v.GetObjectType then v=v:GetObjectType() else v=tostring(v) end
+  		else v=type(v) color="Blue"
+  		end
+  		if k=="description" then v =v:sub(1,10) end
+  		tip:AddDoubleLine(k,v,colors("Orange",color))
+  	end
+	else
+      tip:AddDoubleLine(tostring(data),type(data))
 	end
+	
 end
 function MixinThreats:OnLoad()
 	if not self.threatPool then self.threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
 	self.usedPool={}
 end
-
 function MixinThreats:AddIcons(mechanics,biases)
-	local icons=OHF.abilityCountersForMechanicTypes
 	local frame=self:GetParent()
-	if not icons then
-		--@debug@
-		--@end-debug@
-		return false
-	end
 	for i=1,#self.usedPool do
 		self.threatPool:Release(self.usedPool[i])
 	end
@@ -295,7 +325,7 @@ function MixinThreats:AddIcons(mechanics,biases)
 		local th=self.threatPool:Acquire()
 		tinsert(self.usedPool,th)
 		if mechanic and (mechanic.icon or mechanic.id) then
-			th.Icon:SetTexture(mechanic.icon or icons[mechanic.id].icon)
+			th.Icon:SetTexture(mechanic.icon)
 			th.Name=mechanic.name
 			th.Description=mechanic.description
 			th.Ability=mechanic.ability and mechanic.ability.name or mechanic.name
@@ -362,6 +392,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 			self:GetParent():SetNotReady(true)
 			self.Level:SetText(status);
 		end
+		self.Durability:Hide()
 		self.Portrait:SetDesaturated(true)
 		self:SetQuality(1)
 	else
@@ -390,7 +421,7 @@ function MixinFollowerIcon:SetEmpty(message)
 	self:SetQuality(1)
 	self.locked=false
 	self.Durability:Hide()
-	self.banned=addon:IsBanned(self.Slot,mission.missionID)
+	self.banned=addon:IsBanned(self.Slot,mission and mission.missionID or 0)
 	if message ~=UNUSED then
 		self:GetParent():SetNotReady(true)
 	end
@@ -427,6 +458,7 @@ function MixinFollowerIcon:ShowTooltip()
 		local ypos=gft:GetHeight()
 		gft.Lines[1]:ClearAllPoints()
 		gft.Lines[1]:SetPoint("TOPLEFT",gft,"TOPLEFT",5,-ypos)
+
 		if self.locked then
 			self.AddLine(gft,KEY_BUTTON1 .. ' : ' .. C(L['Unlock this follower'],"Red"))
 		else
@@ -442,6 +474,7 @@ function MixinFollowerIcon:ShowTooltip()
 		self.AddLine(gft,C(L["Locked follower are only used in this mission"],"CYAN"))
 --@debug@
 		self.AddLine(gft,tostring(self.followerID))
+		self.AddLine(gft,tostring(addon:GetFollowerData(self.followerID,'classSpec')))
 --@end-debug@		
 		if not gft.Status then
 			gft.Status=gft:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
@@ -480,7 +513,7 @@ function MixinFollowerIcon:AddLine(message)
 	else
 		self.maxWidth=0
 	end
-	line:SetText(tostring(self.current) .. "/" .. tostring(#self.Lines) .. "  " .. message)
+	line:SetText(message)
 	line:Show()
 	self.maxWidth=math.max( line:GetStringWidth(),self.maxWidth)
 	
@@ -521,7 +554,8 @@ function MixinFollowerIcon:Click(button)
 		end
 	end
 	self:ShowTooltip()
-	addon:RefreshMissions()
+  addon:PushRefresher("CleanMissionsCache")
+	addon:RedrawMissions()
 end
 function MixinFollowerIcon:Lock(missionID)
 	addon:Reserve(self.followerID,missionID)
@@ -603,6 +637,6 @@ function MixinMembers:Lock()
 	end
 end
 function MixinMenu:OnLoad()
-	self.CloseButton:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
+	self.Close:SetScript("OnClick",function() MixinMenu.OnClick(self) end)
 end
 

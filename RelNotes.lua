@@ -14,15 +14,37 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,4,[[
+Feature: #120 Starting mission from list now requires ctrl-shift
+Feature: #124 Moved action buttons to a safer spot
+Fix: #121 Window is now draggable even by the troop status bar
+Fix: #124 Sorting should now be more responsive to config changes
+Fix: #119 Bad display when more than 5 types of troops (really!) Tested up to 10 troops
+Fix: Side menu no longer get reopened at each start
+]])
+self:RelNotes(1,5,3,[[
+Feature: you can now disable a troop type clicking its icon in the OHC troop bar
+Fix: Maximize xp was ignoring cap
+Fix: #119 Bad display when more than 5 types of troops
+Fix: #109 Future mission were missing in tooltip
+Fix: #118 Troops with random abilities should now be considered
+Fix: #99 Caused by same issue of 118, should be fixed
+]])
+self:RelNotes(1,5,2,[[
+Fix: #108 Ignored/Blacklisted missions aren't sorted at the bottom since 1.5.1
+]])
+self:RelNotes(1,5,1,[[
+Feature: Added an (hopefully) nice tutorial
+Fix: Threat icons in missions panel are now consistent with the ones in mission page
+]])
 self:RelNotes(1,5,0,[[
 Feature: Left Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones
 Feature: Right clicking a follower slot forbids using it, so you can force OHC to use less follower for a specific mission. Usable only on the leftmost slot
 Feature: Autostart. Mission can be launched whith just one click via the "Quick start mission button". The first mission in the list is started.
 Blacklisted missions or missions which are aunder the "Absolute Minimum Chance" value are not autolaunched
-Feature: You can now set a minimum requested bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
-Feature: You can now set a minimum requested success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
-Feature: You can now set an absolute minimum chance under which OHC ignore missions (this should also reduce lag if you experienced it)
-Feature: For troops, durability is shwon in the mission button icon
+Feature: You can now set a minimum success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage
+Feature: You can now set a minimum bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
+Feature: For troops, durability is shown in the mission button icon
 Feature: Reorganized troops' related switches
 Feature: Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly 
 Feature: You can now choose if OHC prefers low or high durability troops
@@ -32,7 +54,9 @@ Fix: #65 Errors from ACE when rapidly changing sliders
 Fix: #66 Not using less than 3 units total
 Fix: #80 Krokul troops should be used more rarely
 Fix: #78 Ignore busy follower will be checked by defaults for new installs
-Fix: #79 Sometimes parties were not filled
+Fix: #86 Added mising equipments
+
+Note: fixes to errors only appeared during beta testing are not listed
 ]])
 self:RelNotes(1,4,0,[[
 Feature: You can now deactivate the Not enough champions warning

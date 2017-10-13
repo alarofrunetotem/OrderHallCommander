@@ -74,7 +74,22 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -106,8 +121,10 @@ function module:GenerateMissionCompleteList(title,anchor)
 	--report:SetPoint("TOPLEFT",GMFMissions.CompleteDialog.BorderFrame)
 	--report:SetPoint("BOTTOMRIGHT",GMFMissions.CompleteDialog.BorderFrame)
 	w:ClearAllPoints()
-	w:SetPoint("TOP",anchor)
-	w:SetPoint("BOTTOM",anchor)
+	w:SetPoint("TOP",anchor,0,25)
+	w:SetPoint("BOTTOM",anchor,0,-25)
+	w:SetPoint("LEFT",anchor,-2,0)
+  w:SetPoint("RIGHT",anchor,2,0)
 	w:SetWidth(700)
 	w:SetParent(anchor)
 	w.frame:SetFrameStrata("HIGH")

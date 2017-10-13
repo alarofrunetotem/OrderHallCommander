@@ -72,7 +72,22 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
@@ -81,23 +96,25 @@ local data={
 	ArtifactNotes={
 		146745
 	},
-	Upgrades={
+	U850={
 		136412,
 		137207,
 		137208,
 
 	},
-	Upgrades2={
+	U880={
 		153005,
 	},
-	Upgrades3={
-		147348,
-		147349,
-		147350,
+	U900={
+    147348,
+    147349,
+    147350,
+    151842,
 	},
-	Upgrades4={
-		151842,
-		151843,
+	U925={
+	 151843
+	},
+	U950={
 		151844,
 	},
 	Buffs={
@@ -123,205 +140,7 @@ local data={
 	Xp={
 		141028
 	},
-	Equipment={
-		139792,
-		139795,
-		139799,
-		139801,
-		139802,
-		139804,
-		139808,
-		139809,
-		139811,
-		139812,
-		139813,
-		139814,
-		139816,
-		139819,
-		139821,
-		139822,
-		139823,
-		139824,
-		139825,
-		139826,
-		139827,
-		139828,
-		139829,
-		139830,
-		139831,
-		139832,
-		139833,
-		139834,
-		139835,
-		139836,
-		139837,
-		139838,
-		139839,
-		139840,
-		139841,
-		139842,
-		139843,
-		139844,
-		139845,
-		139846,
-		139847,
-		139848,
-		139849,
-		139850,
-		139851,
-		139852,
-		139853,
-		139854,
-		139855,
-		139856,
-		139857,
-		139858,
-		139859,
-		139860,
-		139861,
-		139862,
-		139863,
-		139864,
-		139865,
-		139866,
-		139867,
-		139868,
-		139869,
-		139870,
-		139871,
-		139872,
-		139873,
-		139874,
-		139875,
-		139876,
-		139877,
-		139878,
-		140571,
-		140572,
-		140573,
-		140581,
-		140582,
-		140583,
-		145244,
-		147552,
-		147553,
-		147554,
-		147555,
-		147557,
-		147558,
-		147559,
-		147566,
-		147569,
-		152437,
-		152438,
-		152439,
-		152440,
-		152441,
-		152442,
-		152443,
-		152445,
-		152446,
-		152447,
-		152448,
-		152449,
-		152450,
-		152451,
-		152452,
-		152453,
-		152454,
-	},
-	ArtifactPower={},
-}
-local unused={
-	ArtifactPower={130152,131751,131753,131763,131795,131802,131808,132897,132950,136356,136655,136656,136657,136658,136659,136660,136661,136662,136663,136664,138480,138487,138732,138781,138782,138783,138785,138786,138812,138813,138814,138816,138839,138864,138865,138880,138881,138885,138886,139390,139506,139507,139508,139509,139510,139511,139512,139591,139608,139609,139610,139611,139612,139613,139614,139615,139616,139617,140176,140237,140238,140241,140244,140247,140250,140251,140252,140254,140255,140304,140305,140306,140307,140310,140322,140349,140357,140358,140359,140361,140364,140365,140366,140367,140368,140369,140370,140371,140372,140373,140374,140377,140379,140380,140381,140382,140383,140384,140385,140386,140387,140388,140389,140391,140392,140393,140396,140409,140410,140421,140422,140444,140445,140459,140460,140461,140462,140463,140466,140467,140468,140469,140470,140471,140473,140474,140475,140476,140477,140478,140479,140480,140481,140482,140484,140485,140486,140487,140488,140489,140490,140491,140492,140494,140497,140498,140503,140504,140505,140507,140508,140509,140510,140511,140512,140513,140515,140516,140517,140518,140519,140520,140521,140522,140523,140524,140525,140528,140529,140530,140531,140532,140685,140847,141023,141024,141310,141313,141314,141335,141383,141384,141385,141386,141387,141388,141389,141390,141391,141392,141393,141394,141395,141396,141397,141398,141399,141400,141401,141402,141403,141404,141405,141638,141639,141667,141668,141669,141670,141671,141672,141673,141674,141675,141676,141677,141678,141679,141680,141681,141682,141683,141684,141685,141689,141690,141699,141701,141702,141703,141704,141705,141706,141707,141708,141709,141710,141711,141852,141853,141854,141855,141856,141857,141858,141859,141863,141872,141876,141877,141883,141886,141887,141888,141889,141890,141891,141892,141896,141921,141922,141923,141924,141925,141926,141927,141928,141929,141930,141931,141932,141933,141934,141935,141936,141937,141940,141941,141942,141943,141944,141945,141946,141947,141948,141949,141950,141951,141952,141953,141954,141955,141956,142001,142002,142003,142004,142005,142006,142007,142054,142449,142450,142451,142454,142455,142533,142534,142535,142555,143333,143486,143487,143488,143498,143499,143533,143536,143538,143540,143677,143680,143713,143714,143715,143716,143738,143739,143740,143741,143742,143743,143744,143745,143746,143747,143749,143757,143844,143868,143869,143870,143871},
-	Troops={
-	-- Death Knight
-	[895]=1,
-	[899]=1,
-	[663]=2,
-	[904]=2,
-	[1008]=3,
-	[783]=4,
-	[941]=4,
-	[942]=4,
-	--Demon Hunter
-	[878]=1,
-	[881]=1,
-	[884]=2,
-	[877]=2,
-	[1027]=3,
-	--Druid
-	[763]=1,
-	[830]=1,
-	[833]=2,
-	[835]=2,
-	[1016]=3,
-	[749]=4,
-	[938]=4,
-	[939]=4,
-	--Hunter
-	[803]=1,
-	[806]=1,
-	[809]=2,
-	[800]=2,
-	[1023]=3,
-	--Mage
-	[660]=1,
-	[769]=1,
-	[822]=2,
-	[825]=2,
-	[1004]=3,
-	--Monk
-	[622]=1,
-	[772]=1,
-	[695]=1,
-	[775]=2,
-	[776]=2,
-	[631]=2,
-	[1051]=3,
-	[702]=4,
-	[701]=4,
-	[703]=4,
-	--Paladin
-	[842]=1,
-	[843]=1,
-	[848]=2,
-	[849]=2,
-	[1043]=3,
-	--Priest
-	[677]=1,
-	[926]=1,
-	[927]=2,
-	[920]=2,
-	[1039]=3,
-	--Rogue
-	[910]=1,
-	[681]=1,
-	[919]=2,
-	[682]=2,
-	[1047]=3,
-	--Shaman
-	[784]=1,
-	[750]=1,
-	[782]=2,
-	[794]=2,
-	[1031]=3,
-	--Warlock
-	[728]=1,
-	[737]=1,
-	[648]=2,
-	[765]=2,
-	[1035]=3,
-	--Warrior
-	[858]=1,
-	[862]=1,
-	[687]=2,
-	[868]=2,
-	[1012.1]=3,
-	[1012.2]=3
-	--
-	--
-	}
+	Equipments={}
 }
 local icon2item={}
 local itemquality={}
@@ -331,80 +150,66 @@ function addon:GetData(key)
 end
 local tickle
 function module:OnInitialized()
-	if addon.allArtifactPower then
-		wipe(data.ArtifactPower)
-	--@debug@
-	addon:Print("Updating artifact with wowhead data")
-	--@end-debug@
-		for k,_ in pairs(addon.allArtifactPower) do
-			tinsert(data.ArtifactPower,todefault(k,1))
-		end
-	end
+  data.Equipments=addon.allEquipments
 	--@debug@
 	addon:Print("Starting coroutine")
 	--@end-debug@
 	addon.coroutineExecute(module,0.1,"TickleServer")
 end
+local GetItemIcon=GetItemIcon
+local GetItemInfo=GetItemInfo
+local pcall=pcall
 function module:AddItem(itemID)
 
 end
 function addon:GetItemIdByIcon(iconid)
+  if not icon2item[iconid] then icon2item[iconid] = select(2,pcall,GetItemIcon,iconid) end 
 	return icon2item[iconid]
 end
-function addon:GetItemQuality(itemId)
-	return itemquality[itemId]
+function addon:GetItemQuality(itemid)
+  if not itemquality[itemid] then itemquality[itemid] = select(4,pcall,GetItemInfo,itemid) end
+	return itemquality[itemid]
 end
 
 do
-local pairs=pairs
-local type=type
-local GetItemIcon=GetItemIcon
-local GetItemInfo=GetItemInfo
-local coroutine=coroutine
-local i=0
-local failed=1
-local iteration=2
-local GetTime=GetTime
-function tickle(category)
-	local start=GetTime()
-	for _,itemid in pairs(category) do
-		if type(itemid)=="number" and itemid > 10 then
-			if not itemquality[itemid] then
-				local rc,name,link,quality=pcall(GetItemInfo,itemid)
-				if rc and name then
-					itemquality[itemid]=quality
-					icon2item[GetItemIcon(itemid)]=itemid
-					i=i+1
---@debug@
-					if i % 100 == 0 then
-						addon:Print(format("Precached %d items so far",i))
-					end
---@end-debug@
-				else
-					failed=failed+1
-				end
-				if coroutine.running() then coroutine.yield() end
-			end
-		end
-	end
-end
-function module:TickleServer()
-	local start=debugprofilestop()
-	while true do
-		failed=0
-		tickle(data.Equipment)
-		tickle(data.ArtifactPower)
-		tickle(data.Buffs)
-		tickle(data.Upgrades)
-		tickle(data.Upgrades2)
-		tickle(data.Upgrades3)
-		iteration=iteration-1
-		if failed * iteration == 0 then break end
-	end
-	--@debug@
-	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
-	--@end-debug@
-end
+  local pairs=pairs
+  local type=type
+  local GetItemIcon=GetItemIcon
+  local GetItemInfo=GetItemInfo
+  local coroutine=coroutine
+  local pcall=pcall
+  local i=0
+  local debugprofilestop=debugprofilestop
+  local start=0
+  local function tickle(category,useleft)
+    for left,right in pairs(category) do
+      local itemid=useleft and left or right
+  		if type(itemid)=="number" and itemid > 10 then
+  			if not itemquality[itemid] then
+  				local rc,name,link,quality=pcall(GetItemInfo,itemid)
+  				if rc and name then
+  					itemquality[itemid]=quality
+  					icon2item[GetItemIcon(itemid)]=itemid
+  					i=i+1
+  --@debug@
+  					if i % 100 == 0 then
+  						addon:Print(format("Precached %d items in %.3f so far",i,(debugprofilestop()-start)))
+  					end
+  --@end-debug@
+  				end
+  				if coroutine.running() then coroutine.yield() end
+  			end
+  		end
+  	end
+  end
+  function module:TickleServer()
+  	start=debugprofilestop()
+  	tickle(data.Equipments)
+    tickle(addon.allArtifactPower,true)
+  	--@debug@
+  	addon:Print(format("Precached %d items in %.3f seconds",i,(debugprofilestop()-start)/1000))
+  	--@end-debug@
+  end
 end
 --@do-not-package@
 --[[

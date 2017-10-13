@@ -74,12 +74,28 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-
+local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
+local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local format,pcall=format,pcall
+local function safeformat(mask,...)
+  local rc,result=pcall(format,mask,...)
+  if not rc then
+    for k,v in pairs(L) do
+      if v==mask then
+        mask=k
+        break
+      end
+    end
+ end
+  rc,result=pcall(format,mask,...)
+  return rc and result or mask 
+end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
-local GARRISON_LANDING_COMPLETED=GARRISON_LANDING_COMPLETED:match( "(.-)%s*$")
-local CATEGORY_INFO_FORMAT=ORDER_HALL_COMMANDBAR_CATEGORY_COUNT .. ' (' .. GARRISON_LANDING_COMPLETED ..')'
+local CATEGORY_INFO_FORMAT=GARRISON_LANDING_COMPLETED:gsub("%%d/%%d","%%d/%%d %%d")
+local CATEGORY_INFO_FORMAT_SHORT="%d/%d %d " .. READY
+local CATEGORY_INFO_FORMAT_VERY_SHORT="%d/%d (%d) "
 local pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin=pairs,math,wipe,tinsert,GetTime,next,ipairs,strjoin
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
 local AVAILABLE=AVAILABLE
@@ -376,10 +392,9 @@ local function Reward2Class(self,mission)
 	elseif reward.followerXP then
 			return "FollowerXp",reward.followerXP
 	elseif type(reward.itemID) == "number" then
-		local stringID=tostring(reward.itemID)
-		local artifact=self.allArtifactPower[stringID]
-		if artifact then
-			return "Artifact",artifact.Power or 1
+		local artifactPower=self.allArtifactPower[reward.itemID]
+		if artifactPower then
+			return "Artifact",artifactPower or 1
 		elseif overReward.itemID==1447868 then
 			return "PlayerXP",1
 		elseif overReward.itemID==141344 then
@@ -525,7 +540,6 @@ function module:GetTroopsFrame()
 		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,-2)
 		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",2,-2)
 		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
-		frame:EnableMouse(true)
 		frame:SetMovable(true)
 		frame:RegisterForDrag("LeftButton")
 		frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
@@ -537,44 +551,71 @@ function module:GetTroopsFrame()
 end
 
 function module:ParseFollowers()
-	categoryInfo = G.GetClassSpecCategoryInfo(followerType)
-	if empty(categoryInfo) then
-		G.RequestClassSpecCategoryInfo(followerType)
-		self:ScheduleTimer("ParseFollowers",1)
-		return
-	end
+  G.RequestClassSpecCategoryInfo(followerType)
 	G.RequestLandingPageShipmentInfo();
+end	
+local function paintCat(frame)
+  if addon:GetBoolean(frame.key) then
+    frame.Count:SetTextColor(C.red())
+    frame.Icon:SetDesaturated(true)
+  else
+    frame.Count:SetTextColor(C.green())
+    frame.Icon:SetDesaturated(false)
+  end       
+end
+function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
+  categoryInfo = G.GetClassSpecCategoryInfo(followerType)
 	if not OHF:IsVisible() then return end
 	local main=self:GetTroopsFrame()
-	local numCategories = #categoryInfo;
 	local prevCategory, firstCategory;
-	local xSpacing = 20;	-- space between categories
-	for i=1,#categoryInfo do
+	local nCategories=_G.XX or #categoryInfo
+	if nCategories < 1 then return end
+	local previous
+	local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
+	local W=main:GetWidth() - 60
+	local w=W/nCategories
+	for i=1,nCategories do
 		local category=categoryInfo[i]
 		local index=category.classSpec
-		if not catPool[index] then
-			catPool[index]=CreateFrame("Frame","FollowerIcon",main,"OrderHallClassSpecCategoryTemplate")
+    local frame = catPool[i];
+		if not frame then
+			frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
+			catPool[i]=frame
+      frame:EnableMouse(true)
+      frame:RegisterForDrag("LeftButton")
+      frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
+      frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
+      frame:SetScript("OnClick",function(frame) local value=not addon:GetBoolean(frame.key) addon:SetVar(frame.key,value) paintCat(frame) addon:Apply(frame.key,value) end)
+      frame.OnEnter=frame:GetScript("OnEnter")
+      frame:SetScript("OnEnter",function(frame)
+        frame:OnEnter()
+        if addon:GetBoolean(frame.key) then
+          GameTooltip:AddLine(KEY_BUTTON1 .. " " .. C(ENABLE,"green"))
+        else
+          GameTooltip:AddLine(KEY_BUTTON1 .. " " .. C(DISABLE,"red"))
+        end
+        GameTooltip:Show()
+      end)
 		end
-		local categoryInfoFrame = catPool[index];
 		if not shipmentInfo[category.icon] then
 			shipmentInfo[category.icon]={0,0}
 		end
-		categoryInfoFrame.Icon:SetTexture(category.icon);
-		categoryInfoFrame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
-		categoryInfoFrame.TroopPortraitCover:Hide()
-		categoryInfoFrame.Icon:SetHeight(15)
-		categoryInfoFrame.Icon:SetWidth(35)
-		categoryInfoFrame.name = category.name;
-		categoryInfoFrame.description = category.description;
-		categoryInfoFrame.Count:SetFormattedText(
-			CATEGORY_INFO_FORMAT,
-			category.count, category.limit,unpack(shipmentInfo[category.icon]));
-		categoryInfoFrame.Count:SetWidth(categoryInfoFrame.Count:GetStringWidth()+10)
-		categoryInfoFrame:ClearAllPoints();
-		local w=35 + categoryInfoFrame.Count:GetWidth()
-		categoryInfoFrame:SetWidth(w)
-		categoryInfoFrame:SetPoint("TOPLEFT",60 +(w+10) *(i-1), 0);
-		categoryInfoFrame:Show();
+		frame.key="BAN"..index
+		frame.Icon:SetTexture(category.icon);
+		frame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
+		frame.TroopPortraitCover:Hide()
+		frame.Icon:SetHeight(15)
+		frame.Icon:SetWidth(30)
+		frame.name = category.name;
+		frame.description = category.description;
+		frame.Count:SetFormattedText(mask,category.count, category.limit,unpack(shipmentInfo[category.icon]));
+		frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
+		frame:ClearAllPoints();
+    local padding  = math.max(w,frame.Count:GetWidth())
+		frame:SetWidth(padding)
+		paintCat(frame)
+	  frame:SetPoint("TOPLEFT",45 +(w) *(i-1), 0);
+		frame:Show();
 	end
 end
 function addon:ParseFollowers()
@@ -615,14 +656,13 @@ function module:Refresh(event,...)
 		resources = select(2,GetCurrencyInfo(currency))
 		return
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
-			event=="GARRISON_FOLLOWER_CATEGORIES_UPDATED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
 		return self:ParseFollowers()
 	elseif event=="GARRISON_FOLLOWER_LIST_UPDATE" or 
 			event=="GARRISON_MISSION_STARTED" or 
 			event=="GARRISON_MISSION_FINISHED" or
 			event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
-		addon:RefreshFollowerStatus() 
+		return addon:RefreshFollowerStatus() 
 	end
 end
 function module:OnInitialized()
@@ -639,12 +679,12 @@ function module:Events()
 	self:RegisterEvent("GARRISON_FOLLOWER_REMOVED","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_FOLLOWER_ADDED","Refresh")
-	self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_STARTED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_FINISHED","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","Refresh")
 	self:RegisterEvent("GARRISON_MISSION_LIST_UPDATE","Refresh")
 	self:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS")
+  self:RegisterEvent("GARRISON_FOLLOWER_CATEGORIES_UPDATED")
 end
 function module:EventsOff()
 	self:UnregisterAllEvents()
@@ -664,7 +704,9 @@ end
 function addon:RefreshFollowers()
 	followerCache=G.GetFollowers(followerType)
 	rebuildFollowerIndex()
+--@debug@	
 	print("Followeres refreshed:",#followerCache)
+--@end-debug@	
 end
 function addon:GetFollowerData(...)
 	return module:GetFollowerData(...)
@@ -703,7 +745,7 @@ function addon:GetTroopCost(classSpec)
 	if not troopCosts[classSpec] then
 		local t=G.GetClassSpecCategoryInfo(followerType)
 		for i=1,#t do
-			troopCosts[t[i].classSpec]=t[i].limit
+			troopCosts[t[i].classSpec]=t[i].limit * 100
 		end
 	end
 	return troopCosts[classSpec] or 0
@@ -720,8 +762,8 @@ function addon:SortTroop()
 		table.sort(tipo,f)
 	end
 end
-function addon:GetTroop(classSpec,slot,missionID,durability,ignoreBusy)
-	local troops=classTroops[classSpec]
+function addon:GetTroop(troopkey,slot,missionID,durability,ignoreBusy)
+	local troops=classTroops[troopkey]
 	slot=slot or 1
 	if not troops then return end -- No troops for this spec
 	if not ignoreBusy and not durability and not missionID then -- no more check requested
@@ -734,9 +776,6 @@ function addon:GetTroop(classSpec,slot,missionID,durability,ignoreBusy)
 			if ignoreBusy and module:GetFollowerData(followerID,'status') then break end
 			if durability then
 				local d=module:GetFollowerData(followerID,'durability',0)
-				--@debug@
-				print(addon:GetFollowerName(followerID),d,durability) 
-				--@end-debug@
 				if durability < 0 then
 					if d < math.abs(durability) then break end
 				else  
@@ -752,27 +791,38 @@ function addon:GetTroop(classSpec,slot,missionID,durability,ignoreBusy)
 		end
 	end
 end
+function addon:EmptyPermutations()
+  return #fullPermutations==0
+end
 function addon:GetFullPermutations(dowipe)
 	if dowipe then wipe(fullPermutations) end
-	if empty(fullPermutations) then
-		wipe(fullPermutations) -- better safe than sorry
+	if #fullPermutations==0 then
+    self:RefreshFollowers()
 		for _,v in pairs(classTroops) do wipe(v) end
 		local seen=new()
 		local all=new()
-		local t=G.GetFollowers()
+		local t=module:GetFollowerData()
 		for i=1,#t do
 			local f=t[i]
 			if f.isCollected then
 				if f.isTroop then
-					if not classTroops[f.classSpec] then
-						classTroops[f.classSpec]={}
+				  local abilities=G.GetFollowerAbilities(f.followerID)
+          local abi=new()
+				  for i=1,#abilities do
+				    tinsert(abi,abilities[i].id)
+				  end
+				  table.sort(abi)
+				  local troopkey=strjoin('@',f.classSpec,unpack(abi))
+				  del(abi)
+					if not classTroops[troopkey] then
+						classTroops[troopkey]={}
 					end 
-					tinsert(classTroops[f.classSpec],f.followerID) 
-					if not seen[f.classSpec] then
-						tinsert(all,strjoin('|','T',f.classSpec,self:GetTroopCost(f.classSpec)))
-						seen[f.classSpec]=1
+					tinsert(classTroops[troopkey],f.followerID) 
+					if not seen[troopkey] then
+						tinsert(all,strjoin('|','T',troopkey,self:GetTroopCost(f.classSpec)))
+						seen[troopkey]=1
 					else
-						seen[f.classSpec]=seen[f.classSpec] +1
+						seen[troopkey]=seen[troopkey] +1
 					end
 				else
 					tinsert(all,strjoin('|','H',f.followerID,f.level+(f.level==MAX_LEVEL and f.quality or 0)))
@@ -793,7 +843,7 @@ function addon:GetFullPermutations(dowipe)
 				if all[j] then
 					local class,id,value=strsplit('|',all[j])
 					tinsert(fullPermutations,'2,'.. strjoin(',',all[i],all[j]))
-					if class=="T" and seen[tonumber(id)] > 1 then
+					if class=="T" and seen[id] > 1 then
 						-- I only see a classSpec once. Here if i know I have more than one troop for this spec, i force
 						-- a combination with both of them
 						tinsert(fullPermutations,'3,'.. strjoin(',',all[i],all[j],all[j] .. '|2'))

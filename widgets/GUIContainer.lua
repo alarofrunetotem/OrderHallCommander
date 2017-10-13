@@ -2,7 +2,7 @@ local me,addon=...
 if addon.die then return end
 local C=addon:GetColorTable()
 local module=addon:GetWidgetsModule()
-local Type,Version="OHCGUIContainer",1
+local Type,Version="OHCGUIContainer",2
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 local m={} --#Widget
@@ -19,21 +19,13 @@ function m:SetContentWidth(x)
 	self.content:SetWidth(x)
 end
 function m:SetTitle(...)
-	self.frame.TitleText:SetText(...)
+	--self.frame.TitleText:SetText(...)
 end
 function m:SetTitleColor(...)
-	self.frame.TitleText:SetTextColor(...)
+	--self.frame.TitleText:SetTextColor(...)
 end
 function m._Constructor()
-	local frame=CreateFrame("Frame",Type..AceGUI:GetNextWidgetNum(Type),nil,"GarrisonUITemplate")
-	frame.Top:SetAtlas("_StoneFrameTile-Top", true);
-	frame.Bottom:SetAtlas("_StoneFrameTile-Bottom", true);
-	frame.Left:SetAtlas("!StoneFrameTile-Left", true);
-	frame.Right:SetAtlas("!StoneFrameTile-Left", true);
-	frame.GarrCorners.TopLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	frame.GarrCorners.TopRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	frame.GarrCorners.BottomLeftGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);
-	frame.GarrCorners.BottomRightGarrCorner:SetAtlas("StoneFrameCorner-TopLeft", true);	
+	local frame=CreateFrame("Frame",Type..AceGUI:GetNextWidgetNum(Type),nil,"OHCBaseFrame")
 	local widget={frame=frame,missions={},type=Type}
 	for k,v in pairs(m) do widget[k]=v end
 	widget._Constructor=nil
