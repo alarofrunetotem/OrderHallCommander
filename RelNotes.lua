@@ -17,8 +17,9 @@ typing /ohc silent in chat will eliminate every chat message from OrderHallComma
 self:RelNotes(1,5,4,[[
 Feature: #120 Starting mission from list now requires ctrl-shift
 Feature: #124 Moved action buttons to a safer spot
+Fix: #127 Side menu didnt stay closed
 Fix: #121 Window is now draggable even by the troop status bar
-Fix: #124 Sorting should now be more responsive to config changes
+Fix: #123 Sorting should now be more responsive to config changes
 Fix: #119 Bad display when more than 5 types of troops (really!) Tested up to 10 troops
 Fix: Side menu no longer get reopened at each start
 ]])

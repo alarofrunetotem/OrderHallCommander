@@ -140,6 +140,11 @@ local data={
 	Xp={
 		141028
 	},
+	Krokuls={
+	 152095,
+   152096,
+   152097,
+	},
 	Equipments={}
 }
 local icon2item={}

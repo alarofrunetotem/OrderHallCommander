@@ -96,7 +96,6 @@ end
 local function GetItemName(id) return (GetItemInfo(id)) end
 local UpgradeFrame
 local UpgradeButtons={}
-local pool={}
 --@debug@
 local debugInfo
 --@end-debug@
@@ -142,26 +141,6 @@ function module:GARRISON_FOLLOWER_UPGRADED(event,followerType,followerId)
 		self:ScheduleTimer("RefreshUpgrades",0.3)
 	end
 end
-local function RenderButton(id,left,previous)
-		local qt=GetItemCount(id)
-		if qt == 0 then return previous end --Not rendering empty buttons
-		if type(id) ~= "number" then return previous end
-		local b=module:AcquireButton()
-		if previous then
-			b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-18)
-		else
-			b:SetPoint("TOPLEFT",left,-12)
-		end
-		b.itemID=id
-		b:SetAttribute("item",select(2,GetItemInfo(id)))
-		GarrisonMissionFrame_SetItemRewardDetails(b)
-		b.Quantity:SetFormattedText("%d",qt)
-		b.Quantity:SetTextColor(b.IconBorder:GetVertexColor())
-		b.Quantity:Show()
-		b:Show()
-		--b.IconBorder:SetVertexColor(1,0,0)
-		return b,true
-end
 do
 	local left=0
 	local i=0
@@ -178,7 +157,7 @@ do
 				left=left + 50
 				previous=nil
 			end
-			previous,rendered=RenderButton(id,left,previous)
+			previous,rendered=self:RenderButton(id,left,previous)
 			if rendered then i=i+1 end
 		end
 	end
@@ -200,7 +179,7 @@ do
 				left=left - 50
 				previous=nil 
 			end
-			previous,rendered=RenderButton(id,left,previous)
+			previous,rendered=self:RenderButton(id,left,previous)
 			if rendered then i=i+1 end
 		end
 	end
@@ -225,134 +204,173 @@ function module:CheckEquipment(this,followerInfo)
 	end
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
-	if not OHFFollowerTab:IsVisible() then return end
-	if model then
-		UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
-		UpgradeFrame:SetFrameLevel(model:GetFrameLevel()+5)
-	end
-	if not followerID then followerID=OHFFollowerTab.followerID end
-	local follower=addon:GetFollowerData(followerID)
---@debug@
-	if followerID then
-		debugInfo:SetText(followerID  ..  " " .. (displayID or "no display id") .. " " .. (follower.status or ""))
-	end
---@end-debug@
-	for i=1,#UpgradeButtons do
-		self:ReleaseButton(UpgradeButtons[i])
-	end
-	wipe(UpgradeButtons)
-	self:RenderUpgradeButton()
-	self:RenderEquipmentButton()
-	if not follower then return end
-	if not follower.isCollected then return end
-	--if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
-	--if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
-	--if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
-	local data=addon:GetData("Buffs")
---@debug@
-print("Buffs",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-		self:RenderUpgradeButton(id)
-	end
-	if follower.isTroop then return end
-	if follower.iLevel <850  then
-		local data=addon:GetData("U850")
---@debug@
-print("U850",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-			self:RenderUpgradeButton(id)
-		end
-	end
-	if follower.iLevel <880 then
-		local data=addon:GetData("U880")
---@debug@
-print("U880",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-			self:RenderUpgradeButton(id)
-		end
-	end
-	if follower.iLevel <900 then
-		local data=addon:GetData("U900")
---@debug@
-print("U900",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-			self:RenderUpgradeButton(id)
-		end
-	end
-  if follower.iLevel <925 then
-    local data=addon:GetData("U925")
---@debug@
-print("U925",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
+  if not OHFFollowerTab:IsVisible() then return end
+  if model then
+    UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
+    UpgradeFrame:SetFrameLevel(model:GetFrameLevel()+5)
+  end
+  if not followerID then followerID=OHFFollowerTab.followerID end
+  local follower=addon:GetFollowerData(followerID)
+  --@debug@
+  if followerID then
+    debugInfo:SetText(followerID  ..  " " .. (displayID or "no display id") .. " " .. (follower.status or ""))
+  end
+  --@end-debug@
+  for i=1,#UpgradeButtons do
+    self:ReleaseButton(UpgradeButtons[i])
+  end
+  wipe(UpgradeButtons)
+  self:RenderUpgradeButton()
+  self:RenderEquipmentButton()
+  if not follower then return end
+  if not follower.isCollected then return end
+  --if follower.status==GARRISON_FOLLOWER_ON_MISSION then return end
+  --if follower.status==GARRISON_FOLLOWER_COMBAT_ALLY then return end
+  --if follower.status==GARRISON_FOLLOWER_INACTIVE then return end
+  local data=addon:GetData("Buffs")
+  --@debug@
+  print("Buffs",#data)
+  --@end-debug@
+  for i=1,#data do
+    local id=data[i]
+    self:RenderUpgradeButton(id)
+  end
+  if follower.isTroop then return end
+  if follower.iLevel <850  then
+    local data=addon:GetData("U850")
+    --@debug@
+    print("U850",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
       self:RenderUpgradeButton(id)
     end
   end
-	if follower.iLevel <950 then
-		local data=addon:GetData("U950")
---@debug@
-print("U950",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-			self:RenderUpgradeButton(id)
-		end
-	end
-	if not follower.isMaxLevel or  follower.quality < 5 then
-		local data=addon:GetData("Xp")
---@debug@
-print("Xp",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-			self:RenderUpgradeButton(id)
-		end
-	end
-	if follower.quality >=LE_ITEM_QUALITY_RARE then
-		local data=addon:GetData("Equipments")
---@debug@
-print("Equipments",#data)
---@end-debug@
-	for i=1,#data do
-		local id=data[i]
-			self:RenderEquipmentButton(id)
-		end
-	end
+  if follower.iLevel <880 then
+    local data=addon:GetData("U880")
+    --@debug@
+    print("U880",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
+      self:RenderUpgradeButton(id)
+    end
+  end
+  if follower.iLevel <900 then
+    local data=addon:GetData("U900")
+    --@debug@
+    print("U900",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
+      self:RenderUpgradeButton(id)
+    end
+  end
+  if follower.iLevel <925 then
+    local data=addon:GetData("U925")
+    --@debug@
+    print("U925",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
+      self:RenderUpgradeButton(id)
+    end
+  end
+  if follower.iLevel <950 then
+    local data=addon:GetData("U950")
+    --@debug@
+    print("U950",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
+      self:RenderUpgradeButton(id)
+    end
+  end
+  if not follower.isMaxLevel or  follower.quality < 5 then
+    local data=addon:GetData("Xp")
+    --@debug@
+    print("Xp",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
+      self:RenderUpgradeButton(id)
+    end
+  end
+  if follower.quality >=LE_ITEM_QUALITY_RARE then
+    local data=addon:GetData("Equipments")
+    --@debug@
+    print("Equipments",#data)
+    --@end-debug@
+    for i=1,#data do
+      local id=data[i]
+      self:RenderEquipmentButton(id)
+    end
+  end
+  local data=addon:GetData("Krokuls")
+  for i=1,#data do
+    local id=data[i]
+    self:RenderUpgradeButton(id)
+  end
 end
+
 local UpgradeFollower
-function module:AcquireButton()
-	local b=tremove(pool)
-	if not b then
-		b=CreateFrame("Button",nil,UpgradeFrame,"OHCUpgradeButton,SecureActionbuttonTemplate")
-		b:EnableMouse(true)
-		b:RegisterForClicks("LeftButtonDown")
-		b:SetAttribute("type","item")
-		--b.Quantity:SetFontObject("NumberFont_Outline_Huge")
-		b.Quantity:SetFontObject("GameFontNormalShadowHuge2")
-		--b:SetScript("PostClick",UpgradeFollower)
-		--b:SetSize(35,35)
-		--b.Icon:SetSize(35,35)
-		--b.IconBorder:SetSize(36,36)
-		b:SetScale(0.7)
-		b:EnableMouse(true)
-		b:RegisterForClicks("LeftButtonDown")
-	end
-	tinsert(UpgradeButtons,b)
-	return b
-end
-function module:ReleaseButton(u)
-	u:Hide()
-	u:ClearAllPoints()
-	tinsert(pool,u)
+do local pool={}
+  function addon:AcquireButton(frame)
+  	local b=tremove(pool)
+    frame=frame or UpgradeFrame
+  	if not b then
+  		b=CreateFrame("Button",nil,frame,"OHCUpgradeButton,SecureActionbuttonTemplate")
+  		b:EnableMouse(true)
+  		b:RegisterForClicks("LeftButtonDown")
+  		b:SetAttribute("type","item")
+  		--b.Quantity:SetFontObject("NumberFont_Outline_Huge")
+  		b.Quantity:SetFontObject("GameFontNormalShadowHuge2")
+  		--b:SetScript("PostClick",UpgradeFollower)
+  		--b:SetSize(35,35)
+  		--b.Icon:SetSize(35,35)
+  		--b.IconBorder:SetSize(36,36)
+  		b:SetScale(0.7)
+  	else
+  	 b:SetParent(frame)
+  	end
+  	tinsert(UpgradeButtons,b)
+  	return b
+  end
+  function addon:ReleaseButton(u)
+  	u:Hide()
+  	u:ClearAllPoints()
+  	u:SetParent(nil)
+  	tinsert(pool,u)
+  end
+  function addon:RenderButton(id,left,previous)
+      local qt=GetItemCount(id)
+      if qt == 0 then return previous end --Not rendering empty buttons
+      if type(id) ~= "number" then return previous end
+      local b=module:AcquireButton()
+      if previous then
+        b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-18)
+      else
+        b:SetPoint("TOPLEFT",left,-12)
+      end
+      --b.IconBorder:SetVertexColor(1,0,0)
+      self:DrawButton(b,id,qt)
+      return b,true
+  end
+  function addon:DrawButton(b,id,qt)
+      qt=qt or GetItemCount(id)
+      b.itemID=id
+      b:SetAttribute("item",select(2,GetItemInfo(id)))
+      GarrisonMissionFrame_SetItemRewardDetails(b)
+      b.Quantity:SetFormattedText("%d",qt)
+      b.Quantity:SetTextColor(b.IconBorder:GetVertexColor())
+      b.Quantity:Show()
+      b:Show()
+  end
+
+module.ReleaseButton=addon.ReleaseButton
+module.AcquireButton=addon.AcquireButton
+module.RenderButton=addon.RenderButton
+module.DrawButton=addon.DrawButton
 end
 local CONFIRM1=L["Upgrading to |cff00ff00%d|r"].."\n" .. CONFIRM_GARRISON_FOLLOWER_UPGRADE
 local CONFIRM2=L["Upgrading to |cff00ff00%d|r"].."\n|cffffd200 "..L["You are wasting |cffff0000%d|cffffd200 point(s)!!!"].."|r\n" .. CONFIRM_GARRISON_FOLLOWER_UPGRADE
