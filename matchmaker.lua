@@ -378,14 +378,13 @@ function partyManager:GetSelectedParty(key,dbg)
 				   elseif candidate.perc == 100 then
 				     self.cappedkey=key
 				     self.bestcappedfound=true
-				   elseif candidate.perc >= self.baseChance then
-				     if not self.cappedkey then
-				       self.cappedkey=key
-				     elseif self:GetChanceForKey(self.cappedkey)~=self:GetChanceForKey(key) then
-               self.cappedkey=key
-             end
-           else
-              self.bestcappedfound=true
+           elseif candidate.perc >= self.baseChance and candidate.perc <= self.capChance then
+             self.cappedkey=key
+             self.bestcappedfound=true
+				   elseif candidate.perc >= self.capChance then
+               if self:GetChanceForKey(self.cappedkey)~=self:GetChanceForKey(key) then
+                 self.cappedkey=key
+               end
 				   end
 					end
 					if not self.bestkey then self.bestkey=key end
