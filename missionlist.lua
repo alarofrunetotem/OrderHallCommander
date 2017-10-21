@@ -715,13 +715,10 @@ function module:InitialSetup(this)
     frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
     frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
   end
-	addon:ShowTutorial();
 end
 function addon:ShowTutorial()
-  if not self:GetTutorialsModule():HasReadTutorial() then
-    OpenMenu()
-    addon:GetTutorialsModule():Show()
-  end
+  OpenMenu()
+  addon:GetTutorialsModule():Show()
 end
     
 function addon:Reset()
