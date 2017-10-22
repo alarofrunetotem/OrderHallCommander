@@ -125,27 +125,18 @@ function module:FillMissionPage(missionInfo,key)
 --@end-debug@
 	if( IsControlKeyDown()) then self:Print("Ctrl key, ignoring mission prefill") return end
 	if (addon:GetBoolean("NOFILL")) then return end
+	OHF:ClearParty()
 	self:FillParty(missionInfo.missionID,key)
+end
+function module:ClearParty()
+  OHF:ClearParty()
 end
 function module:FillParty(missionID,key)
 	--addon:HoldEvents()
-	local main=OHF
---@debug@
-	addon:Print("Clearing party")
---@end-debug@
-	main:ClearParty()
 	local parties=addon:GetMissionParties(missionID)
-	if not parties.candidatesIndex or #parties.candidatesIndex==1 then
-  --@debug@
-    addon:Print("Rebuild party")
-  --@end-debug@
-	 parties:Match()
-	end
+	if not parties then return end
 	local party=parties:GetSelectedParty(key)
-	local missionPage=main:GetMissionPage()
---@debug@
-	addon:Print("I have",#party,"slots to fill thanks to key",key,party.key)
---@end-debug@
+	local missionPage=OHF:GetMissionPage()
 	for i=1,#party do
 		local followerID=party[i]
 --@debug@

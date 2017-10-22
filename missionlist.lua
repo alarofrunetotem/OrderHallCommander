@@ -515,14 +515,16 @@ function addon:ReloadMissions()
 --@debug@
   addon:Print("ReloadMissions")
 --@end-debug@  
-  addon:RunRefreshers()
+  local OnMissionPage=OHF.MissionTab.MissionPage:IsVisible()
   addon:SortTroop()
-  if OHF.MissionTab.MissionPage:IsVisible() then
-  --@debug@
-    addon:Print("Refilling mission page")
-  --@end-debug@  
+  if OnMissionPage then addon:GetMissionpageModule():ClearParty() end
+  addon:RunRefreshers()
+  if  OnMissionPage then
     local mission=OHF.MissionTab.MissionPage.info or OHF.MissionTab.MissionPage.missionInfo
-    addon:GetMissionpageModule():FillParty(mission.missionID,missionKEYS[mission.missionID])
+  --@debug@
+    addon:Print("Refilling mission page for mission ",mission.missionID)
+  --@end-debug@  
+    addon:GetMissionpageModule():FillParty(mission.missionID)
   else
     OHFMissions:UpdateMissions()  
   end

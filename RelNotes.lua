@@ -14,9 +14,13 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,'4.2',[[
+Fix: Reset button was not working 
+Fix: You can again change switches while viewing the mission page
+]])
 self:RelNotes(1,5,'4.1',[[
 Feature: Removed tutorial autoopening
-Fix: when capping a mission if a satisfying mission cannott be found, prefer overcaps 
+Fix: when capping a mission if a satisfying mission cannot be found, prefer overcap over lowercap 
 Fix: #133 Counter kil troops switch was not working
 ]])
 self:RelNotes(1,5,4,[[
