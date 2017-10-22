@@ -130,11 +130,27 @@ end
 function module:FillParty(missionID,key)
 	--addon:HoldEvents()
 	local main=OHF
+--@debug@
+	addon:Print("Clearing party")
+--@end-debug@
 	main:ClearParty()
-	local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
+	local parties=addon:GetMissionParties(missionID)
+	if not parties.candidatesIndex or #parties.candidatesIndex==1 then
+  --@debug@
+    addon:Print("Rebuild party")
+  --@end-debug@
+	 parties:Match()
+	end
+	local party=parties:GetSelectedParty(key)
 	local missionPage=main:GetMissionPage()
+--@debug@
+	addon:Print("I have",#party,"slots to fill thanks to key",key,party.key)
+--@end-debug@
 	for i=1,#party do
 		local followerID=party[i]
+--@debug@
+    addon:Print("adding",addon:GetFollowerName(followerID))
+--@end-debug@
 		if followerID and not G.GetFollowerStatus(followerID) then
 			missionPage:AddFollower(followerID)
 		end

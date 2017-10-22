@@ -518,6 +518,9 @@ function addon:ReloadMissions()
   addon:RunRefreshers()
   addon:SortTroop()
   if OHF.MissionTab.MissionPage:IsVisible() then
+  --@debug@
+    addon:Print("Refilling mission page")
+  --@end-debug@  
     local mission=OHF.MissionTab.MissionPage.info or OHF.MissionTab.MissionPage.missionInfo
     addon:GetMissionpageModule():FillParty(mission.missionID,missionKEYS[mission.missionID])
   else
@@ -587,16 +590,13 @@ function module:GetMenuItem(flag)
 end
 function module:Menu(flag)
 
-  --@debug@
   menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
   menu:SetPoint("TOPLEFT",OHF,"TOPRIGHT",0,30)     
   menu:SetPoint("BOTTOMLEFT",OHF,"BOTTOMRIGHT",0,0)     
-  --@end-debug@
---[===[@non-debug@
-  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
-  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
-  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
---@end-non-debug@]===]
+
+--  menu=CreateFrame("Frame",nil,OHFMissions,"OHCMenu")
+--  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)     
+--  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)     
   menu.Title:SetText(me .. ' ' .. addon.version)
   menu.Title:SetTextColor(C:Yellow())
   menu.Close:SetScript("OnClick",CloseMenu)
