@@ -650,7 +650,7 @@ function module:OptionsButton()
   local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower and slots at once"])
   option2:SetPoint("BOTTOM",0,h)
   option2:SetOnChange(function() addon:UnReserve() addon:Unban() addon:RedrawMissions() end)
-  local option3=addon:GetFactory():Button(OHFMissionScroll,RESET,L["Sets all switches to a very permissive setup"])
+  local option3=addon:GetFactory():Button(OHFMissionScroll,RESET,L["Sets all switches to a very permissive setup. Very similar to 1.4.4"])
   option3:SetPoint("BOTTOMRIGHT",-100,h)
   option3:SetOnChange(function() addon:Reset() end ) --addon:RefreshMissions() end)
   optionlist["BUTTON1"]=option1
@@ -725,7 +725,7 @@ end
 function addon:Reset()
   addon:PauseApply(true)
   local w=module:GetMenuItem("BASECHANCE")
-  if w then w:SetValue(5) end
+  if w then w:SetValue(0) end
   w=module:GetMenuItem("BONUSCHANCE")
   if w then w:SetValue(100) end
   w=module:GetMenuItem("IGNOREBUSY")
