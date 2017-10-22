@@ -69,13 +69,14 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local GARRISON_FOLLOWER_AVAILABLE=AVAILABLE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local CTRL_SHIFT_KEY_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
 local format,pcall=format,pcall
 local function safeformat(mask,...)
   local rc,result=pcall(format,mask,...)
@@ -182,6 +183,7 @@ local function InProgress(mission,frame)
 	return (mission and mission.inProgress) or OHFMissions.showInProgress or (frame and frame.IsCustom)
 end
 function module:OnInitialized()
+
 -- Dunno why but every attempt of changing sort starts a memory leak
 	local sorters={
 		Garrison_SortMissions_Original=L["Original method"],
@@ -200,7 +202,6 @@ function module:OnInitialized()
 	addon:AddSelect("SORTMISSION","Garrison_SortMissions_Original",sorters,	L["Sort missions by:"],L["Changes the sort order of missions in Mission panel"])
 	addon:AddBoolean("IGNORELOW",false,L["Empty missions sorted as last"],L["Empty or 0% success mission are sorted as last. Does not apply to \"original\" method"])
 	addon:AddBoolean("NOWARN",false,L["Remove no champions warning"],L["Disables warning: "] .. GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS)
-	addon:AddBoolean("QUICKSTART",nil,safeformat(L["%s starts missions"],CTRL_SHIFT_KET_TEXT),L["Allow to start a mission directly from the mission list page (no single mission page shown)"])
 	addon:RegisterForMenu("mission",
 --@debug@
 		"ELITEMODE",
@@ -285,6 +286,7 @@ function addon:SetDirtyFlags(event,missionType,missionID,...)
 		or event=="FORCED"
 	then
 		addon:PushRefresher("RefillParties")
+		addon:PushRefresher("RefreshEquipments")
 	end
 	addon:PushRefresher("CleanMissionsCache")
 --@debug@
@@ -531,7 +533,7 @@ function addon:ReloadMissions()
 end
 function addon:RedrawMissions()
 --@debug@
-  addon:Print("RedrawMissions")
+  --addon:Print("RedrawMissions")
 --@end-debug@  
   addon:RunRefreshers()
   addon:SortTroop()
@@ -590,6 +592,19 @@ local optionlist={}
 function module:GetMenuItem(flag)
   if flag then return optionlist[flag] end
 end
+function addon:Pulse(start)
+  if start then
+    menu.Pulse:Play()
+  else
+    menu.Pulse:Stop()
+  end  
+end
+local function tutorialTip()
+  local steps=addon:NeedsTutorial() or ''
+  
+  return C(steps,"green") .. KEY_BUTTON1 .. L["Resume tutorial"] .. "\n" .. KEY_BUTTON2 .. L["Restart tutorial from beginning"] 
+end
+
 function module:Menu(flag)
 
   menu=CreateFrame("Frame",nil,OHF,"OHCMenu")
@@ -604,7 +619,7 @@ function module:Menu(flag)
   menu.Close:SetScript("OnClick",CloseMenu)
   menu.Tutorial:RegisterForClicks("LeftButtonUp","RightButtonUp")
   addon:RawHookScript(menu.Tutorial,"OnClick",function(this,button)  if button=="LeftButton" then addon:ShowTutorial() else addon:GetTutorialsModule():Home() end end)
-  menu.Tutorial.tooltip=KEY_BUTTON1 .. L["Resume tutorial"] .. "\n" .. KEY_BUTTON2 .. L["Restart tutorial from beginning"]
+  menu.Tutorial.tooltip=tutorialTip
   button=CreateFrame("Button",nil,OHFMissionTab,"OHCPin")
   button.tooltip=L["Show/hide OrderHallCommander mission menu"]
   button:SetScript("OnClick",OpenMenu)
@@ -716,10 +731,15 @@ function module:InitialSetup(this)
     frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
     frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
   end
+
+  if addon:NeedsTutorial() then
+    addon:Pulse(true)
+    addon:ScheduleTimer("Pulse",5)
+  end
 end
 function addon:ShowTutorial()
   OpenMenu()
-  addon:GetTutorialsModule():Show()
+  addon:GetTutorialsModule():Show(true)
 end
     
 function addon:Reset()
@@ -972,8 +992,8 @@ function module:AddMembers(frame)
 	local emptymarker=UNUSED
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
-		missionNonFilled=false
-			if members.Champions[i]:SetFollower(party:Follower(i),true) then
+		  missionNonFilled=false
+      if select(2,members.Champions[i]:SetFollower(party:Follower(i),true)) then
 				stats.Chance:SetTextColor(C.Grey())
 			end
 		else
@@ -1022,7 +1042,8 @@ function module:AddThreats(frame,threats,party,missionID)
 			end
 		end
 	end
-	for _,followerID in party:IterateFollowers() do
+	for i=1,#party do
+    local followerID=party[i]
 		if not G.GetFollowerIsTroop(followerID) then
 			local followerBias = G.GetFollowerBiasForMission(missionID,followerID)
 			tinsert(counters,("%04d,%s,%s,%f"):format(1000-(followerBias*100),followerID,G.GetFollowerName(followerID),followerBias))
@@ -1212,7 +1233,8 @@ function module:AdjustMissionTooltip(this,...)
 	else
 		tip:AddDoubleLine(L["Not blacklisted"],safeformat(L["%s to blacklist"],KEY_BUTTON2),0.125,1.0,0.125,C:Red())
 	end
-	tip:AddLine(safeformat(L["%s start the mission witout even opening the mission page. No question asked"],CTRL_KEY_TEXT ..'-'..SHIFT_KEY_TEXT.. ' ' .. KEY_BUTTON1))
+	local keytext=addon:GetBoolean("QUICKSTART") and SHIFT_KEY_TEXT or CTRL_SHIFT_KEY_TEXT
+	tip:AddLine(safeformat(L["%s start the mission without even opening the mission page. No question asked"],keytext .. ' ' .. KEY_BUTTON1))
 	-- Mostrare per ogni tempo di attesa solo la percentuale migliore
 	wipe(bestTimes)
 	wipe(bestTimesIndex)
@@ -1301,11 +1323,11 @@ function module:RawMissionClick(this,button)
 	local shift,ctrl=IsShiftKeyDown(),IsControlKeyDown()
 	local key=missionKEYS[mission.missionID]
 	if button=="LeftButton" and shift then
-    if not addon.db.global.changedkeywarned then	
+    if not addon:GetBoolean("QUICKSTART") and not addon.db.global.changedkeywarned then	
       addon:Popup(safeformat(L["You now need to press both %s and %s to start mission"],SHIFT_KEY_TEXT,CTRL_KEY_TEXT))
       addon.db.global.changedkeywarned=true
     end
-	  if ctrl  then
+	  if ctrl or addon:GetBoolean("QUICKSTART") then
       return addon:GetAutopilotModule():FireMission(mission.missionID,this,true)
     else
       return self.hooks[this].OnClick(this,button)

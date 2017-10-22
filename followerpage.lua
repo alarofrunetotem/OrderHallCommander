@@ -69,13 +69,14 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local GARRISON_FOLLOWER_AVAILABLE=AVAILABLE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local CTRL_SHIFT_KEY_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
 local format,pcall=format,pcall
 local function safeformat(mask,...)
   local rc,result=pcall(format,mask,...)
@@ -203,7 +204,22 @@ function module:CheckEquipment(this,followerInfo)
 		if not colored then f.Border:SetVertexColor(1,1,1,1) end
 	end
 end
+local eqCount={}
+function addon:RefreshEquipments()
+  wipe(eqCount)
+  for followerID,followerInfo in pairs(addon:GetFollowerData()) do
+    GarrisonFollowerTabMixin:SetupAbilities(followerInfo)
+    for i=1,#followerInfo.equipment do
+      local eq=followerInfo.equipment[i]
+      if eq.icon then
+        if not eqCount[eq.icon] then eqCount[eq.icon]={} end
+        tinsert(eqCount[eq.icon],followerInfo.followerID)
+      end
+    end
+  end
+end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
+  addon:RunRefreshers()
   if not OHFFollowerTab:IsVisible() then return end
   if model then
     UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
@@ -312,6 +328,19 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
     self:RenderUpgradeButton(id)
   end
 end
+function module:UpgradeTooltip(this)
+  local t=this.Icon:GetTexture()
+  local tip=GameTooltip
+  local followers=eqCount[t]
+  DevTools_Dump(eqCount)
+  if followers and #followers > 0 then
+    tip:AddLine(L["Equipped by following champions:"])
+    for i=1,#followers do
+      tip:AddLine(G.GetFollowerLink(followers[i]))
+    end
+  end
+  tip:Show()
+end
 
 local UpgradeFollower
 do local pool={}
@@ -330,6 +359,7 @@ do local pool={}
   		--b.Icon:SetSize(35,35)
   		--b.IconBorder:SetSize(36,36)
   		b:SetScale(0.7)
+  		addon.SecureHookScript(module,b,"OnEnter","UpgradeTooltip")
   	else
   	 b:SetParent(frame)
   	end
@@ -348,9 +378,9 @@ do local pool={}
       if type(id) ~= "number" then return previous end
       local b=module:AcquireButton()
       if previous then
-        b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,-18)
+        b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,0)
       else
-        b:SetPoint("TOPLEFT",left,-12)
+        b:SetPoint("TOPLEFT",left,0)
       end
       --b.IconBorder:SetVertexColor(1,0,0)
       self:DrawButton(b,id,qt)
