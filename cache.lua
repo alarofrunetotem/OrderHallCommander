@@ -779,7 +779,7 @@ function addon:GetTroop(troopkey,slot,missionID,durability,ignoreBusy)
 				if durability < 0 then
 					if d < math.abs(durability) then break end
 				else  
-					if  d >= durability then break end
+					if  d > durability then break end
 				end
 			end
 			-- Didnt break out so this is a good one
