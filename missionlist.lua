@@ -241,7 +241,6 @@ function module:Events()
 	addon:RegisterEvent("GARRISON_FOLLOWER_ADDED","SetDirtyFlags")
 	addon:RegisterEvent("GARRISON_FOLLOWER_REMOVED","SetDirtyFlags")
 	addon:RegisterEvent("GARRISON_FOLLOWER_LIST_UPDATE","SetDirtyFlags")
-	addon:RegisterEvent("GARRISON_LANDINGPAGE_SHIPMENTS","SetDirtyFlags")
 	addon:RegisterEvent("GARRISON_UPDATE","SetDirtyFlags")
 	addon:RegisterEvent("GARRISON_UPGRADEABLE_RESULT","SetDirtyFlags")
 	addon:RegisterEvent("GARRISON_MISSION_COMPLETE_RESPONSE","SetDirtyFlags")
@@ -626,9 +625,9 @@ function module:Menu(flag)
 			previous=f
 		end
 	end
-	local f=factory:Button(menu,OPTIONS,L["Open configuration"],200)
+	local f=factory:Button(menu,OPTIONS,L["Customization options (non mission related)"],200)
 	f:SetObj(addon)
-	f:SetOnChange("Help")
+	f:SetOnChange("Gui")
 	f:SetPoint("BOTTOM",0,10)
 	self.Menu=function() addon:Print("Should not call this again") end
 end
@@ -648,7 +647,7 @@ function module:OptionsButton()
   option1:SetOnChange("RunMission")
   local option2=addon:GetFactory():Button(OHFMissionScroll,L["Unlock all"],L["Unlocks all follower and slots at once"])
   option2:SetPoint("BOTTOM",0,h)
-  option2:SetOnChange(function() addon:UnReserve() addon:Unban() addon:RefreshMissions() end)
+  option2:SetOnChange(function() addon:UnReserve() addon:Unban() addon:RedrawMissions() end)
   local option3=addon:GetFactory():Button(OHFMissionScroll,RESET,L["Sets all switches to a very permissive setup"])
   option3:SetPoint("BOTTOMRIGHT",-100,h)
   option3:SetOnChange(function() addon:Reset() end ) --addon:RefreshMissions() end)
