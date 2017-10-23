@@ -944,13 +944,15 @@ function module:AddMembers(frame)
 	members:SetNotReady()
 	members:SetPoint("RIGHT",frame.Rewards[nrewards],"LEFT",-5,0)
 	if InProgress(frame.info,frame) then
-		for i,followerID in ipairs(frame.info.followers) do
-			members.Champions[i]:SetFollower(followerID,false)
-			members.Champions[i]:Show()
-		end
-		for i=#frame.info.followers+1,3 do
-			members.Champions[i].followerID=nil
-			members.Champions[i]:Hide()
+		for i=1,3 do
+		  local followerID=frame.info.followers[i]
+		  if followerID then
+        members.Champions[i]:SetFollower(followerID,false)
+        members.Champions[i]:Show()
+			else
+  			members.Champions[i].followerID=nil
+  			members.Champions[i]:Hide()
+			end
 		end		
 		frame.Overlay:SetFrameLevel(20)
 		threats:Hide()
