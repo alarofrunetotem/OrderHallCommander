@@ -332,7 +332,6 @@ function module:UpgradeTooltip(this)
   local t=this.Icon:GetTexture()
   local tip=GameTooltip
   local followers=eqCount[t]
-  DevTools_Dump(eqCount)
   if followers and #followers > 0 then
     tip:AddLine(L["Equipped by following champions:"])
     for i=1,#followers do
