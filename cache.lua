@@ -540,12 +540,12 @@ function module:GetTroopsFrame()
 		frame:ClearAllPoints()
 		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,-2)
 		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",2,-2)
-		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
-		frame:SetMovable(true)
+    frame:EnableMouse(true)
 		frame:RegisterForDrag("LeftButton")
 		frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
 		frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
 		frame:Show()
+		frame.Buttons={}
 		TroopsHeader=frame
 	end
 	return TroopsHeader
@@ -573,7 +573,29 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
 	if nCategories < 1 then return end
 	local previous
 	local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
-	local W=main:GetWidth() - 60
+	local margin=45
+	local W=main:GetWidth() - (margin + 15)
+  local data=addon:GetData("Krokuls")
+  
+  for i=1,#data do
+    local id=data[i]
+    local b=main.Buttons[i]
+    if not b then b=CreateFrame("Button",nil,OHFMissions,"OHCUpgradeButton,SecureActionbuttonTemplate")
+      main.Buttons[i]=b
+      b:EnableMouse(true)
+      b:RegisterForClicks("LeftButtonDown")
+      b:SetAttribute("type","item")
+      b.Quantity:SetFontObject("GameFontNormalShadowHuge2")
+      b:SetScale(0.7)
+    end
+    addon:DrawButton(b,id)
+    if i==1 then
+      b:SetPoint("TOPLEFT",-45,-20)
+    else
+      b:SetPoint("TOP",main.Buttons[i-1],"BOTTOM",0,-5)
+    end
+    b:Show()
+  end	
 	local w=W/nCategories
 	for i=1,nCategories do
 		local category=categoryInfo[i]
@@ -615,7 +637,7 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
     local padding  = math.max(w,frame.Count:GetWidth())
 		frame:SetWidth(padding)
 		paintCat(frame)
-	  frame:SetPoint("TOPLEFT",45 +(w) *(i-1), 0);
+	  frame:SetPoint("TOPLEFT",margin +(w) *(i-1), 0);
 		frame:Show();
 	end
 end
@@ -719,6 +741,12 @@ function addon:GetFollowerName(id)
 	if not id then return "none" end
 	local rc,error=pcall(G.GetFollowerName,id)
 	return strconcat(tostringall(id,'(',error,')'))
+end
+function addon:GetFollowerNames(...)
+  local s=""
+  for i=1,select('#',...) do
+    s= s .. self:GetFollowerName(select(i,...))
+  end
 end
 
 local fullPermutations={}
