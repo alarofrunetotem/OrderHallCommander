@@ -15,9 +15,9 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:RelNotes(1,5,6,[[
-Fix: Removed chat spam
-Fix: #117 Sometimes "in progress" mission were shown without followers
 Fix: #135 Using champion equipment causes the game to hang
+Fix: #117 Sometimes "in progress" mission were shown without followers
+Fix: Removed chat spam
 ]])
 self:RelNotes(1,5,5,[[
 Feature: Base chance can be now set up to 120% to allow for a bit of overcapping
