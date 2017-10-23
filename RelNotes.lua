@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,6,[[
+Fix: Removed chat spam
+Fix: #117 Sometimes "in progress" mission were shown without followers
+]])
 self:RelNotes(1,5,5,[[
 Feature: Base chance can be now set up to 120% to allow for a bit of overcapping
 Feature: New Elite Overcap switch to force elites mission to always stay over 100%, if possibile

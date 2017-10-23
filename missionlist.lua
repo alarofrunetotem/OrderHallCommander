@@ -946,6 +946,7 @@ function module:AddMembers(frame)
 	if InProgress(frame.info,frame) then
 		for i,followerID in ipairs(frame.info.followers) do
 			members.Champions[i]:SetFollower(followerID,false)
+			members.Champions[i]:Show()
 		end
 		for i=#frame.info.followers+1,3 do
 			members.Champions[i].followerID=nil
