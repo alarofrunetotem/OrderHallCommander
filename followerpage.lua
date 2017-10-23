@@ -149,7 +149,7 @@ do
 	local rendered=false
 	function module:RenderEquipmentButton(id)
 		if not(id) then
-			left=0
+			left=-15
 			i=0
 			previous=nil
 		else
@@ -219,7 +219,6 @@ function addon:RefreshEquipments()
   end
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
-  addon:RunRefreshers()
   if not OHFFollowerTab:IsVisible() then return end
   if model then
     UpgradeFrame:SetFrameStrata(model:GetFrameStrata())
@@ -322,11 +321,6 @@ function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
       self:RenderEquipmentButton(id)
     end
   end
-  local data=addon:GetData("Krokuls")
-  for i=1,#data do
-    local id=data[i]
-    self:RenderUpgradeButton(id)
-  end
 end
 function module:UpgradeTooltip(this)
   local t=this.Icon:GetTexture()
@@ -379,7 +373,7 @@ do local pool={}
       if previous then
         b:SetPoint("TOPLEFT",previous,"BOTTOMLEFT",0,0)
       else
-        b:SetPoint("TOPLEFT",left,0)
+        b:SetPoint("TOPLEFT",left,-5)
       end
       --b.IconBorder:SetVertexColor(1,0,0)
       self:DrawButton(b,id,qt)
@@ -391,8 +385,14 @@ do local pool={}
       b:SetAttribute("item",select(2,GetItemInfo(id)))
       GarrisonMissionFrame_SetItemRewardDetails(b)
       b.Quantity:SetFormattedText("%d",qt)
-      b.Quantity:SetTextColor(b.IconBorder:GetVertexColor())
       b.Quantity:Show()
+      if qt>0 then
+        b.Icon:SetDesaturated(false)
+        b.Quantity:SetTextColor(b.IconBorder:GetVertexColor())
+      else
+        b.Icon:SetDesaturated(true)
+        b.Quantity:SetTextColor(C.Grey())
+      end
       b:Show()
   end
 
