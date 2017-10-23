@@ -564,46 +564,50 @@ local function paintCat(frame)
     frame.Icon:SetDesaturated(false)
   end       
 end
-function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
-  categoryInfo = G.GetClassSpecCategoryInfo(followerType)
-	if not OHF:IsVisible() then return end
-	local main=self:GetTroopsFrame()
-	local prevCategory, firstCategory;
-	local nCategories=_G.XX or #categoryInfo
-	if nCategories < 1 then return end
-	local previous
-	local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
-	local margin=45
-	local W=main:GetWidth() - (margin + 15)
+function module:DrawKrokuls(main)
   local data=addon:GetData("Krokuls")
-  
   for i=1,#data do
     local id=data[i]
     local b=main.Buttons[i]
-    if not b then b=CreateFrame("Button",nil,OHFMissions,"OHCUpgradeButton,SecureActionbuttonTemplate")
+    if not b then b=CreateFrame("Button",nil,OHF,"OHCUpgradeButton,SecureActionbuttonTemplate")
       main.Buttons[i]=b
       b:EnableMouse(true)
       b:RegisterForClicks("LeftButtonDown")
+      b:SetScript("PostClick",function()
+        module:DrawKrokuls(main)
+        module:DrawTroopStatus(main)
+      end)
       b:SetAttribute("type","item")
       b.Quantity:SetFontObject("GameFontNormalShadowHuge2")
-      b:SetScale(0.7)
+      b:SetScale(0.65)
     end
     addon:DrawButton(b,id)
     if i==1 then
-      b:SetPoint("TOPLEFT",-45,-20)
+      b:SetPoint("TOPLEFT",0,-120)
     else
-      b:SetPoint("TOP",main.Buttons[i-1],"BOTTOM",0,-5)
+      b:SetPoint("TOP",main.Buttons[i-1],"BOTTOM",0,-10)
     end
     b:Show()
-  end	
-	local w=W/nCategories
-	for i=1,nCategories do
-		local category=categoryInfo[i]
-		local index=category.classSpec
+  end 
+end
+function module:DrawTroopStatus(main)
+  categoryInfo = G.GetClassSpecCategoryInfo(followerType)
+  if not OHF:IsVisible() then return end
+  local prevCategory, firstCategory;
+  local nCategories=_G.XX or #categoryInfo
+  if nCategories < 1 then return end
+  local previous
+  local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
+  local margin=45
+  local W=main:GetWidth() - (margin + 15)
+  local w=W/nCategories
+  for i=1,nCategories do
+    local category=categoryInfo[i]
+    local index=category.classSpec
     local frame = catPool[i];
-		if not frame then
-			frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
-			catPool[i]=frame
+    if not frame then
+      frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
+      catPool[i]=frame
       frame:EnableMouse(true)
       frame:RegisterForDrag("LeftButton")
       frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
@@ -619,27 +623,32 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
         end
         GameTooltip:Show()
       end)
-		end
-		if not shipmentInfo[category.icon] then
-			shipmentInfo[category.icon]={0,0}
-		end
-		frame.key="BAN"..index
-		frame.Icon:SetTexture(category.icon);
-		frame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
-		frame.TroopPortraitCover:Hide()
-		frame.Icon:SetHeight(15)
-		frame.Icon:SetWidth(30)
-		frame.name = category.name;
-		frame.description = category.description;
-		frame.Count:SetFormattedText(mask,category.count, category.limit,unpack(shipmentInfo[category.icon]));
-		frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
-		frame:ClearAllPoints();
+    end
+    if not shipmentInfo[category.icon] then
+      shipmentInfo[category.icon]={0,0}
+    end
+    frame.key="BAN"..index
+    frame.Icon:SetTexture(category.icon);
+    frame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
+    frame.TroopPortraitCover:Hide()
+    frame.Icon:SetHeight(15)
+    frame.Icon:SetWidth(30)
+    frame.name = category.name;
+    frame.description = category.description;
+    frame.Count:SetFormattedText(mask,category.count, category.limit,unpack(shipmentInfo[category.icon]));
+    frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
+    frame:ClearAllPoints();
     local padding  = math.max(w,frame.Count:GetWidth())
-		frame:SetWidth(padding)
-		paintCat(frame)
-	  frame:SetPoint("TOPLEFT",margin +(w) *(i-1), 0);
-		frame:Show();
-	end
+    frame:SetWidth(padding)
+    paintCat(frame)
+    frame:SetPoint("TOPLEFT",margin +(w) *(i-1), 0);
+    frame:Show();
+  end
+end
+function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
+  local main=self:GetTroopsFrame()
+  self:DrawTroopStatus(main)
+  self:DrawKrokuls(main)
 end
 function addon:ParseFollowers()
 	return module:ParseFollowers()
