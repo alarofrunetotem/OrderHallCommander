@@ -146,6 +146,34 @@ local data={
    152096,
    152097,
 	},
+	DEATHKNIGHT={
+	 140767
+	},
+	DEMONHUNTER={
+	 143849
+	},
+	DRUID={
+	},
+	HUNTER={
+	},
+	MAGE={
+	},
+	MONK={
+	},
+	PALADIN={
+	},
+	PRIEST={
+	},
+	ROGUE={
+	},
+	SHAMAN={
+	 143850
+	},
+	WARLOCK={
+	},
+	WARRIOR={
+	},
+	Class={},
 	Equipments={}
 }
 local icon2item={}
@@ -157,6 +185,10 @@ end
 local tickle
 function module:OnInitialized()
   data.Equipments=addon.allEquipments
+  local cs=data[select(2,UnitClass("player"))]
+  if cs then
+    data.Class=cs
+  end
 	--@debug@
 	addon:Print("Starting coroutine")
 	--@end-debug@

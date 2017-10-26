@@ -564,8 +564,17 @@ local function paintCat(frame)
     frame.Icon:SetDesaturated(false)
   end       
 end
+local data={}
 function module:DrawKrokuls(main)
-  local data=addon:GetData("Krokuls")
+  if #data==0 then
+    for _,n in ipairs(addon:GetData("Krokuls")) do
+      tinsert(data,n)
+    end
+    for _,n in ipairs(addon:GetData("Class")) do
+      tinsert(data,n)
+    end
+  end    
+      
   for i=1,#data do
     local id=data[i]
     local b=main.Buttons[i]
