@@ -694,7 +694,6 @@ function MixinTooltip:OnDragStart()
   if self.useParent then self:GetParent():StartMoving() else self:StartMoving() end
 end
 function MixinTooltip:OnDragStop()
-  _G.print("Drag stop")
   if self.useParent then self:GetParent():StopMovingOrSizing() else self:StopMovingOrSizing() end
 end
 

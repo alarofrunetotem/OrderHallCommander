@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,8,[[
+Fix: 1x OrderHallCommander\missionlist.lua:469: attempt to call method 'RefreshValue' (a nil value)
+]])
 self:RelNotes(1,5,7,[[
 Fix: #136 (and others) Lua error
 Fix: #137 Removed chat spam

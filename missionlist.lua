@@ -463,10 +463,8 @@ function addon:PauseApply(pause)
   suspendApply=pause
 end
 function addon:Apply(flag,value)
-  _G.print("Called with",flag,value)
   if suspendApply then return end
   local w=module:GetMenuItem(flag)
-  if w then w:RefreshValue(0) suspendApply=true end
   addon:PushRefresher("CleanMissionsCache")
 	if not timer then timer=addon:NewDelayableTimer(function() addon:ReloadMissions() end) end
 	self:GetTutorialsModule():Refresh()
