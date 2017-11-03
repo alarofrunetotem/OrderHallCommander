@@ -486,6 +486,13 @@ local PushRefresher,RunRefreshers,ListRefreshers do
     Refreshers[refresher]=obj or true 
   end  
   function RunRefreshers()
+  if next(Refreshers) and OHF:IsVisible() then
+--@debug@      
+    addon:Print(debugstack(3,2))
+--@end-debug@
+  else
+    return
+  end
     for method,obj in pairs(Refreshers) do
       if type(obj)=="boolean" then
         obj=addon
@@ -493,10 +500,12 @@ local PushRefresher,RunRefreshers,ListRefreshers do
 --@debug@      
       addon:Print("Running refresher",method)
 --@end-debug@
-      obj[method](obj)
+    if type(obj[method])=="function" then
+    obj[method](obj)
+    end
     end
     wipe(Refreshers)
-  end
+  end  
   function ListRefreshers()
     wipe(temp)
     for k,_ in pairs(Refreshers) do

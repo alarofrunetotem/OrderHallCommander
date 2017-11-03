@@ -209,14 +209,15 @@ local eqCount={}
 function addon:RefreshEquipments()
   wipe(eqCount)
   for followerID,followerInfo in pairs(addon:GetFollowerData()) do
-    GarrisonFollowerTabMixin:SetupAbilities(followerInfo)
-    for i=1,#followerInfo.equipment do
-      local eq=followerInfo.equipment[i]
-      if eq.icon then
-        if not eqCount[eq.icon] then eqCount[eq.icon]={} end
-        tinsert(eqCount[eq.icon],followerInfo.followerID)
+    if pcall(GarrisonFollowerTabMixin.SetupAbilities,GarrisonFollowerTabMixin,followerInfo) then
+      for i=1,#followerInfo.equipment do
+        local eq=followerInfo.equipment[i]
+        if eq.icon then
+          if not eqCount[eq.icon] then eqCount[eq.icon]={} end
+          tinsert(eqCount[eq.icon],followerInfo.followerID)
+        end
       end
-    end
+    end   
   end
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
