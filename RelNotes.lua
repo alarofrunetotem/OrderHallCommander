@@ -14,6 +14,12 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,7,[[
+Fix: #136 (and others) Lua error
+Fix: #137 Removed chat spam
+Feature: Class specific troop generating items added. Let me know if your class has issue 
+Feature: Total xp are now shown as "xp x followers", so you can better compare missions (feature request #97)
+]])
 self:RelNotes(1,5,6,[[
 Fix: #135 Using champion equipment causes the game to hang
 Fix: #117 Sometimes "in progress" mission were shown without followers
