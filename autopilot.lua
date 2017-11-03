@@ -209,7 +209,7 @@ function module:FireMission(missionID,frame,truerun)
     local key=addon:GetMissionKey(missionID)
     local party=addon:GetMissionParties(missionID):GetSelectedParty(key)
     local members = addon:GetMembersFrame(frame)
-    if party.perc >= baseChance then
+    if party.perc >= baseChance or addon:GetBoolean("QUICKSTART") then
       local info=""
       for i=1,#members.Champions do
         local followerID=members.Champions[i]:GetFollower()
