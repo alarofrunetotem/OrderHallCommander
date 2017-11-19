@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,9,[[
+Feature: added more items to side bar
+Feature: removed from followerpage and moved to sidebar some items which doesnt need to be cast on a follower
+]])
 self:RelNotes(1,5,8,[[
 Fix: 1x OrderHallCommander\missionlist.lua:469: attempt to call method 'RefreshValue' (a nil value)
 ]])
