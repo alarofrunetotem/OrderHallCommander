@@ -386,6 +386,10 @@ do local pool={}
       b.itemID=id
       b:SetAttribute("item",select(2,GetItemInfo(id)))
       GarrisonMissionFrame_SetItemRewardDetails(b)
+      local t=b.Icon:GetTexture()
+      if not t then
+        b.Icon:SetTexture("Interface/ICONS/INV_Misc_QuestionMark")
+      end
       b.Quantity:SetFormattedText("%d",qt)
       b.Quantity:Show()
       if qt>0 then

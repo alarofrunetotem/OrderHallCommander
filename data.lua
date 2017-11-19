@@ -207,7 +207,11 @@ function module:OnInitialized()
   if cs then
     data.Class=cs
   end
+  for _,i in ipairs(data.ANY) do
+    tinsert(data.Class,i)
+  end
 	--@debug@
+	DevTools_Dump(data.Class)
 	addon:Print("Starting coroutine")
 	--@end-debug@
 	addon.coroutineExecute(module,0.1,"TickleServer")
