@@ -178,7 +178,8 @@ local data={
 	 139376, -- Healing Well
 	},
 	ROGUE={
-	 139428, --  A Master Plan 
+	 139428, -- A Master Plan 
+	 140931, -- Bandit wanted poster
 	},
 	SHAMAN={
 	 143850, -- Summon Grimtotem Warrior
