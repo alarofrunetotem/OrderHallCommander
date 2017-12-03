@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,10,[[
+Feature: Added itemid 140931 (Bandit wanted poster) to quick buttons
+Feature: For reputation rewards, your current reputation with the related faction is shown
+]])
 self:RelNotes(1,5,9,[[
 Feature: added more items to side bar
 Feature: removed from followerpage and moved to sidebar some items which doesnt need to be cast on a follower

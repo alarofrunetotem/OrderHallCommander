@@ -95,6 +95,7 @@ end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+local _G=_G
 local XP_GAIN= XP_GAIN .. ' x %d'
 local pairs,wipe,tinsert,unpack=pairs,wipe,tinsert,unpack
 local UNCAPPED_PERC=PERCENTAGE_STRING
@@ -304,6 +305,14 @@ function module:RewardWarning(this)
 		if addon.allArtifactPower[this.itemID] then
 			tip:AddLine(artinfo,C.Artifact())
 		end
+		local factionID=addon.allReputationGain[this.itemID]
+		if factionID then
+		  local faction,_,level=GetFactionInfoByID(factionID)
+		  if level then
+		    level=_G['FACTION_STANDING_LABEL' .. level]
+		    tip:AddLine(FACTION_STANDING_CHANGED:format(C(level,"GREEN"),C(faction,"GREEN")),C.Orange())
+		  end
+    end		  
 		tip:AddLine(safeformat(L["%s for a wowhead link popup"],SHIFT_KEY_TEXT .. KEY_BUTTON1))
 		tip:Show()
 	end

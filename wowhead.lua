@@ -1,8 +1,8 @@
 local me,ns = ...
 
-ns.wowhead_update=1506605656
--- DataMined from WowHead other-consumables?filter=224;1;0 on 28/09/2017
--- Contains 538 items
+ns.wowhead_update=1512310641
+-- DataMined from WowHead other-consumables?filter=224;1;0 on 03/12/2017
+-- Contains 539 items
 ns.allArtifactPower={
   [127999]=0, -- Shard of Potentiation
   [128000]=0, -- Crystal of Ensoulment
@@ -122,7 +122,7 @@ ns.allArtifactPower={
   [140391]=150, -- Argussian Diamond
   [140392]=150, -- Safety Valve
   [140393]=150, -- Repentia's Whip
-  [140396]='', -- Friendly Brawler's Wager
+  [140396]=40, -- Friendly Brawler's Wager
   [140409]=900, -- Tome of Dimensional Awareness
   [140410]=1000, -- Mark of the Rogues
   [140421]=1200, -- Ancient Qiraji Idol
@@ -323,7 +323,7 @@ ns.allArtifactPower={
   [142533]=600, -- Titan's Boon
   [142534]=600, -- Plume of the Fallen Val'kyr
   [142535]=200, -- Soulcatcher of the Encroaching Mist
-  [142555]='', -- Aoire's Crook
+  [142555]=300, -- Aoire's Crook
   [143333]=500, -- Badge of Vengeance
   [143486]=250, -- Arcshaper's Barrier
   [143487]=800, -- Enchanted Dusk Lily
@@ -488,7 +488,7 @@ ns.allArtifactPower={
   [151920]=80, -- Gladiator's Perseverance
   [151921]=90, -- Gladiator's Perseverance
   [151922]=100, -- Gladiator's Perseverance
-  [152430]=1200, -- Krokul Enclave Chronicle
+  [152430]=1200, -- Krokul Hovel Chronicle
   [152431]=1200, -- Shadowguard Harvester
   [152432]=1200, -- Stasis Core Crystal
   [152433]=1200, -- Smoldering Infernal Stone
@@ -504,14 +504,14 @@ ns.allArtifactPower={
   [152708]=200, -- [PH] Lightly Roasted Artifact Power
   [152709]=550, -- Partially Charged Conduit
   [152710]=750, -- Ruined Conservatory Emblem
-  [152711]=600, -- Light-Smoted Skullplate
+  [152711]=600, -- Light-Smote Skullplate
   [152712]=1000, -- Sanctified Prayer Effigy
   [152713]=1250, -- Discarded Remnant of the Void
   [152937]=400, -- Dendrite Flux
   [152938]=400, -- Emblazoned Shadowguard Insignia
   [152939]=600, -- Mark of the Triumvirate Warriors
   [152962]=875, -- Voidcore Control Rod
-  [152984]=10000, -- Blessing of the Pantheon
+  [152984]=10000, -- Boon of the Pantheon
   [153007]=550, -- Rite-Blessed Sheath
   [153008]=500, -- Timeworn Amethyst Figurine
   [153009]=600, -- Brazier of the Faithful
@@ -524,7 +524,7 @@ ns.allArtifactPower={
   [153161]=75, -- Incomprehensible Scribbling
   [153162]=90, -- Unattuned Portal Stones
   [153163]=60, -- Gruesome Wind Chime
-  [153164]=75, -- Otherworldy Trophy
+  [153164]=75, -- Otherworldly Trophy
   [153165]=345, -- Krokul Remembrance-Crystal
   [153198]=635, -- Rimy Hailstone
   [153199]=565, -- Chillward Brazier
@@ -542,8 +542,9 @@ ns.allArtifactPower={
   [153259]=850, -- Legion General's Medallion of Command
   [153266]=850, -- Undulating Orb of Fel Inferno
   [153278]=850, -- Vile Temptresses' Aphrodisiac
+  [155657]=350, -- Alor'idal Crystal Shard
 }
--- DataMined from WowHead other-consumables?filter=107;0;Equip%20a%20champion on 28/09/2017
+-- DataMined from WowHead other-consumables?filter=107;0;Equip%20a%20champion on 03/12/2017
 -- Contains 126 items
 ns.allEquipments={
   139792, -- Fruitful Bauble
@@ -672,4 +673,32 @@ ns.allEquipments={
   152934, -- Shadow-Soaked Stalker Heart
   152935, -- Wakener's Bauble
   152936, -- Azurelight Sapphire
+}
+-- DataMined from WowHead other-consumables?filter=107:128;0:14;reputation:00 on 03/12/2017
+-- Contains 26 items
+ns.allReputationGain={
+  [139020]=1948, -- Valarjar Insignia
+  [139021]=1883, -- Dreamweaver Insignia
+  [139023]=1900, -- Court of Farondis Insignia
+  [139024]=1828, -- Highmountain Tribe Insignia
+  [139025]=1894, -- Wardens Insignia
+  [139026]=1859, -- Nightfallen Insignia
+  [146935]=1948, -- Valarjar Insignia
+  [146936]=1883, -- Dreamweaver Insignia
+  [146937]=1900, -- Court of Farondis Insignia
+  [146938]=1828, -- Highmountain Tribe Insignia
+  [146939]=1894, -- Wardens Insignia
+  [146940]=1859, -- Nightfallen Insignia
+  [146941]=1948, -- Valarjar Insignia
+  [146942]=1883, -- Dreamweaver Insignia
+  [146943]=1900, -- Court of Farondis Insignia
+  [146944]=1828, -- Highmountain Tribe Insignia
+  [146945]=1894, -- Wardens Insignia
+  [146946]=1859, -- Nightfallen Insignia
+  [146949]=2045, -- Legionfall Insignia
+  [146950]=2045, -- Legionfall Insignia
+  [152957]=2165, -- Army of the Light Insignia
+  [152958]=2165, -- Army of the Light Insignia
+  [152959]=2170, -- Argussian Reach Insignia
+  [152960]=2170, -- Argussian Reach Insignia
 }
