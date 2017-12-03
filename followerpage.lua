@@ -95,6 +95,12 @@ end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+local GetItemCount=GetItemCount
+local GetItemInfo=GetItemInfo
+local GarrisonMissionFrame_SetItemRewardDetails=GarrisonMissionFrame_SetItemRewardDetails
+local GetItemInfoInstant=GetItemInfoInstant
+local select=select
+
 local function GetItemName(id) return (GetItemInfo(id)) end
 local UpgradeFrame
 local UpgradeButtons={}
@@ -387,6 +393,10 @@ do local pool={}
       b:SetAttribute("item",select(2,GetItemInfo(id)))
       GarrisonMissionFrame_SetItemRewardDetails(b)
       local t=b.Icon:GetTexture()
+      if not t and GetItemInfoInstant then
+        b.Icon:SetTexture(select(5,GetItemInfoInstant(id)))
+        t=b.Icon:GetTexture()
+      end
       if not t then
         b.Icon:SetTexture("Interface/ICONS/INV_Misc_QuestionMark")
       end

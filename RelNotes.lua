@@ -15,6 +15,7 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:RelNotes(1,5,10,[[
+Fix: LeftSide Icon are now updates as soon as mission table appears
 Feature: Added itemid 140931 (Bandit wanted poster) to quick buttons
 Feature: For reputation rewards, your current reputation with the related faction is shown
 ]])
