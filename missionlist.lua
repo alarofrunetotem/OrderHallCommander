@@ -459,8 +459,7 @@ function module:SortMissions()
       local rc2,result2 =pcall(f2,mission)
       
 			sortKeys[missionID]=format("%s|%s",rc and result or "0",rc2 and result2 or "0")
-			
-			DevTools_Dump(sortKeys)
+		
 --@debug@
       if not rc then addon:Print(C(result,"Orange")) end
 		end
