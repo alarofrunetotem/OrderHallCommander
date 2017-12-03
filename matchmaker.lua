@@ -166,9 +166,14 @@ local busyCache={}
 function addon:BusyFor(candidate)
 	if not candidate then wipe(busyCache) return end
 	local busyUntil=0
+	local now=GetTime()
+	local never=now+7*24*3600
 	for _,followerID in candidate:IterateFollowers() do
+	  if G.GetFollowerStatus(followerID)== GARRISON_FOLLOWER_INACTIVE then
+	   return never
+	  end
 		if not busyCache[followerID] then
-			busyCache[followerID]=G.GetFollowerMissionTimeLeftSeconds(followerID) or 0
+			busyCache[followerID]=now + (G.GetFollowerMissionTimeLeftSeconds(followerID) or 0)
 		end
 		if busyCache[followerID]>busyUntil then
 			busyUntil=busyCache[followerID]
