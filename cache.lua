@@ -69,13 +69,15 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local GARRISON_FOLLOWER_IN_PARTY=GARRISON_FOLLOWER_IN_PARTY
+local GARRISON_FOLLOWER_AVAILABLE=AVAILABLE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local CTRL_SHIFT_KEY_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
 local format,pcall=format,pcall
 local function safeformat(mask,...)
   local rc,result=pcall(format,mask,...)
@@ -539,12 +541,12 @@ function module:GetTroopsFrame()
 		frame:ClearAllPoints()
 		frame:SetPoint("BOTTOMLEFT",OrderHallMissionFrame,"TOPLEFT",0,-2)
 		frame:SetPoint("BOTTOMRIGHT",OrderHallMissionFrame,"TOPRIGHT",2,-2)
-		frame:SetFrameLevel(OrderHallMissionFrame:GetFrameLevel()-1)
-		frame:SetMovable(true)
+    frame:EnableMouse(true)
 		frame:RegisterForDrag("LeftButton")
 		frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
 		frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
 		frame:Show()
+		frame.Buttons={}
 		TroopsHeader=frame
 	end
 	return TroopsHeader
@@ -563,24 +565,59 @@ local function paintCat(frame)
     frame.Icon:SetDesaturated(false)
   end       
 end
-function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
+local data={}
+function module:DrawKrokuls(main)
+  if #data==0 then
+    for _,n in ipairs(addon:GetData("Krokuls")) do
+      tinsert(data,n)
+    end
+    for _,n in ipairs(addon:GetData("Class")) do
+      tinsert(data,n)
+    end
+  end    
+      
+  for i=1,#data do
+    local id=data[i]
+    local b=main.Buttons[i]
+    if not b then b=CreateFrame("Button",nil,OHF,"OHCUpgradeButton,SecureActionbuttonTemplate")
+      main.Buttons[i]=b
+      b:EnableMouse(true)
+      b:RegisterForClicks("LeftButtonDown")
+      b:SetScript("PostClick",function()
+        module:DrawKrokuls(main)
+        module:DrawTroopStatus(main)
+      end)
+      b:SetAttribute("type","item")
+      b.Quantity:SetFontObject("GameFontNormalShadowHuge2")
+      b:SetScale(0.65)
+    end
+    addon:DrawButton(b,id)
+    if i==1 then
+      b:SetPoint("TOPLEFT",0,-120)
+    else
+      b:SetPoint("TOP",main.Buttons[i-1],"BOTTOM",0,-10)
+    end
+    b:Show()
+  end 
+end
+function module:DrawTroopStatus(main)
   categoryInfo = G.GetClassSpecCategoryInfo(followerType)
-	if not OHF:IsVisible() then return end
-	local main=self:GetTroopsFrame()
-	local prevCategory, firstCategory;
-	local nCategories=_G.XX or #categoryInfo
-	if nCategories < 1 then return end
-	local previous
-	local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
-	local W=main:GetWidth() - 60
-	local w=W/nCategories
-	for i=1,nCategories do
-		local category=categoryInfo[i]
-		local index=category.classSpec
+  if not OHF:IsVisible() then return end
+  local prevCategory, firstCategory;
+  local nCategories=_G.XX or #categoryInfo
+  if nCategories < 1 then return end
+  local previous
+  local mask=nCategories <5 and CATEGORY_INFO_FORMAT or nCategories <7 and CATEGORY_INFO_FORMAT_SHORT or CATEGORY_INFO_FORMAT_VERY_SHORT
+  local margin=45
+  local W=main:GetWidth() - (margin + 15)
+  local w=W/nCategories
+  for i=1,nCategories do
+    local category=categoryInfo[i]
+    local index=category.classSpec
     local frame = catPool[i];
-		if not frame then
-			frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
-			catPool[i]=frame
+    if not frame then
+      frame=CreateFrame("Button","FollowerIcon",main,"OHCTroop")
+      catPool[i]=frame
       frame:EnableMouse(true)
       frame:RegisterForDrag("LeftButton")
       frame:SetScript("OnDragStart",function(frame) if addon:GetBoolean('MOVEPANEL') then OHF:StartMoving() end end)
@@ -596,27 +633,32 @@ function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
         end
         GameTooltip:Show()
       end)
-		end
-		if not shipmentInfo[category.icon] then
-			shipmentInfo[category.icon]={0,0}
-		end
-		frame.key="BAN"..index
-		frame.Icon:SetTexture(category.icon);
-		frame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
-		frame.TroopPortraitCover:Hide()
-		frame.Icon:SetHeight(15)
-		frame.Icon:SetWidth(30)
-		frame.name = category.name;
-		frame.description = category.description;
-		frame.Count:SetFormattedText(mask,category.count, category.limit,unpack(shipmentInfo[category.icon]));
-		frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
-		frame:ClearAllPoints();
+    end
+    if not shipmentInfo[category.icon] then
+      shipmentInfo[category.icon]={0,0}
+    end
+    frame.key="BAN"..index
+    frame.Icon:SetTexture(category.icon);
+    frame.Icon:SetTexCoord(0, 1, 0.25, 0.75)
+    frame.TroopPortraitCover:Hide()
+    frame.Icon:SetHeight(15)
+    frame.Icon:SetWidth(30)
+    frame.name = category.name;
+    frame.description = category.description;
+    frame.Count:SetFormattedText(mask,category.count, category.limit,unpack(shipmentInfo[category.icon]));
+    frame.Count:SetWidth(frame.Count:GetStringWidth()+30)
+    frame:ClearAllPoints();
     local padding  = math.max(w,frame.Count:GetWidth())
-		frame:SetWidth(padding)
-		paintCat(frame)
-	  frame:SetPoint("TOPLEFT",45 +(w) *(i-1), 0);
-		frame:Show();
-	end
+    frame:SetWidth(padding)
+    paintCat(frame)
+    frame:SetPoint("TOPLEFT",margin +(w) *(i-1), 0);
+    frame:Show();
+  end
+end
+function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
+  local main=self:GetTroopsFrame()
+  self:DrawTroopStatus(main)
+  self:DrawKrokuls(main)
 end
 function addon:ParseFollowers()
 	return module:ParseFollowers()
@@ -719,6 +761,12 @@ function addon:GetFollowerName(id)
 	local rc,error=pcall(G.GetFollowerName,id)
 	return strconcat(tostringall(id,'(',error,')'))
 end
+function addon:GetFollowerNames(...)
+  local s=""
+  for i=1,select('#',...) do
+    s= s .. self:GetFollowerName(select(i,...))
+  end
+end
 
 local fullPermutations={}
 local classTroops={}
@@ -779,7 +827,7 @@ function addon:GetTroop(troopkey,slot,missionID,durability,ignoreBusy)
 				if durability < 0 then
 					if d < math.abs(durability) then break end
 				else  
-					if  d >= durability then break end
+					if  d > durability then break end
 				end
 			end
 			-- Didnt break out so this is a good one

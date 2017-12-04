@@ -69,13 +69,15 @@ local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
+local GARRISON_FOLLOWER_IN_PARTY=GARRISON_FOLLOWER_IN_PARTY
+local GARRISON_FOLLOWER_AVAILABLE=AVAILABLE
 local ViragDevTool_AddData=_G.ViragDevTool_AddData
 if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-local CTRL_SHIFT_KET_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
+local CTRL_SHIFT_KEY_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
 local format,pcall=format,pcall
 local function safeformat(mask,...)
   local rc,result=pcall(format,mask,...)
@@ -93,6 +95,7 @@ end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+local tutorialVersion=1
 local OHFButtons=OHFMissions.listScroll.buttons
 local HelpPlate_TooltipHide=HelpPlate_TooltipHide
 local HelpPlateTooltip=HelpPlateTooltip
@@ -206,21 +209,21 @@ tutorials={
   {
     text="When you have locked some followers to missions, you can start the mission without going to the mission page.\nShift-Clicking this button will scan missions from top to bottom (so, sort order IS important) and start the first one with at least one locked follower",
     parent=function() return module:GetMenuItem("BUTTON1") end,    
-    anchor="TOP",
+    anchor="BOTTOM",
     level=-1,
     onmissing=missingMessage,
   },
   {
     text="You can quickly remove all locks and bans clicking here",
     parent=function() return module:GetMenuItem("BUTTON2") end,    
-    anchor="TOP",
+    anchor="BOTTOM",
     level=-1,
     onmissing=missingMessage,
   },
   {
     text="If you cant see missions filled, maybe you have a too restrictive set of switches checked on.\nClicking here reset OHC to a very permissive setup.\nTry this before filing a ticket, please :)",
     parent=function() return module:GetMenuItem("BUTTON3") end,    
-    anchor="TOP",
+    anchor="BOTTOM",
     level=-1,
     onmissing=missingMessage,
   },
@@ -259,12 +262,12 @@ tutorials={
     anchor="TOP",
   },
   {
-    back=2,
+    back=1,
     anchor="CENTER",
     parent=OHF,
     text=format(L["Thank you for reading this, enjoy %s"],me),
-    action=function() addon.db.global.tutorialStep=#tutorials +1 end
-  }
+    action=function() addon.db.global.tutorialStep=#tutorials end
+  }  
   
   
 }
@@ -400,15 +403,27 @@ function module:Home()
   currentTutorialIndex=1
   self:Show()
 end  
-function module:HasReadTutorial()
-  return addon.db.global.tutorialStep and addon.db.global.tutorialStep >= #tutorials
+function addon:NeedsTutorial()
+  if not addon.db.global.tutorialStep then addon.db.global.tutorialStep =1 end
+  if addon.db.global.tutorialStep < #tutorials then
+    return format(L["There are %d tutorial step you didnt read"],#tutorials - addon.db.global.tutorialStep) .. "\n"
+  end
 end
-function module:Show()
+function module:Show(opening)
+
   HelpPlateTooltip.HookedByOHC=nil
   if not currentTutorialIndex then currentTutorialIndex=addon.db.global.tutorialStep or 1 end
   local tutorial=tutorials[currentTutorialIndex]
   addon.db.global.tutorialStep=currentTutorialIndex
+--@debug@
+  _G.print("Tutorial step ",addon.db.global.tutorialStep,' of ', #tutorials)
+--@end-debug@  
   if tutorial then
+    if opening and tutorial.back then
+      currentTutorialIndex=currentTutorialIndex - tutorial.back
+      return self:Show()
+    end
+    
     if plate(self,tutorial) then
       Clicker.Forward:Hide()
     elseif currentTutorialIndex < #tutorials 
@@ -423,7 +438,13 @@ function module:Show()
       Clicker.Home:Hide() 
     end
     return
+  else 
+    self:Terminate()
   end
+end
+function module:Terminate()
+  self:Hide()
+  addon.db.global.tutorialStep=#tutorials +1
 end
 function module:OnInitialized()
   if not Clicker then

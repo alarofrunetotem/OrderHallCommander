@@ -14,11 +14,48 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,10,[[
+Feature: Added a second level sort criteria
+Fix: LeftSide Icon are now updates as soon as mission table appears
+Feature: Added itemid 140931 (Bandit wanted poster) to quick buttons
+Feature: For reputation rewards, your current reputation with the related faction is shown
+]])
+self:RelNotes(1,5,9,[[
+Feature: added more items to side bar
+Feature: removed from followerpage and moved to sidebar some items which doesnt need to be cast on a follower
+]])
+self:RelNotes(1,5,8,[[
+Fix: 1x OrderHallCommander\missionlist.lua:469: attempt to call method 'RefreshValue' (a nil value)
+]])
+self:RelNotes(1,5,7,[[
+Fix: #136 (and others) Lua error
+Fix: #137 Removed chat spam
+Feature: Class specific troop generating items added. Let me know if your class has issue 
+Feature: Total xp are now shown as "xp x followers", so you can better compare missions (feature request #97)
+]])
+self:RelNotes(1,5,6,[[
+Fix: #135 Using champion equipment causes the game to hang
+Fix: #117 Sometimes "in progress" mission were shown without followers
+Fix: Removed chat spam
+]])
+self:RelNotes(1,5,5,[[
+Feature: Base chance can be now set up to 120% to allow for a bit of overcapping
+Feature: New Elite Overcap switch to force elites mission to always stay over 100%, if possibile
+Feature: You can restore shift-click to send a single mission from mission list
+Fix: Reset button was not working 
+Fix: You can again change switches while viewing the mission page
+]])
+self:RelNotes(1,5,'4.1',[[
+Feature: Removed tutorial autoopening
+Fix: when capping a mission if a satisfying mission cannot be found, prefer overcap over lowercap 
+Fix: #133 Counter kill troops switch was not working
+]])
 self:RelNotes(1,5,4,[[
 Feature: #120 Starting mission from list now requires ctrl-shift
 Feature: #124 Moved action buttons to a safer spot
+Fix: #127 Side menu didnt stay closed
 Fix: #121 Window is now draggable even by the troop status bar
-Fix: #124 Sorting should now be more responsive to config changes
+Fix: #123 Sorting should now be more responsive to config changes
 Fix: #119 Bad display when more than 5 types of troops (really!) Tested up to 10 troops
 Fix: Side menu no longer get reopened at each start
 ]])

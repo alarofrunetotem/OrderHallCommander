@@ -8,7 +8,7 @@
 			<OnEnter>
 				if self.tooltip then
 					GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
-					GameTooltip:AddLine(self.tooltip)
+					GameTooltip:AddLine(type(self.tooltip)=="function" and self.tooltip() or self.tooltip)
 					GameTooltip:Show()
 				end
 			</OnEnter>
@@ -137,24 +137,43 @@
 			</Frame>		
 		</Frames>
 	</Frame>
-	<Frame name="OHCFollowerPortrait" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
+	<Frame name="OHCFollowerPortrait" mixin="OrderHallCommanderMixinTooltip" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
 		<Size x="161" y="58"/>
 	</Frame>
-	<Frame name="OHCMiniMissionButton" inherits="GarrisonLandingPageReportMissionTemplate" virtual="true">
+	<Frame name="OHCMiniMissionButton" mixin="OrderHallCommanderMixinTooltip" inherits="GarrisonLandingPageReportMissionTemplate" virtual="true">
 		<Size x="400" y="60"/>
 		<Frames>
 			<Frame parentKey="Followers" inherits="OHCMembers" hidden="false">
 				<Anchors>
-					<Anchor point="RIGHT" x="-30" y="0"/>
+					<Anchor point="RIGHT" x="-10" y="0"/>
 				</Anchors>
 			</Frame>>
 		</Frames>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Perc" justifyV="CENTER" justifyH="RIGHT" inherits="SystemFont_Huge1_Outline" text="100%">
+					<Size x="70" y="60"/>
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+					</Anchors>
+				</FontString>
+			</Layer>		
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				for i=1,3 do
+					self.Followers.Champions[i]:SetScale(0.8)
+				end
+			</OnLoad>
+			<OnLeave function="GameTooltip_Hide"/>
+			<OnEnter method="OnEnter"/>
+		</Scripts>
 	</Frame>	
 	<Button name="OHCFollowerButton" inherits="GarrisonFollowerButtonTemplate" virtual="true">
 		<Size x="260" y="56"/>
 	</Button>
 	<Button name="OHCUpgradeButton" enableMouse="true" virtual="true" inherits="GarrisonMissionListButtonRewardTemplate">
-		<Size x="32" y="32"/>
+		<Size x="50" y="50"/>
 	</Button>
 	<Button name="OHCPin" virtual="true" enableMouse="true" hidden="true">
 		<Size x="64" y="64" />
@@ -179,8 +198,11 @@
 			</OnEnter>
 		</Scripts>
 	</Button>
-	<Frame name="OHCBaseFrame" inherits="TooltipBorderedFrameTemplate" virtual="true">
+	<Frame name="OHCBaseFrame" mixin="OrderHallCommanderMixinTooltip" inherits="TooltipBorderedFrameTemplate" virtual="true">
 		<Size x="200" y="30"/>
+		<KeyValues>
+			<KeyValue name="movable" value="false" type="boolean"/>
+		</KeyValues>		
 		<Frames>
 			<Button parentKey="Close" inherits="UIPanelCloseButton">
 				<Size x="32" y="32"/>
@@ -191,30 +213,41 @@
 				</Anchors>
 				<Scripts>
 					<OnLeave function="GameTooltip_Hide"/>
-					<OnEnter>
-						if self.tooltip then
-							GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
-							GameTooltip:AddLine(self.tooltip)
-							GameTooltip:Show()
-						end
-					</OnEnter>
+					<OnEnter method="OnEnter"/>
 				</Scripts>				
 			</Button>
-		</Frames>		
+		</Frames>	
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Title" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightOutline" text="OrderHallCommander">
+					<Size x="240" y="20"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="16" y="-5"/>
+						<Anchor point="TOPRIGHT" x="-32" y="-5"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="Highlight" hidden="true" file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">				
+					<Size x="240" y="20"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="-5"/>
+						<Anchor point="TOPRIGHT" x="0" y="-5"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>			
+		<Scripts>
+			<OnLeave function="GameTooltip_Hide"/>
+			<OnEnter method="OnEnter"/>
+			<OnDragStart method="OnDragStart"/>
+			<OnDragStop method="OnDragStop"/>
+		</Scripts>				
 	</Frame>
-	<Frame name="OHCNavigator" virtual="true">
+	<Frame name="OHCNavigator" mixin="OrderHallCommanderMixinTooltip" virtual="true">
 		<Size x="200" y="30"/>
 		<Frames>
-			<Button parentKey="Forward">
-				<Size x="32" y="32"/>
-				<Anchors>
-					<Anchor point="BOTTOMRIGHT"/>
-				</Anchors>
-				<NormalTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Up"/>
-				<PushedTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Down"/>
-				<HighlightTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Highlight" alphaMode="ADD"/>
-			</Button>
-			<Button parentKey="Close" inherits="UIPanelCloseButton">
+			<Button parentKey="Close" mixin="OrderHallCommanderMixinTooltip" inherits="UIPanelCloseButton">
 				<Size x="32" y="32"/>
 				<Anchors>
 					<Anchor point="TOPRIGHT" x="5" y="5"/>
@@ -224,16 +257,10 @@
 				</KeyValues>
 				<Scripts>
 					<OnLeave function="GameTooltip_Hide"/>
-					<OnEnter>
-						if self.tooltip then
-							GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
-							GameTooltip:AddLine(self.tooltip)
-							GameTooltip:Show()
-						end
-					</OnEnter>
+					<OnEnter method="OnEnter"/>
 				</Scripts>								
 			</Button>
-			<Button parentKey="Home" inherits="UIPanelCloseButton">
+			<Button parentKey="Home" mixin="OrderHallCommanderMixinTooltip" inherits="UIPanelCloseButton">
 				<Size x="16" y="16"/>
 				<Anchors>
 					<Anchor point="TOPLEFTT" x="0" y="0"/>
@@ -245,15 +272,18 @@
 				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
 				<Scripts>
 					<OnLeave function="GameTooltip_Hide"/>
-					<OnEnter>
-						if self.tooltip then
-							GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
-							GameTooltip:AddLine(self.tooltip)
-							GameTooltip:Show()
-						end
-					</OnEnter>
+					<OnEnter method="OnEnter"/>
 					<OnClick></OnClick>
 				</Scripts>								
+			</Button>
+			<Button parentKey="Forward">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT"/>
+				</Anchors>
+				<NormalTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Up"/>
+				<PushedTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Down"/>
+				<HighlightTexture file="Interface\Glues\Common\Glue-RightArrow-Button-Highlight" alphaMode="ADD"/>
 			</Button>
 			<Button parentKey="Backward">
 				<Size x="32" y="32"/>
@@ -271,17 +301,6 @@
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
 			<KeyValue key="DefaultWidth" value="220" type="number"/>
 		</KeyValues>		
-		<Layers>
-			<Layer level="OVERLAY">
-				<FontString parentKey="Title" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightSmallOutline" text="OrderHallCommander">
-					<Size x="95" y="30"/>
-					<Anchors>
-						<Anchor point="TOPLEFT" x="32" y="-5"/>
-						<Anchor point="TOPRIGHT" x="-32" y="-5"/>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
 		<Frames>
 			<Button parentKey="Tutorial" inherits="OHCWhatsNew">
 				<Size x="15" y="16"/>
@@ -290,9 +309,14 @@
 				</Anchors>
 			</Button>
 		</Frames>
+		<Animations>
+			<AnimationGroup parentKey="Pulse" looping="BOUNCE">
+				<Scale childKey="Tutorial" smoothing="NONE" duration="1" order="1" fromScaleX="1" fromScaleY="1" toScaleX="2" toScaleY="2"/>
+				<Scale childKey="Tutorial" smoothing="NONE" duration="1" order="2" fromScaleX="2" fromScaleY="2" toScaleX="1" toScaleY="1"/>
+			</AnimationGroup>
+		</Animations>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
-			<OnLeave>GameTooltip:Hide()</OnLeave>
 		</Scripts>
 	</Frame>	
 	<CheckButton name="OHCTab" mouseEnable="true" virtual="true" inherits="SpellBookSkillLineTabTemplate">
