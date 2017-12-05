@@ -7,7 +7,7 @@ local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 local m={} --#Widget
 function m:Close()
-	self.frame.CloseButton:Click()
+	self.frame.Close:Click()
 end
 function m:OnAcquire()
 	self.frame:EnableMouse(true)

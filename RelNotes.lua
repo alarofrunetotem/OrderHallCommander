@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,5,11,[[
+Fix: Removes Alpha warning (was due to a curse packager bug)
+Fix: #153 now closing mission panel with ESC also closes all OHC windows
+]])
 self:RelNotes(1,5,10,[[
 Feature: Added a second level sort criteria
 Fix: LeftSide Icon are now updates as soon as mission table appears

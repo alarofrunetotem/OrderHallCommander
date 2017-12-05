@@ -732,7 +732,7 @@ function module:InitialSetup(this)
 	collectgarbage("restart")
   addon:MarkAsNew(OHF,addon:NumericVersion(),safeformat(L["%s, please review the tutorial\n(Click the icon to dismiss this message and start the tutorial)"],me .. ' ' .. addon.version),"ShowTutorial")
 --@alpha@
-	addon.version="1.6.0 Alpha"
+	--addon.version="1.6.0 Alpha"
 --@end-alpha@
 	local _,_,versiontype=addon.version:find("(Beta)")
 	if not versiontype then _,_,versiontype=addon.version:find("(Alpha)") end
