@@ -200,7 +200,15 @@ function module:EventsOn()
 	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","MissionAutoComplete")
 end
 function module:AutoClose()
-	if report then pcall(report.Close,report) report=nil end
+	if report then 
+	 local rc,message=pcall(report.Close,report)
+	 --@debug@
+	 if not rc then
+	   pp("Failed closing report due to",message)
+	 end
+	 --@end-debug@ 
+	 report=nil 
+  end
 	pcall(OHF.CloseMissionComplete,OHF)
 end
 function module:CloseReport()
@@ -227,6 +235,11 @@ function module:MissionComplete(this,button,skiprescheck)
 		end
 		local message=C("WARNING",'red')
 		local wasted={}
+		--@debug@
+		if _G.ONEONE then
+		  missions={missions[1]}
+		end
+		--@end-debug@
 		for i=1,#missions do
 			for _,v in pairs(missions[i].followers) do
 				rewards.followerQLevel[v]=addon:GetFollowerData(v,'qLevel',0)
