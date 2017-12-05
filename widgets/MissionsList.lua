@@ -104,7 +104,7 @@ function m:AddPlayerXP(xpgain)
 end
 function m:AddFollower(followerID,xp,levelup,portrait,fullname)
 	if xp < 0 then
-		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname))
+		return self:AddFollowerIcon(portrait,format(GARRISON_FOLLOWER_DISBANDED,fullname or FOLLOWERLIST_LABEL_TROOPS))
 	end
 	if addon:GetFollowerData(followerID,'isTroop',false) then return end
 	local isMaxLevel=addon:GetFollowerData(followerID,'qLevel',0) >= addon:MAXQLEVEL()
