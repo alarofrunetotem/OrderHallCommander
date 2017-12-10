@@ -15,6 +15,8 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:RelNotes(1,5,11,[[
+Fix: Second sort was not working if not changed at least once in the current session
+Feature: Via Options now you can disable right click for blacklisting (Sponsorized by Katmandu)
 Fix: Removes Alpha warning (was due to a curse packager bug)
 Fix: #153 now closing mission panel with ESC also closes all OHC windows
 ]])
