@@ -173,6 +173,7 @@ local data={
 	},
 	PALADIN={
 	 140760, -- Libram of Truth 
+	 140929, -- Squire's Oath
 	},
 	PRIEST={
 	 139376, -- Healing Well
