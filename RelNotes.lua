@@ -15,7 +15,8 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:RelNotes(1,5,12,[[
-Fix: added Squires'Oath for paladins
+Fix: lua error when both sorts were on "Original method" Thanks to Septh for noting it
+Feature: added Squires'Oath for paladins
 ]])
 self:RelNotes(1,5,11,[[
 Fix: Second sort was not working if not changed at least once in the current session

@@ -156,7 +156,9 @@ local function IsIgnored(mission)
 	return addon:GetBoolean("ELITEMODE") and not addon:GetMissionData(mission.missionID,'elite')
 end
 local sorters={
-    Garrison_SortMissions_Original=nop,
+    Garrison_SortMissions_Original=function(mission)
+      return IsLow(mission)
+    end,
     Garrison_SortMissions_Chance=function(mission)
       return IsLow(mission)  .. format("%010d",MAX + GetPerc(mission,true))
     end,
@@ -472,7 +474,7 @@ function module:SortMissions()
 --@end-debug@			
 	end
 --@debug@
-    DevTools_Dump(sortKeys)
+    --DevTools_Dump(sortKeys)
 --@end-debug@     
 	sort(OHFMissions.availableMissions,sortfuncAvailable)
 --@debug@
