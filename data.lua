@@ -185,6 +185,7 @@ local data={
 	SHAMAN={
 	 143850, -- Summon Grimtotem Warrior
 	 139418, -- Healing Stream Totem
+	 140932, -- Earthen Mark
 	},
 	WARLOCK={
 	 138412, -- Iresoul's Healthstone

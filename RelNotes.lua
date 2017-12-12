@@ -14,7 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,5,12,[[
+self:RelNotes(1,5,14,[[
+Feature: added Earthen Mark for Shamans
+]])
+self:RelNotes(1,5,13,[[
 Fix: lua error when both sorts were on "Original method" Thanks to Septh for noting it
 Feature: added Squires'Oath for paladins
 ]])
