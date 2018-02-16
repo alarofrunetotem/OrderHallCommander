@@ -177,6 +177,7 @@ local data={
 	},
 	PRIEST={
 	 139376, -- Healing Well
+	 140156, -- Blessing of the order
 	},
 	ROGUE={
 	 139428, -- A Master Plan 
