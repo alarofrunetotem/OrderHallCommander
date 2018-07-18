@@ -34,7 +34,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
@@ -64,7 +64,7 @@ addon.safeG=setmetatable({},{
 			function(default,...)
 				return parse(default,pcall(G[key],...))
 			end
-		) 
+		)
 		return table[key]
 	end
 })
@@ -101,7 +101,7 @@ local function safeformat(mask,...)
     end
  end
   rc,result=pcall(format,mask,...)
-  return rc and result or mask 
+  return rc and result or mask
 end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
@@ -117,11 +117,11 @@ _G.GAME_LOCALE="itIT"
 if not LibStub("AceSerializer-3.0",true) then
    ns.die=true
 end
-if ns.die then 
+if ns.die then
   addon:Popup(L["You need to close and restart World of Warcraft in order to update this version of OrderHallCommander.\nSimply reloading UI is not enough"])
   ns.die=true
   return
-end  
+end
 local MISSING=ITEM_MISSING:format(""):gsub(' ','')
 local IGNORED=IGNORED
 local UNUSED=UNUSED
@@ -165,7 +165,7 @@ function addon:SetDbDefaults(default)
 	default.profile.blacklist={}
 	default.global.tutorialStep=1
 end
-do 
+do
 local banned={}
 local byFollowers={}
 local byMissions=setmetatable({},{__index=function(t,k) rawset(t,k,{}) return rawget(t,k) end})
@@ -220,7 +220,7 @@ function addon:Ban(slot,missionID)
 	banned[slot..':'..missionID]=true
 end
 function addon:Unban(slot,missionID)
-	if not slot then 
+	if not slot then
 		wipe(banned)
 	else
 		banned[slot..':'..missionID]=nil
@@ -314,7 +314,7 @@ function Mixin.DumpData(tip,data)
 	else
       tip:AddDoubleLine(tostring(data),type(data))
 	end
-	
+
 end
 function MixinThreats:OnLoad()
 	if not self.threatPool then self.threatPool=CreateFramePool("Frame",UIParent,"OHCThreatsCounters") end
@@ -409,7 +409,7 @@ function MixinFollowerIcon:SetFollower(followerID,checkStatus,blacklisted)
 	return self,status
 end
 function MixinFollowerIcon:ShowLocks()
-	if self.locked then 
+	if self.locked then
 		self.LockIcon:Show()
 	else
 		self.LockIcon:Hide()
@@ -418,7 +418,7 @@ function MixinFollowerIcon:ShowLocks()
 		self.IgnoreIcon:Show()
 	else
 		self.IgnoreIcon:Hide()
-	end	
+	end
 end
 function MixinFollowerIcon:SmartHide()
   if self.followerID then
@@ -457,16 +457,12 @@ function MixinFollowerIcon:ShowTooltip()
 --@end-non-debug@]===]
 	end
 	local link = C_Garrison.GetFollowerLink(self.followerID);
+  local garrisonFollowerID=select(2,strsplit(":", link))
 	if link then
-		local levelXP=G.GetFollowerLevelXP(self.followerID)
-		local xp=G.GetFollowerXP(self.followerID)
-		local _, garrisonFollowerID, quality, level, itemLevel, ability1, ability2, ability3, ability4, trait1, trait2, trait3, trait4, spec1 = strsplit(":", link)
-		GarrisonFollowerTooltip_Show(
-			tonumber(garrisonFollowerID), true, tonumber(quality), tonumber(level), xp,levelXP,  tonumber(itemLevel), 
-			tonumber(spec1), tonumber(ability1), tonumber(ability2), tonumber(ability3), tonumber(ability4), 
-			tonumber(trait1), tonumber(trait2), tonumber(trait3), tonumber(trait4),
-			true,nil,nil,gft
-		)
+	 local data=GarrisonFollowerTooltipTemplate_BuildDefaultDataForID(garrisonFollowerID)
+	  data.levelxp=G.GetFollowerLevelXP(self.followerID)
+		data.xp=G.GetFollowerXP(self.followerID)
+		GarrisonFollowerTooltipTemplate_SetGarrisonFollower(gft,data)
 		gft:ClearAllPoints()
 		gft:SetPoint("BOTTOM", self, "TOP")
 		if gft==GarrisonFollowerTooltip then return end
@@ -479,19 +475,19 @@ function MixinFollowerIcon:ShowTooltip()
 			self.AddLine(gft,KEY_BUTTON1 .. ' : ' .. C(L['Unlock this follower'],"Red"))
 		else
 			self.AddLine(gft,KEY_BUTTON1 .. ' : ' .. C(L['Lock this follower'],"Green"))
-		end		
+		end
 		if self.banned then
 			self.AddLine(gft,KEY_BUTTON2 .. ' : ' .. C(L['Use this slot'],"Green"))
 		elseif self:IsBannable() then
 			self.AddLine(gft,KEY_BUTTON2 .. ' : ' .. C(L['Dont use this slot'],"Red"))
-		end		
-		self.AddLine(gft,SHIFT_KEY_TEXT .. "  " .. KEY_BUTTON1 .. ' : ' .. L['Lock all']) 
-		self.AddLine(gft,SHIFT_KEY_TEXT .. "  " .. KEY_BUTTON2 .. ' : ' .. L['Unlock all']) 
+		end
+		self.AddLine(gft,SHIFT_KEY_TEXT .. "  " .. KEY_BUTTON1 .. ' : ' .. L['Lock all'])
+		self.AddLine(gft,SHIFT_KEY_TEXT .. "  " .. KEY_BUTTON2 .. ' : ' .. L['Unlock all'])
 		self.AddLine(gft,C(L["Locked follower are only used in this mission"],"CYAN"))
 --@debug@
 		self.AddLine(gft,tostring(self.followerID))
 		self.AddLine(gft,tostring(addon:GetFollowerData(self.followerID,'classSpec')))
---@end-debug@		
+--@end-debug@
 		if not gft.Status then
 			gft.Status=gft:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 			gft.Status:SetPoint("BOTTOM",0,5)
@@ -515,7 +511,8 @@ function MixinFollowerIcon:AdjustSize()
 	self:SetHeight(self:GetHeight()+ (5 +self.Lines[1]:GetStringHeight()) * self.current)
 	self:SetWidth(self.maxWidth+5)
 	self.current=0
-	
+	self:Show()
+
 end
 function MixinFollowerIcon:AddLine(message)
 	self.current = (self.current or 0) +1
@@ -532,7 +529,7 @@ function MixinFollowerIcon:AddLine(message)
 	line:SetText(message)
 	line:Show()
 	self.maxWidth=math.max( line:GetStringWidth(),self.maxWidth)
-	
+
 end
 function MixinFollowerIcon:Click(button)
 	local mission=self:GetParent():GetParent().info
@@ -604,7 +601,7 @@ function MixinFollowerIcon:HideTooltip()
 	if gft then gft:Hide() end
 end
 function MixinMembers:Followers()
-	return 
+	return
 		function(t,index)
 			if not index then index =0 end
 			index=index+1
@@ -658,7 +655,7 @@ end
 function MixinTooltip:OnEnter()
     if type(self.tooltip)=="function" then
       return self:tooltip()
-    elseif self.tooltip then     
+    elseif self.tooltip then
       GameTooltip:SetOwner(self,"ANCHOR_TOPLEFT")
       if type(self.tooltip)=="string" then
         GameTooltip:AddLine(self.tooltip)

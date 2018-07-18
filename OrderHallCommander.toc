@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: OrderHallCommander
 ## Notes: Sending all follower to missions with just one click and more
 ## Notes-itIT: Invia tutti i seguaci in missione con un click e molto altro
@@ -16,7 +16,7 @@
 ## X-Revision: @project-abbreviated-hash@
 ## eMail: alar@aspide.it
 ## URL: http://wow.aspide.it
-## OptionalDeps: Ace3,LibInit
+## OptionalDeps: Ace3,LibInit,Blizzard_GarrisonUI,BlizzardGarrisonTemplates,BlizzardOrderHallUI
 ## Dependencies: Blizzard_OrderHallUI
 ## DefaultState: Enabled
 ## LoadOnDemand: 1
