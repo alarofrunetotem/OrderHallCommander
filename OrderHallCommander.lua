@@ -10,10 +10,17 @@ local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",
 -- Auto Generated
 local me,ns=...
 ns.die=true
+local vcheck=tonumber(GetAddOnMetadata(me,'X-Reboot')) or 0
+if vcheck < 1 then
+  message("This OrderHallCommander version needs a full restart.\nPlease exit from the game and also close the login screen")
+  return
+end
+
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
 local requiredVersion=41
 assert(minor>=requiredVersion,me ..': Need at least Libinit version ' .. requiredVersion)
+
 ns.die=false
 local addon=LibInit:NewAddon(ns,me,{noswitch=false,profile=true,enhancedProfile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0") --#Addon
 -- Template
