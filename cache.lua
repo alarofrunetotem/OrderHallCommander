@@ -35,7 +35,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
@@ -90,7 +90,7 @@ local function safeformat(mask,...)
     end
  end
   rc,result=pcall(format,mask,...)
-  return rc and result or mask 
+  return rc and result or mask
 end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
@@ -281,11 +281,11 @@ end
 --
 local function GetFollowers()
 	if not empty(OHFFollowerList.followers) then return  OHFFollowerList.followers end
-	return G.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0) or emptyTable	
+	return G.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0) or emptyTable
 end
 
 function module:GetFollowerData(followerID,field,defaultValue)
-	if empty(followerCache) then 
+	if empty(followerCache) then
 		addon:RefreshFollowers()
 	end
 	if not followerID then return followerCache end
@@ -360,7 +360,7 @@ local classOrder=setmetatable({
 },{
 	__index=function(t,k) if type(k)=="number" then
 		t[k]=k
-		return k % 100000 
+		return k % 100000
 		else
 			return 99999
 		end
@@ -370,7 +370,7 @@ local function GetItemQuality(itemid)
 	local _,_,quality=GetItemInfo(itemid)
 	return quality and quality or 0
 end
-local function Reward2Class(self,mission)	
+local function Reward2Class(self,mission)
 	if type(mission)=="number" then mission=addon:GetMissionData(mission) end
 	if not mission then return "Generic",0,0 end
 	local overReward=mission.overmaxRewards
@@ -385,7 +385,7 @@ local function Reward2Class(self,mission)
 	if type(reward)=="table" then
 		reward=reward[1]
 	else
-		return "Generic",1 
+		return "Generic",1
 	end
 	if not overReward then overReward = emptyTable end
 	if reward.currencyID then
@@ -477,12 +477,12 @@ local mt={
 		if field=="class" or field=='classValue' then
 			mission.class,mission.classValue=strsplit(',',addon:Reward2Class(mission.missionID))
 		elseif field=="classOrder" then
-			return classOrder[mission.class] 
-		elseif field=="elite" then 
-			mission.elite = empty(mission.overmaxRewards) 
-		elseif field=="baseXP" or field =="enemies" or field=="exhausting" then 
+			return classOrder[mission.class]
+		elseif field=="elite" then
+			mission.elite = empty(mission.overmaxRewards)
+		elseif field=="baseXP" or field =="enemies" or field=="exhausting" then
 			local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
-			mission.baseXP=addon:todefault(baseXP,0) 
+			mission.baseXP=addon:todefault(baseXP,0)
 		end
 		return rawget(mission,field)
 	end
@@ -491,10 +491,10 @@ function module:GetMissionData(missionID,field,defaultValue)
 	if not missionID then return OHFMissions.availableMissions end
 	local mission=setmetatable(missionCache[missionID],mt)
 	if not field then return mission end
-	if field then 
+	if field then
 		if empty(mission[field]) then
 			return defaultValue
-		end 
+		end
 		return mission[field]
 	else
 		return defaultValue
@@ -555,7 +555,7 @@ end
 function module:ParseFollowers()
   G.RequestClassSpecCategoryInfo(followerType)
 	G.RequestLandingPageShipmentInfo();
-end	
+end
 local function paintCat(frame)
   if addon:GetBoolean(frame.key) then
     frame.Count:SetTextColor(C.red())
@@ -563,7 +563,7 @@ local function paintCat(frame)
   else
     frame.Count:SetTextColor(C.green())
     frame.Icon:SetDesaturated(false)
-  end       
+  end
 end
 local data={}
 function module:DrawKrokuls(main)
@@ -574,8 +574,8 @@ function module:DrawKrokuls(main)
     for _,n in ipairs(addon:GetData("Class")) do
       tinsert(data,n)
     end
-  end    
-      
+  end
+
   for i=1,#data do
     local id=data[i]
     local b=main.Buttons[i]
@@ -598,7 +598,7 @@ function module:DrawKrokuls(main)
       b:SetPoint("TOP",main.Buttons[i-1],"BOTTOM",0,-10)
     end
     b:Show()
-  end 
+  end
 end
 function module:DrawTroopStatus(main)
   categoryInfo = G.GetClassSpecCategoryInfo(followerType)
@@ -655,7 +655,7 @@ function module:DrawTroopStatus(main)
     frame:Show();
   end
 end
-function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED() 
+function module:GARRISON_FOLLOWER_CATEGORIES_UPDATED()
   local main=self:GetTroopsFrame()
   self:DrawTroopStatus(main)
   self:DrawKrokuls(main)
@@ -700,14 +700,15 @@ function module:Refresh(event,...)
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
 		return self:ParseFollowers()
-	elseif event=="GARRISON_FOLLOWER_LIST_UPDATE" or 
-			event=="GARRISON_MISSION_STARTED" or 
+	elseif event=="GARRISON_FOLLOWER_LIST_UPDATE" or
+			event=="GARRISON_MISSION_STARTED" or
 			event=="GARRISON_MISSION_FINISHED" or
 			event=="GARRISON_MISSION_COMPLETE_RESPONSE" then
-		return addon:RefreshFollowerStatus() 
+		return addon:RefreshFollowerStatus()
 	end
 end
 function module:OnInitialized()
+  LoadAddOn("Blizzard_OrderHallUI")
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
 	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
 --@debug@
@@ -746,9 +747,9 @@ end
 function addon:RefreshFollowers()
 	followerCache=G.GetFollowers(followerType)
 	rebuildFollowerIndex()
---@debug@	
+--@debug@
 	print("Followeres refreshed:",#followerCache)
---@end-debug@	
+--@end-debug@
 end
 function addon:GetFollowerData(...)
 	return module:GetFollowerData(...)
@@ -775,7 +776,7 @@ local function isGood(missionID,follower,durability,ignoreBusy)
 	local followerID=follower.followerID
 	local reserved=addon:IsReserved(followerID)
 	if reserved then return reserved==missionID end
-	if ignoreBusy then 
+	if ignoreBusy then
 		if G.GetFollowerStatus(followerID) then
 			return false
 		end
@@ -783,7 +784,7 @@ local function isGood(missionID,follower,durability,ignoreBusy)
 	if not durability then return true end
 	if durability < 0 then
 		return follower.durability >= math.abs(durability)
-	else  
+	else
 		return follower.durability <= durability
 	end
 	return false
@@ -826,14 +827,14 @@ function addon:GetTroop(troopkey,slot,missionID,durability,ignoreBusy)
 				local d=module:GetFollowerData(followerID,'durability',0)
 				if durability < 0 then
 					if d < math.abs(durability) then break end
-				else  
+				else
 					if  d > durability then break end
 				end
 			end
 			-- Didnt break out so this is a good one
 			if slot == 1 then
 				return followerID
-			else 
+			else
 				slot=1 -- max 2 troop for mission, so when I found a good one, the next one is good
 			end
 		end
@@ -864,8 +865,8 @@ function addon:GetFullPermutations(dowipe)
 				  del(abi)
 					if not classTroops[troopkey] then
 						classTroops[troopkey]={}
-					end 
-					tinsert(classTroops[troopkey],f.followerID) 
+					end
+					tinsert(classTroops[troopkey],f.followerID)
 					if not seen[troopkey] then
 						tinsert(all,strjoin('|','T',troopkey,self:GetTroopCost(f.classSpec)))
 						seen[troopkey]=1
@@ -880,7 +881,7 @@ function addon:GetFullPermutations(dowipe)
 		table.sort(all) -- We need champions first and a predictable order
 --@debug@
 		for x=1,1 do
---@end-debug@		
+--@end-debug@
 		for i=1,#all do
 			local class,id,value=strsplit('|',all[i])
 			if class=="T" then -- champions ended, troops only parties are invalid
@@ -895,7 +896,7 @@ function addon:GetFullPermutations(dowipe)
 						-- I only see a classSpec once. Here if i know I have more than one troop for this spec, i force
 						-- a combination with both of them
 						tinsert(fullPermutations,'3,'.. strjoin(',',all[i],all[j],all[j] .. '|2'))
-					end				
+					end
 				end
 				for k=j+1,#t do
 					if all[k] then
@@ -906,7 +907,7 @@ function addon:GetFullPermutations(dowipe)
 		end
 --@debug@
 		end
---@end-debug@		
+--@end-debug@
 		table.sort(fullPermutations)
 		del(all)
 		del(seen)
@@ -998,6 +999,6 @@ function addon:GetTotFollowers(status)
 end
 local startedCacheMission
 function addon:CacheStartedMission(missionID,t)
-	
-	
+
+
 end
