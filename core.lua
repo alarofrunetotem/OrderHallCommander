@@ -35,7 +35,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
@@ -90,12 +90,12 @@ local function safeformat(mask,...)
     end
  end
   rc,result=pcall(format,mask,...)
-  return rc and result or mask 
+  return rc and result or mask
 end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
- 
+
 --local missionPanelMissionList=OrderHallMissionFrameMissions
 --[[
 Su OrderHallMissionFrameMissions viene chiamato Update() per aggiornare le missioni
@@ -156,16 +156,16 @@ function addon:OnInitialized()
 	OHF:RegisterForDrag("LeftButton")
 	OHF:SetScript("OnDragStart",function(frame) if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
-	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))	
+	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))
 	self:RegisterEvent("ARTIFACT_UPDATE")
 end
 function addon:IsBlacklisted(missionID)
 	return self.db.profile.blacklist[missionID]
 end
 function addon:ClearMenu()
-	if menu.widget then 
-		pcall(AceGUI.Release,AceGUI,menu.widget) 
-		menu.widget=nil 
+	if menu.widget then
+		pcall(AceGUI.Release,AceGUI,menu.widget)
+		menu.widget=nil
 	end
 	menu:Hide()
 end
@@ -211,19 +211,19 @@ function addon:ActivateButton(button,OnClick,Tooltiptext,persistent)
 	end
 end
 --- Helpers
--- 
+--
 function addon:SetBackdrop(frame,r,g,b,a)
 	r=r or 1
 	g=g or 0
 	b=b or 0
 	a=a or 1
    frame:SetBackdrop({
-         bgFile = "Interface/Tooltips/UI-Tooltip-Background", 
-         xedgeFile = "Interface/Tooltips/UI-Tooltip-Border", 
-         tile = true, tileSize = 16, edgeSize = 16, 
+         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+         xedgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+         tile = true, tileSize = 16, edgeSize = 16,
          insets = { left = 4, right = 4, top = 4, bottom =   4}
       }
-   )	
+   )
    frame:SetBackdropColor(r,g,b,a)
 end
 function addon:GetDifficultyColors(...)
@@ -267,16 +267,16 @@ local newsframes={}
 function addon:MarkAsNew(obj,key,message,method)
 	local db=self.db.global
 	if not db.news then db.news={} end
---@debug@	
+--@debug@
 	db.news[key]=true
---@end-debug@	
+--@end-debug@
 	if (not db.news[key]) then
 		local f=CreateFrame("Button",nil,obj,"OHCWhatsNew")
 		f.tooltip=message
 		f.texture:ClearAllPoints()
 		f.texture:SetAllPoints()
-    f:GetHighlightTexture():ClearAllPoints()		
-    f:GetHighlightTexture():SetAllPoints()    
+    f:GetHighlightTexture():ClearAllPoints()
+    f:GetHighlightTexture():SetAllPoints()
 		f:SetPoint("TOPLEFT",obj,"TOPLEFT",0,0)
 		f:SetFrameStrata("TOOLTIP")
 		f:Show()
@@ -294,7 +294,7 @@ function addon:MarkAsSeen(key)
 	if not db.news then db.news={} end
 	db.news[key]=true
 	if newsframes[key] then newsframes[key]:Hide() end
-end	
+end
 
 --@do-not-package@
 
@@ -344,7 +344,7 @@ function addon:ProfileStats(newmin)
 		ViragDevTool_AddData(profile,"OHC_PROFILE")
 	end
 end
-function addon:Resolve(frame) 
+function addon:Resolve(frame)
 	local name
 	if type(frame)=="table" and frame.GetName then
 		name=frame:GetName()
@@ -368,7 +368,7 @@ local events=CreateFrame("Frame")
 addon.evt=setmetatable({},{__index=function(t,v) return 0 end})
 addon.evtCount=setmetatable({},{__index=function(t,v) return 0 end})
 events:RegisterAllEvents()
-events:SetScript("OnEvent", 
+events:SetScript("OnEvent",
 	function(this,event,...)
 		if event:find("GARRISON") then
 			addon.evtCount[event]=addon.evtCount[event] +1
