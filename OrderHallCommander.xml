@@ -13,11 +13,11 @@
 				end
 			</OnEnter>
 		</Scripts>
-	</Button>	
+	</Button>
 	<Button name="OHCMissionButton" inherits="OrderHallMissionListButtonTemplate" virtual="true">
 		<Size x="832" y="75"/>
 		<KeyValues>
-			<KeyValue name="IsCustom" value="true" type="boolean"/>
+			<KeyValue key="IsCustom" value="true" type="boolean"/>
 		</KeyValues>
 	</Button>
 
@@ -40,11 +40,11 @@
 					</Anchors>
 				</FontString>
 			</Layer>
-		</Layers>	
+		</Layers>
 		<Scripts>
-<!--@debug@-->				
+<!--@debug@-->
 			<OnEnter method="Dump"/>
-<!--@end-debug@-->				
+<!--@end-debug@-->
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
@@ -65,14 +65,14 @@
 					<Size x="250" y="20"/>
 				</FontString>
 			</Layer>
-		</Layers> 		
+		</Layers>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
-<!--@debug@-->				
+<!--@debug@-->
 			<OnEnter>
 				self:Dump(self:GetParent())
 			</OnEnter>
-<!--@end-debug@-->				
+<!--@end-debug@-->
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
@@ -83,18 +83,18 @@
 				<Anchors>
 					<Anchor point="TOPLEFT" x="-5" y="0"/>
 					<Anchor point="BOTTOMRIGHT" x="5" y="0"/>
-				</Anchors>					
+				</Anchors>
 				<Layers>
 					<Layer level="OVERLAY">
 						<FontString parentKey="Text" justifyV="CENTER" justifyH="CENTER" inherits="GameFontNormalOutline" text="GARRISON_PARTY_NOT_ENOUGH_CHAMPIONS">
 							<Anchors>
 								<Anchor point="TOPLEFT" x="5" y="0"/>
 								<Anchor point="BOTTOMRIGHT" x="-5" y="0"/>
-							</Anchors>					
+							</Anchors>
 						</FontString>
 					</Layer>
-				</Layers> 		
-			</Frame>				
+				</Layers>
+			</Frame>
 			<Frame parentArray="Champions" inherits="OHCFollowerIcon" />
 		</Frames>
 		<Scripts>
@@ -126,15 +126,15 @@
 						<Anchor point="CENTER" x="0" y="1"/>
 					</Anchors>
 				</Texture>
-			
-			</Layer>		
+
+			</Layer>
 		</Layers>
 		<Frames>
 			<Frame parentKey="Durability" inherits="GarrisonMissionFollowerDurabilityFrameTemplate" hidden="true">
 				<Anchors>
 					<Anchor point="BOTTOM" x="0" y="4"/>
 				</Anchors>
-			</Frame>		
+			</Frame>
 		</Frames>
 	</Frame>
 	<Frame name="OHCFollowerPortrait" mixin="OrderHallCommanderMixinTooltip" enableMouse="true" inherits="GarrisonMissionPageFollowerTemplate" virtual="true" >
@@ -157,7 +157,7 @@
 						<Anchor point="TOPLEFT"/>
 					</Anchors>
 				</FontString>
-			</Layer>		
+			</Layer>
 		</Layers>
 		<Scripts>
 			<OnLoad>
@@ -168,7 +168,7 @@
 			<OnLeave function="GameTooltip_Hide"/>
 			<OnEnter method="OnEnter"/>
 		</Scripts>
-	</Frame>	
+	</Frame>
 	<Button name="OHCFollowerButton" inherits="GarrisonFollowerButtonTemplate" virtual="true">
 		<Size x="260" y="56"/>
 	</Button>
@@ -194,15 +194,15 @@
 				GameTooltip:SetOwner(self,"ANCHOR_TOPRIGHE")
 				if not self.tooltip then return end
 				GameTooltip:SetText(self.tooltip)
-				GameTooltip:Show()				
+				GameTooltip:Show()
 			</OnEnter>
 		</Scripts>
 	</Button>
 	<Frame name="OHCBaseFrame" mixin="OrderHallCommanderMixinTooltip" inherits="TooltipBorderedFrameTemplate" virtual="true">
 		<Size x="200" y="30"/>
 		<KeyValues>
-			<KeyValue name="movable" value="false" type="boolean"/>
-		</KeyValues>		
+			<KeyValue key="movable" value="false" type="boolean"/>
+		</KeyValues>
 		<Frames>
 			<Button parentKey="Close" inherits="UIPanelCloseButton">
 				<Size x="32" y="32"/>
@@ -213,10 +213,12 @@
 				</Anchors>
 				<Scripts>
 					<OnLeave function="GameTooltip_Hide"/>
+					<!--
 					<OnEnter method="OnEnter"/>
-				</Scripts>				
+					 -->
+				</Scripts>
 			</Button>
-		</Frames>	
+		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
 				<FontString parentKey="Title" justifyV="TOP" justifyH="CENTER" inherits="GameFontHighlightOutline" text="OrderHallCommander">
@@ -228,7 +230,7 @@
 				</FontString>
 			</Layer>
 			<Layer level="HIGHLIGHT">
-				<Texture parentKey="Highlight" hidden="true" file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">				
+				<Texture parentKey="Highlight" hidden="true" file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
 					<Size x="240" y="20"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="0" y="-5"/>
@@ -236,13 +238,13 @@
 					</Anchors>
 				</Texture>
 			</Layer>
-		</Layers>			
+		</Layers>
 		<Scripts>
 			<OnLeave function="GameTooltip_Hide"/>
 			<OnEnter method="OnEnter"/>
 			<OnDragStart method="OnDragStart"/>
 			<OnDragStop method="OnDragStop"/>
-		</Scripts>				
+		</Scripts>
 	</Frame>
 	<Frame name="OHCNavigator" mixin="OrderHallCommanderMixinTooltip" virtual="true">
 		<Size x="200" y="30"/>
@@ -258,7 +260,7 @@
 				<Scripts>
 					<OnLeave function="GameTooltip_Hide"/>
 					<OnEnter method="OnEnter"/>
-				</Scripts>								
+				</Scripts>
 			</Button>
 			<Button parentKey="Home" mixin="OrderHallCommanderMixinTooltip" inherits="UIPanelCloseButton">
 				<Size x="16" y="16"/>
@@ -274,7 +276,7 @@
 					<OnLeave function="GameTooltip_Hide"/>
 					<OnEnter method="OnEnter"/>
 					<OnClick></OnClick>
-				</Scripts>								
+				</Scripts>
 			</Button>
 			<Button parentKey="Forward">
 				<Size x="32" y="32"/>
@@ -300,7 +302,7 @@
 		<KeyValues>
 			<KeyValue key="PinOpen" value="true" type="boolean"/>
 			<KeyValue key="DefaultWidth" value="220" type="number"/>
-		</KeyValues>		
+		</KeyValues>
 		<Frames>
 			<Button parentKey="Tutorial" inherits="OHCWhatsNew">
 				<Size x="15" y="16"/>
@@ -318,7 +320,7 @@
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 		</Scripts>
-	</Frame>	
+	</Frame>
 	<CheckButton name="OHCTab" mouseEnable="true" virtual="true" inherits="SpellBookSkillLineTabTemplate">
 		<Size x="100" y="50" />
 		<KeyValues>
@@ -333,7 +335,7 @@
 						<Anchor point="TOPLEFT" x="0" y="0"/>
 					</Anchors>
 					<TexCoords left="0" right="0.5" top="0.5" bottom="1"/>
-				</Texture>			
+				</Texture>
 			</Layer>
 			<Layer level="OVERLAY">
 				<FontString parentKey="Name" text="Example" justifyV="CENTER" justifyH="LEFT" inherits="GameFontHighlightSmallOutline">
@@ -342,11 +344,11 @@
 						<Anchor point="LEFT" x="40" y="10"/>
 						<Anchor point="RIGHT" x="40" y="10"/>
 					</Anchors>
-				</FontString>			
+				</FontString>
 			</Layer>
 		</Layers>
-	</CheckButton>	
-	<Frame parentKey="Spinner" name="OHCSpinner" virtual="true" inherits="LoadingSpinnerTemplate">
+	</CheckButton>
+	<Frame name="OHCSpinner" parentKey="Spinner" virtual="true" inherits="LoadingSpinnerTemplate">
 		<Scripts>
 			<OnLoad>
 				self.Start=function(self) self:Show() self.Anim:Play() end
@@ -378,6 +380,6 @@
 		<Scripts>
 			<OnLoad>
 			</OnLoad>
-		</Scripts>	
+		</Scripts>
 	</Frame>
 </Ui>
