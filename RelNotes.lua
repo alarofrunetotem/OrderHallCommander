@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,6,0, [[
+Feature: fully working under Battle for Azeroth
+Fix: error in autocomplete.lua line 484
+]])
 self:RelNotes(1,5,14,[[
 Feature: added Earthen Mark for Shamans
 ]])
@@ -43,7 +47,7 @@ Fix: 1x OrderHallCommander\missionlist.lua:469: attempt to call method 'RefreshV
 self:RelNotes(1,5,7,[[
 Fix: #136 (and others) Lua error
 Fix: #137 Removed chat spam
-Feature: Class specific troop generating items added. Let me know if your class has issue 
+Feature: Class specific troop generating items added. Let me know if your class has issue
 Feature: Total xp are now shown as "xp x followers", so you can better compare missions (feature request #97)
 ]])
 self:RelNotes(1,5,6,[[
@@ -55,12 +59,12 @@ self:RelNotes(1,5,5,[[
 Feature: Base chance can be now set up to 120% to allow for a bit of overcapping
 Feature: New Elite Overcap switch to force elites mission to always stay over 100%, if possibile
 Feature: You can restore shift-click to send a single mission from mission list
-Fix: Reset button was not working 
+Fix: Reset button was not working
 Fix: You can again change switches while viewing the mission page
 ]])
 self:RelNotes(1,5,'4.1',[[
 Feature: Removed tutorial autoopening
-Fix: when capping a mission if a satisfying mission cannot be found, prefer overcap over lowercap 
+Fix: when capping a mission if a satisfying mission cannot be found, prefer overcap over lowercap
 Fix: #133 Counter kill troops switch was not working
 ]])
 self:RelNotes(1,5,4,[[
@@ -96,7 +100,7 @@ Feature: You can now set a minimum success chance. If bonus chance can not be ac
 Feature: You can now set a minimum bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible
 Feature: For troops, durability is shown in the mission button icon
 Feature: Reorganized troops' related switches
-Feature: Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly 
+Feature: Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly
 Feature: You can now choose if OHC prefers low or high durability troops
 
 Fix: #68 Initial lag when opening panels should be gone or at least greatly reduced. YMV

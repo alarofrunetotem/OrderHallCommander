@@ -35,7 +35,7 @@ local OHFMissions=OrderHallMissionFrame.MissionTab.MissionList -- same as OrderH
 local OHFFollowerTab=OrderHallMissionFrame.FollowerTab -- Contains model view
 local OHFFollowerList=OrderHallMissionFrame.FollowerList -- Contains follower list (visible in both follower and mission mode)
 local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
-local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup 
+local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
@@ -90,7 +90,7 @@ local function safeformat(mask,...)
     end
  end
   rc,result=pcall(format,mask,...)
-  return rc and result or mask 
+  return rc and result or mask
 end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
@@ -200,14 +200,14 @@ function module:EventsOn()
 	self:RegisterEvent("GARRISON_FOLLOWER_DURABILITY_CHANGED","MissionAutoComplete")
 end
 function module:AutoClose()
-	if report then 
+	if report then
 	 local rc,message=pcall(report.Close,report)
 	 --@debug@
 	 if not rc then
 	   pp("Failed closing report due to",message)
 	 end
-	 --@end-debug@ 
-	 report=nil 
+	 --@end-debug@
+	 report=nil
   end
 	pcall(OHF.CloseMissionComplete,OHF)
 end
@@ -481,7 +481,7 @@ function module:MissionsPrintResults(success)
 			report:AddIconText(v.icon,GetMoneyString(v.qt))
 		else
 			-- Other currency reward
-			report:AddIconText(v.icon,GetCurrencyLink(k),v.qt)
+			report:AddIconText(v.icon,GetCurrencyLink(k,v.qt))
 		end
 	end
 	local items=new()
@@ -512,7 +512,7 @@ function module:MissionsPrintResults(success)
 	end
 	del(items)
 	OHFFollowerList.dirtyList=true
-	OHFFollowerList:UpdateFollowers()							
+	OHFFollowerList:UpdateFollowers()
 	for k,v in pairs(rewards.followerXP) do
 		reported=true
 		followers=true
