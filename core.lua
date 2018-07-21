@@ -135,7 +135,6 @@ function addon:ApplyMOVEPANEL(value)
 end
 
 function addon:OnInitialized()
-	addon.KL=1
   _G.dbOHCperChar=_G.dbOHCperChar or {}
   if type(self.db.global.tutorialStep)~="number" then
     self.db.global.tutorialStep=1
@@ -157,7 +156,6 @@ function addon:OnInitialized()
 	OHF:SetScript("OnDragStart",function(frame) if self:GetBoolean('MOVEPANEL') then frame:StartMoving() end end)
 	OHF:SetScript("OnDragStop",function(frame) frame:StopMovingOrSizing() end)
 	self:ApplyMOVEPANEL(self:GetBoolean('MOVEPANEL'))
-	self:RegisterEvent("ARTIFACT_UPDATE")
 end
 function addon:IsBlacklisted(missionID)
 	return self.db.profile.blacklist[missionID]
@@ -191,12 +189,6 @@ function addon:GetRegisteredForMenu(menu)
 end
 do
 
-end
-function addon:ARTIFACT_UPDATE()
-	local kl=C_ArtifactUI.GetArtifactKnowledgeMultiplier()
-	if kl then
-		addon.KL=kl
-	end
 end
 
 function addon:ActivateButton(button,OnClick,Tooltiptext,persistent)
