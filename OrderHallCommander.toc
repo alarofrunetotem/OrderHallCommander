@@ -12,7 +12,7 @@
 ## Notes-zhTW: 发送所有的追随者与点击多任务
 ## Notes-zhCN: 發送所有的追隨者與點擊多任務
 ## Author: Alar of Runetotem
-## Version: @project-version@ 70300
+## Version: @project-version@ 80000
 ## X-Revision: @project-abbreviated-hash@
 ## eMail: alar@aspide.it
 ## URL: http://wow.aspide.it
@@ -32,7 +32,9 @@
 ## X-Embeds: LibInit
 ## X-Reboot: 1
 embeds.xml
+#@do-not-package@
 forcelocale.lua
+#@end-do-not-package@
 localization.lua
 OrderHallCommander.xml
 core.lua
@@ -48,6 +50,3 @@ widgets.xml
 RelNotes.lua
 wowhead.lua
 data.lua
-#@do-not-package@
-Debug.lua
-#@end-do-not-package@
