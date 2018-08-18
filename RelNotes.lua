@@ -14,6 +14,10 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,7,0, [[
+Feature: When viewing a mission you can now see all available parties clicking "Analyze"
+Feature: To manage BFA Missions, please install MissionCommander
+]])
 self:RelNotes(1,6,0, [[
 Feature: fully working under Battle for Azeroth
 Fix: error in autocomplete.lua line 484

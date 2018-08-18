@@ -95,6 +95,7 @@ end
 
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
+local BFAMissionFrame=BFAMissionFrame
 local tutorialVersion=1
 local OHFButtons=OHFMissions.listScroll.buttons
 local HelpPlate_TooltipHide=HelpPlate_TooltipHide
@@ -208,21 +209,21 @@ tutorials={
   },
   {
     text="When you have locked some followers to missions, you can start the mission without going to the mission page.\nShift-Clicking this button will scan missions from top to bottom (so, sort order IS important) and start the first one with at least one locked follower",
-    parent=function() return module:GetMenuItem("BUTTON1") end,    
+    parent=function() return module:GetMenuItem("BUTTON1") end,
     anchor="BOTTOM",
     level=-1,
     onmissing=missingMessage,
   },
   {
     text="You can quickly remove all locks and bans clicking here",
-    parent=function() return module:GetMenuItem("BUTTON2") end,    
+    parent=function() return module:GetMenuItem("BUTTON2") end,
     anchor="BOTTOM",
     level=-1,
     onmissing=missingMessage,
   },
   {
     text="If you cant see missions filled, maybe you have a too restrictive set of switches checked on.\nClicking here reset OHC to a very permissive setup.\nTry this before filing a ticket, please :)",
-    parent=function() return module:GetMenuItem("BUTTON3") end,    
+    parent=function() return module:GetMenuItem("BUTTON3") end,
     anchor="BOTTOM",
     level=-1,
     onmissing=missingMessage,
@@ -230,10 +231,10 @@ tutorials={
   --[[
   {
     back=1,
-    action=function()  
-      if OHFButtons[1] then 
-        addon:GetMissionlistModule():RawMissionClick(OHFButtons[1],"LeftButton") 
-      end 
+    action=function()
+      if OHFButtons[1] then
+        addon:GetMissionlistModule():RawMissionClick(OHFButtons[1],"LeftButton")
+      end
     end,
     anchor="TOP",
     text=L["If you dont understand why OHC choosed a setup for a mission, you can request a full analysis.\nAnalyze party will show all the possible combinations and how OHC evaluated them"],
@@ -243,9 +244,9 @@ tutorials={
   },
   {
     back=2,
-    action=function() 
+    action=function()
       if OHFMissionPage:IsVisible() and addon:GetMissionpageModule():GetAnalyzeButton() then
-        addon:GetMissionpageModule():GetAnalyzeButton():Click()        
+        addon:GetMissionpageModule():GetAnalyzeButton():Click()
       end
     end,
     anchor="RIGHT",
@@ -267,9 +268,9 @@ tutorials={
     parent=OHF,
     text=format(L["Thank you for reading this, enjoy %s"],me),
     action=function() addon.db.global.tutorialStep=#tutorials end
-  }  
-  
-  
+  }
+
+
 }
 local Clicker
 local Enhancer
@@ -278,7 +279,7 @@ local function callOrUse(data)
     return data()
   else
     return data
-  end    
+  end
 end
 local function plate(self,tutorial)
   local text
@@ -336,7 +337,7 @@ local function plate(self,tutorial)
     if tutorial.noglow then
       Enhancer:Hide()
     else
-      if o then 
+      if o then
         Enhancer:SetParent(o)
         Enhancer:ClearAllPoints()
         if o2 then
@@ -349,7 +350,7 @@ local function plate(self,tutorial)
           else
             Enhancer:SetAllPoints()
           end
-        else  
+        else
           Enhancer:SetAllPoints()
         end
         Enhancer:SetFrameStrata(o:GetFrameStrata())
@@ -367,7 +368,7 @@ local function plate(self,tutorial)
     text=tutorial
   end
   HelpPlateTooltip.Text:SetText(C(me .. ' ' .. addon.version,'Green') .. "\n" .. text .. "\n\n" )
-  HelpPlateTooltip:Show()  
+  HelpPlateTooltip:Show()
   return rc
   --HelpPlateTooltip:SetScript("OnMouseDown",function(this) this:SetScript("OnMouseDown",this.oldClick) HelpPlate_TooltipHide() end)
 end
@@ -382,6 +383,7 @@ function module:Refresh()
   end
 end
 function module:Hide(this)
+  addon:Print("Hide")
   HelpPlateTooltip.HookedByOHC=nil
   HelpPlateTooltip:SetFrameStrata(platestrata)
   HelpPlate_TooltipHide()
@@ -394,15 +396,15 @@ end
 function module:Backward()
   currentTutorialIndex=math.max(currentTutorialIndex-1,1)
   self:Show()
-end  
+end
 function module:Forward()
   currentTutorialIndex=currentTutorialIndex+1
   self:Show()
-end  
+end
 function module:Home()
   currentTutorialIndex=1
   self:Show()
-end  
+end
 function addon:NeedsTutorial()
   if not addon.db.global.tutorialStep then addon.db.global.tutorialStep =1 end
   if addon.db.global.tutorialStep < #tutorials then
@@ -410,45 +412,47 @@ function addon:NeedsTutorial()
   end
 end
 function module:Show(opening)
-
+  addon:Print("Show")
   HelpPlateTooltip.HookedByOHC=nil
   if not currentTutorialIndex then currentTutorialIndex=addon.db.global.tutorialStep or 1 end
   local tutorial=tutorials[currentTutorialIndex]
   addon.db.global.tutorialStep=currentTutorialIndex
 --@debug@
   _G.print("Tutorial step ",addon.db.global.tutorialStep,' of ', #tutorials)
---@end-debug@  
+--@end-debug@
   if tutorial then
     if opening and tutorial.back then
       currentTutorialIndex=currentTutorialIndex - tutorial.back
       return self:Show()
     end
-    
+
     if plate(self,tutorial) then
       Clicker.Forward:Hide()
-    elseif currentTutorialIndex < #tutorials 
-    then Clicker.Forward:Show() 
-    else Clicker.Forward:Hide() 
+    elseif currentTutorialIndex < #tutorials
+    then Clicker.Forward:Show()
+    else Clicker.Forward:Hide()
     end
-    if currentTutorialIndex > 1 then 
-      Clicker.Backward:Show() 
-      Clicker.Home:Show() 
-    else 
-      Clicker.Backward:Hide() 
-      Clicker.Home:Hide() 
+    if currentTutorialIndex > 1 then
+      Clicker.Backward:Show()
+      Clicker.Home:Show()
+    else
+      Clicker.Backward:Hide()
+      Clicker.Home:Hide()
     end
     return
-  else 
+  else
     self:Terminate()
   end
 end
 function module:Terminate()
+  addon:Print("Terminate")
   self:Hide()
   addon.db.global.tutorialStep=#tutorials +1
 end
 function module:OnInitialized()
   if not Clicker then
-    Clicker=CreateFrame("Frame",nil,HelpPlateTooltip,"OHCNavigator")
+    Clicker=CreateFrame("Frame",nil,nil,"OHCNavigator")
+    Clicker:SetParent(HelpPlateTooltip)
     Clicker:SetAllPoints()
     self:RawHookScript(Clicker.Forward,"OnClick","Forward")
     self:RawHookScript(Clicker.Backward,"OnClick","Backward")
@@ -460,8 +464,37 @@ function module:OnInitialized()
   if not Enhancer then
     Enhancer = CreateFrame("Frame",nil,nil,"GlowBoxTemplate")
   end
+  local status,reason=select(4,GetAddOnInfo("ChampionCommander"))
+  if not status and reason ~="DEMAND_LOADED" then
+    self:SecureHookScript(BFAMissionFrame,"OnShow","AdvertiseCC")
+  end
+  self:Hide()
+
 end
 function module:GetMenuItem(flag)
   return addon:GetMissionlistModule():GetMenuItem(flag)
+end
+function module:AdvertiseCC()
+  local dt=C_Calendar.GetDate()
+  if dt.year==2018 and dt.month==8 then
+    local a1 ="CENTER"
+    local a2="CENTER"
+    local arrow="ArrowLEFT"
+    local glow="ArrowGlowLEFT"
+    local x= 0
+    local y= 0
+    local o=BFAMissionFrame
+    --module:Hide()
+    --if arrow then HelpPlateTooltip[arrow]:Show() end
+    --if glow then HelpPlateTooltip[glow]:Show() end
+    HelpPlateTooltip:SetPoint(a1, o, a2, x, y)
+    HelpPlateTooltip:SetParent(o)
+    HelpPlateTooltip:SetFrameStrata("TOOLTIP")
+    HelpPlateTooltip.Text:SetText("OrderHallCommander has no support for Battle For Azerorth missions\nYou can install\n" .. C("ChampionCommander","Green") .. "\n for them")
+    HelpPlateTooltip.Text:SetJustifyH("CENTER")
+    HelpPlateTooltip:Show()
+    HelpPlateTooltip.LingerAndFade:Play()
+  end
+  self:Unhook(BFAMissionFrame,"OnShow")
 end
 
