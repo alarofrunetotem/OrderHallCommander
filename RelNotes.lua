@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,7,2, [[
+Fix: OrderHallCommander\tutorials.lua:498: '<eof>' expected near 'end'
+]])
 self:RelNotes(1,7,1, [[
 Fix: Removed "OrderHallCommander: Hide" debug message
 Feature: ChampionCommander banner should now appear a maximum of 3 times
