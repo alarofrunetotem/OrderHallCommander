@@ -723,6 +723,7 @@ function module:InitialSetup(this)
 	collectgarbage("stop")
 	if type(addon.db.global.warn01_seen)~="number" then	addon.db.global.warn01_seen =0 end
 	if type(addon.db.global.warn02_seen)~="number" then	addon.db.global.warn02_seen =0 end
+  if type(addon.db.global.warn03_seen)~="number" then addon.db.global.warn03_seen =0 end
 	self:Menu()
 	if addon.db.profile.showmenu then OpenMenu() else CloseMenu() end
 	self:Unhook(this,"OnShow")
