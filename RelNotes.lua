@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,7,3, [[
+Fix: Null error for tooltips on Followers #1
+]])
 self:RelNotes(1,7,2, [[
 Fix: OrderHallCommander\tutorials.lua:498: '<eof>' expected near 'end'
 ]])
