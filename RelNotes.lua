@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,7,4, [[
+Feature: 8.2
+]])
 self:RelNotes(1,7,3, [[
 Fix: Null error for tooltips on Followers #1
 ]])
