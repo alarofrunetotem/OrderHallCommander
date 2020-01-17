@@ -14,6 +14,12 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,7,6, [[
+Toc: 8.3.0
+]])
+self:RelNotes(1,7,5, [[
+Feature: 8.2.5
+]])
 self:RelNotes(1,7,4, [[
 Feature: 8.2
 ]])
