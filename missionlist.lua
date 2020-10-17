@@ -40,6 +40,14 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
+local LE_FOLLOWER_TYPE_GARRISON_6_0=Enum.GarrisonFollowerType.FollowerType_6_0
+local LE_FOLLOWER_TYPE_SHIPYARD_6_2=Enum.GarrisonFollowerType.FollowerType_6_2
+local LE_FOLLOWER_TYPE_GARRISON_7_0=Enum.GarrisonFollowerType.FollowerType_7_0
+local LE_FOLLOWER_TYPE_GARRISON_8_0=Enum.GarrisonFollowerType.FollowerType_8_0
+local LE_GARRISON_TYPE_6_0=Enum.GarrisonType.Type_6_0
+local LE_GARRISON_TYPE_6_2=Enum.GarrisonType.Type_6_2
+local LE_GARRISON_TYPE_7_0=Enum.GarrisonType.Type_7_0
+local LE_GARRISON_TYPE_8_0=Enum.GarrisonType.Type_8_0
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -64,8 +72,6 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
-local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
-local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -221,7 +227,6 @@ function module:OnInitialized()
 	self:LoadButtons()
 	Current_Sorter=addon:GetString("SORTMISSION")
   Second_Sorter=addon:GetString("SORTMISSION2")
-
 	self:SecureHookScript(OHF,"OnShow","InitialSetup")
 		Dialog:Register("OHCUrlCopy", {
 			text = L["URL Copy"],
@@ -243,7 +248,6 @@ function module:OnInitialized()
 			hide_on_escape = true,
 		})
 end
-
 function module:Print(...)
 	print(...)
 end
@@ -614,7 +618,7 @@ end
 local warner
 function module:NoMartiniNoParty(text)
 	if not warner then
-		warner=CreateFrame("Frame","OHCWarner",OHFMissions)
+		warner=CreateFrame("Frame","OHCWarner",OHFMissions,BackdropTemplateMixin and "BackdropTemplate")
 		warner.label=warner:CreateFontString(nil,"OVERLAY","GameFontNormalHuge3Outline")
 		warner.label:SetTextColor(C:Orange())
 		warner:SetAllPoints()
@@ -1068,18 +1072,19 @@ function module:AddThreats(frame,threats,party,missionID)
 	threats:Show()
 	local enemies=addon:GetMissionData(missionID,'enemies')
 	if type(enemies)~="table" then
-		enemies=select(8,G.GetMissionInfo(missionID))
+		enemies=G.GetMissionDeploymentInfo(missionID)['enemies']
 	end
 	local mechanics=new()
 	local counters=new()
 	local biases=new()
 	for _,enemy in pairs(enemies) do
 		if type(enemy.mechanics)=="table" then
-			for mechanicID,mechanic in pairs(enemy.mechanics) do
+			for _,mechanic in pairs(enemy.mechanics) do
 			-- icon=enemy.mechanics[id].icon
-				mechanic.id=mechanicID
-				mechanic.icon=icons[mechanicID] and icons[mechanicID].icon or mechanic.id
-				mechanic.bias=-1
+			  --local mechanicID=enemy.mechanicTypeID
+				mechanic.id=mechanic.mechanicTypeID
+				mechanic.icon=mechanic.ability and mechanic.ability.icon or mechanic.icon
+				mechanic.bias=mechanic.ability and mechanic.ability.bias or -1
 				tinsert(mechanics,mechanic)
 			end
 		end

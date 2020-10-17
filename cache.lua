@@ -40,6 +40,14 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
+local LE_FOLLOWER_TYPE_GARRISON_6_0=Enum.GarrisonFollowerType.FollowerType_6_0
+local LE_FOLLOWER_TYPE_SHIPYARD_6_2=Enum.GarrisonFollowerType.FollowerType_6_2
+local LE_FOLLOWER_TYPE_GARRISON_7_0=Enum.GarrisonFollowerType.FollowerType_7_0
+local LE_FOLLOWER_TYPE_GARRISON_8_0=Enum.GarrisonFollowerType.FollowerType_8_0
+local LE_GARRISON_TYPE_6_0=Enum.GarrisonType.Type_6_0
+local LE_GARRISON_TYPE_6_2=Enum.GarrisonType.Type_6_2
+local LE_GARRISON_TYPE_7_0=Enum.GarrisonType.Type_7_0
+local LE_GARRISON_TYPE_8_0=Enum.GarrisonType.Type_8_0
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -64,8 +72,6 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
-local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
-local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -137,7 +143,7 @@ local methods={available='GetAvailableMissions',inProgress='GetInProgressMission
 local catPool={}
 local function fillCachedMission(mission,time)
 	if not time then time=GetTime() end
-	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
+	local _,baseXP,_,_,_,_,exhausting,enemies=addon:GetMissionInfo(mission.missionID)
 	mission.exhausting=exhausting
 	mission.baseXP=baseXP
 	mission.enemies=enemies
@@ -481,7 +487,7 @@ local mt={
 		elseif field=="elite" then
 			mission.elite = empty(mission.overmaxRewards)
 		elseif field=="baseXP" or field =="enemies" or field=="exhausting" then
-			local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
+			local _,baseXP,_,_,_,_,exhausting,enemies=addon:GetMissionInfo(mission.missionID)
 			mission.baseXP=addon:todefault(baseXP,0)
 		end
 		return rawget(mission,field)
@@ -695,7 +701,7 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS()
 end
 function module:Refresh(event,...)
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
-		resources = select(2,GetCurrencyInfo(currency))
+		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
 		return
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
@@ -708,9 +714,9 @@ function module:Refresh(event,...)
 	end
 end
 function module:OnInitialized()
-  LoadAddOn("Blizzard_OrderHallUI")
+	  LoadAddOn("Blizzard_OrderHallUI")
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
-	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
+	currencyName, resources, currencyTexture = addon:GetCurrencyInfo(currency)
 --@debug@
 	print("Currency init",currencyName, resources, currencyTexture)
 --@end-debug@
@@ -737,7 +743,7 @@ end
 --
 function addon:GetResources(refresh)
 	if refresh then
-		resources = select(2,GetCurrencyInfo(currency))
+		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
 	end
 	return resources,currencyName,currencyTexture
 end
