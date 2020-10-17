@@ -62,9 +62,9 @@ function m:SetMission(mission,followers,perc,source)
 --		Reward:ClearAllPoints()
 --		Reward:SetPoint("RIGHT")
 --	end
-	--@debug@
+	--[===[@debug@
 	if not rc then frame.Title:SetText(message) end
-	--@end-debug@
+	--@end-debug@]===]
 end
 function m._Constructor()
 	local frame=CreateFrame("Button",Type..AceGUI:GetNextWidgetNum(Type),nil,"OHCMissionButton")
