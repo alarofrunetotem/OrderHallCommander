@@ -1,7 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
---@debug@
+--[===[@debug@
 print('Loaded',__FILE__)
---@end-debug@
+--@end-debug@]===]
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -40,17 +40,17 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
-local garrisonType=LE_GARRISON_TYPE_7_0
+local followerType=Enum.GarrisonFollowerType.FollowerType_7_0
+local garrisonType=Enum.GarrisonType.Type_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAX_LEVEL=110
+local MAX_LEVEL=50
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
 
 local dprint=print
 local ddump
---@debug@
+--[===[@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
@@ -58,14 +58,12 @@ LoadAddOn("LibDebug")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
---@end-debug@
---[===[@non-debug@
+--@end-debug@]===]
+--@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
---@end-non-debug@]===]
-local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
-local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+--@end-non-debug@
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -134,7 +132,7 @@ function module:FillMissionPage(missionInfo,key)
     stage.button:Show()
   end
   button:SetOnChange(function() module:Analyze(missionInfo) end)
---@debug@
+--[===[@debug@
 	if not missionid then
 		missionid=stage:CreateFontString()
 		missionid:SetFontObject(model:GetFontObject())
@@ -142,7 +140,7 @@ function module:FillMissionPage(missionInfo,key)
 		missionid:SetPoint("TOPLEFT",button,"BOTTOMLEFT",0,-2)
 	end
 	missionid:SetFormattedText(GARRISON_MISSION_ID,missionInfo.missionID)
---@end-debug@
+--@end-debug@]===]
 	if( IsControlKeyDown()) then self:Print("Ctrl key, ignoring mission prefill") return end
 	if (addon:GetBoolean("NOFILL")) then return end
 	OHF:ClearParty()
@@ -384,9 +382,9 @@ function module:FillParty(missionID,key)
 	local missionPage=OHF:GetMissionPage()
 	for i=1,#party do
 		local followerID=party[i]
---@debug@
+--[===[@debug@
     addon:Print("adding",addon:GetFollowerName(followerID))
---@end-debug@
+--@end-debug@]===]
 		if followerID and not G.GetFollowerStatus(followerID) then
 			missionPage:AddFollower(followerID)
 		end

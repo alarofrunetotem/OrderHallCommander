@@ -1,7 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
---@debug@
+--[===[@debug@
 print('Loaded',__FILE__)
---@end-debug@
+--@end-debug@]===]
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -40,17 +40,17 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
-local garrisonType=LE_GARRISON_TYPE_7_0
+local followerType=Enum.GarrisonFollowerType.FollowerType_7_0
+local garrisonType=Enum.GarrisonType.Type_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAX_LEVEL=110
+local MAX_LEVEL=50
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
 
 local dprint=print
 local ddump
---@debug@
+--[===[@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
@@ -58,14 +58,12 @@ LoadAddOn("LibDebug")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
---@end-debug@
---[===[@non-debug@
+--@end-debug@]===]
+--@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
---@end-non-debug@]===]
-local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
-local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+--@end-non-debug@
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -115,7 +113,6 @@ OHC- OrderHallMissionFrame.FollowerTab.XPBar : OnShow :  table: 00000000335585D0
 -- Upvalued functions
 local GetItemInfo=GetItemInfo
 --if I then GetItemInfo=I:GetCachingGetItemInfo() end
-local GetCurrencyInfo=GetCurrencyInfo
 local tostring=tostring
 local tostringall=tostringall
 local strjoin=strjoin
@@ -129,24 +126,45 @@ local menu
 local menuType="OHCMenu"
 local menuOptions={mission={},follower={}}
 local _G=_G
+
 function addon:ApplyMOVEPANEL(value)
 	OHF:EnableMouse(value)
 	OHF:SetMovable(value)
 end
-
+function GGK()
+	for k,v in pairs(C_GARRISON) do
+		print(k,v)
+	end
+end
+function addon:GetMissionInfo(id)
+	local t=C_Garrison.GetMissionDeploymentInfo(id)
+	return
+		t.location,
+		t.xp,
+		t.environment,	
+		t.environmentDesc,	
+		t.environmentTexture,	
+		t.locTextureKit,
+		t.isExhausting,
+		t.enemies
+end
+function addon:GetCurrencyInfo(id)
+	local t=C_CurrencyInfo.GetCurrencyInfo(id)
+	return t.name,t.quantity,t.iconFiledID,t.quantityEarnedThisWeek,t.maxWeeklyQuantiti,t.maxQuantity,t.discovered,t.quality
+end
 function addon:OnInitialized()
   _G.dbOHCperChar=_G.dbOHCperChar or {}
   if type(self.db.global.tutorialStep)~="number" then
     self.db.global.tutorialStep=1
   end
 	menu=CreateFrame("Frame")
---@debug@
+--[===[@debug@
 --[[
 	local f=menu
 	f:RegisterAllEvents()
 	self:RawHookScript(f,"OnEvent","ShowGarrisonEvents")
 ]]--
---@end-debug@
+--@end-debug@]===]
 	self:AddLabel(L["General"])
 	self:AddBoolean("MOVEPANEL",true,L["Make Order Hall Mission Panel movable"],L["Position is not saved on logout"])
 	self:AddBoolean("TROOPALERT",true,L["Troop ready alert"],L["Notifies you when you have troops ready to be collected"])
@@ -259,9 +277,9 @@ local newsframes={}
 function addon:MarkAsNew(obj,key,message,method)
 	local db=self.db.global
 	if not db.news then db.news={} end
---@debug@
+--[===[@debug@
 	db.news[key]=true
---@end-debug@
+--@end-debug@]===]
 	if (not db.news[key]) then
 		local f=CreateFrame("Button",nil,obj,"OHCWhatsNew")
 		f.tooltip=message
@@ -288,148 +306,6 @@ function addon:MarkAsSeen(key)
 	if newsframes[key] then newsframes[key]:Hide() end
 end
 
---@do-not-package@
-
-local gamu=GetAddOnMemoryUsage
-local uamu=UpdateAddOnMemoryUsage
-local redpattern="c|FFFF0000%dM|r"
-local greenpattern="%dM"
-local function wrap(obj,func)
-	addon:Print("Hook func",func)
-	local old=obj[func]
-	obj[func] = function(...)
-		local r1,r2,r3,r4,r5,r6,r7,r8,r9=old(...)
-		local m2=gamu(me)
-		addon:Print("Called",func,format(greenpattern,m2/1024))
-		return r1,r2,r3,r4,r5,r6,r7,r8,r9
-	end
-end
-local profile={}
-local min=5
-function addon:LoadProfileData(obj,objname)
-	for name,func in pairs(obj) do
-		if type(func)=="function" then
-			local total,times=GetFunctionCPUUsage(func,true)
-			if times >= min then
-				local average=total/(times>0 and times or 1)
-				profile[format("%06d.%s:%s",999999-average*1000,objname,name)]={total=total,times=times,average=average}
-			end
-		end
-	end
-end
-function addon:ProfileStats(newmin)
-	if newmin then min = newmin end
-	wipe(profile)
-	local profiling=GetCVarBool("scriptProfile")
-	if not profiling then
-		SetCVar("scriptProfile",true)
-		ReloadUI()
-	end
-	for name,module in self:IterateModules() do
-		self:LoadProfileData(module,name)
-		if module.ProfileStats then
-			module:ProfileStats()
-		end
-	end
-	self:LoadProfileData(self,"MAIN")
-	if ViragDevTool_AddData then
-		ViragDevTool_AddData(profile,"OHC_PROFILE")
-	end
-end
-function addon:Resolve(frame)
-	local name
-	if type(frame)=="table" and frame.GetName then
-		name=frame:GetName()
-		if not name then
-			local parent=frame:GetParent()
-			if not parent then return "UIParent" end
-			for k,v in pairs(parent) do
-				if v==frame then
-					name=self:Resolve(parent) .. '.'..k
-					return name
-				end
-			end
-			return tostring(frame)
-		else
-			return name
-		end
-	end
-	return "unk"
-end
-local events=CreateFrame("Frame")
-addon.evt=setmetatable({},{__index=function(t,v) return 0 end})
-addon.evtCount=setmetatable({},{__index=function(t,v) return 0 end})
-events:RegisterAllEvents()
-events:SetScript("OnEvent",
-	function(this,event,...)
-		if event:find("GARRISON") then
-			addon.evtCount[event]=addon.evtCount[event] +1
-			local signature=strjoin(' , ',event,tostringall(...))
-			addon.evt[signature]=addon.evt[signature] +1
-		end
-	end
-)
-
-function addon:GetScroller(title,type,h,w)
-	h=h or 800
-	w=w or 400
-	type=type or "Frame"
-	local scrollerWindow=AceGUI:Create("Frame")
-	--scrollerWindow.frame:SetAlpha(1)
-	scrollerWindow:SetTitle(title)
-	scrollerWindow:SetLayout("Fill")
-	--local scrollcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
-	--scrollcontainer:SetFullWidth(true)
-	--scrollcontainer:SetFullHeight(true) -- probably?
-	--scrollcontainer:SetLayout("Fill") -- important!
-	--scrollerWindow:AddChild(scrollcontainer)
-	local scroll = AceGUI:Create("ScrollFrame")
-	scroll:SetLayout("Flow") -- probably?
-	scroll:SetFullWidth(true)
-	scroll:SetFullHeight(true)
-	scrollerWindow:AddChild(scroll)
-	scrollerWindow:SetCallback("OnClose","Release")
-	scrollerWindow:SetHeight(h)
-	scrollerWindow:SetWidth(w)
-	scrollerWindow:SetPoint("CENTER")
-	scrollerWindow:Show()
-	scroll.addRow=scroll.AddRow
-	return scroll
-end
-function addon:cutePrint(scroll,level,k,v)
-	if (type(level)=="table") then
-		for k,v in kpairs(level,safesort) do
-			self:cutePrint(scroll,"",k,v)
-		end
-		return
-	end
-	if (type(v)=="table") then
-		if (level:len()>6) then return end
-		self:AddRow(scroll,level..C(k,"Azure")..":" ..C("Table","Orange") .. " " .. tostring(#v))
-		for kk,vv in pairs(v) do
-			self:cutePrint(scroll,level .. "  ",kk,vv)
-		end
-	else
-		if (type(v)=="string" and v:sub(1,2)=='0x') then
-			v=v.. " " ..tostring(self:GetFollowerData(v,'name'))
-		end
-		self:AddRow(scroll,level..C(k,"White")..":" ..C(v,"Yellow"))
-	end
-end
-function addon:Dump(title,data)
-	if type(data)=="string" then
-		data=_G[data]
-	end
-	if type(data) ~= "table" then
-		print(data,"is not a table")
-		return
-	end
-	local scroll=self:GetScroller(title)
-	print("Dumping",title)
-	self:cutePrint(scroll,data)
-	return scroll
-end
---@end-do-not-package@
 if not _G.OHC then
 _G.OHC=addon
 end

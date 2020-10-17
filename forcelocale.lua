@@ -1,3 +1,3 @@
---@debug@
+--[===[@debug@
 GAME_LOCALE="itIT"
---@end-debug@
+--@end-debug@]===]

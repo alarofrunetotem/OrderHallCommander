@@ -1,7 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
---@debug@
+--[===[@debug@
 print('Loaded',__FILE__)
---@end-debug@
+--@end-debug@]===]
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -40,17 +40,17 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
-local garrisonType=LE_GARRISON_TYPE_7_0
+local followerType=Enum.GarrisonFollowerType.FollowerType_7_0
+local garrisonType=Enum.GarrisonType.Type_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAX_LEVEL=110
+local MAX_LEVEL=50
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
 
 local dprint=print
 local ddump
---@debug@
+--[===[@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
@@ -58,14 +58,12 @@ LoadAddOn("LibDebug")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
---@end-debug@
---[===[@non-debug@
+--@end-debug@]===]
+--@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
---@end-non-debug@]===]
-local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
-local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+--@end-non-debug@
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -137,7 +135,7 @@ local methods={available='GetAvailableMissions',inProgress='GetInProgressMission
 local catPool={}
 local function fillCachedMission(mission,time)
 	if not time then time=GetTime() end
-	local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
+	local _,baseXP,_,_,_,_,exhausting,enemies=addon:GetMissionInfo(mission.missionID)
 	mission.exhausting=exhausting
 	mission.baseXP=baseXP
 	mission.enemies=enemies
@@ -225,7 +223,7 @@ function module:BuildMission(missionID,followerID)
 		end
 	end
 end
---@debug@
+--[===[@debug@
 function module:GetFollower(key)
 	if (key:sub(1,2)=='0x') then
 		key="0x" .. ("0000000000000000" ..key:sub(3)):sub(-16)
@@ -237,7 +235,7 @@ function module:GetFollower(key)
 		end
 	end
 end
---@end-debug@
+--@end-debug@]===]
 local indexes={followers={},missions={}}
 local followerCache={}
 local followerCacheUpdate=GetTime()
@@ -281,7 +279,7 @@ end
 --
 local function GetFollowers()
 	if not empty(OHFFollowerList.followers) then return  OHFFollowerList.followers end
-	return G.GetFollowers(LE_FOLLOWER_TYPE_GARRISON_7_0) or emptyTable
+	return G.GetFollowers(followerType) or emptyTable
 end
 
 function module:GetFollowerData(followerID,field,defaultValue)
@@ -481,7 +479,7 @@ local mt={
 		elseif field=="elite" then
 			mission.elite = empty(mission.overmaxRewards)
 		elseif field=="baseXP" or field =="enemies" or field=="exhausting" then
-			local _,baseXP,_,_,_,_,exhausting,enemies=G.GetMissionInfo(mission.missionID)
+			local baseXP=C_Garrison.GetMissionDeploymentInfo(mission.missionID)['xp']
 			mission.baseXP=addon:todefault(baseXP,0)
 		end
 		return rawget(mission,field)
@@ -695,7 +693,7 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS()
 end
 function module:Refresh(event,...)
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
-		resources = select(2,GetCurrencyInfo(currency))
+		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
 		return
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
@@ -709,11 +707,14 @@ function module:Refresh(event,...)
 end
 function module:OnInitialized()
   LoadAddOn("Blizzard_OrderHallUI")
-	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
-	currencyName, resources, currencyTexture = GetCurrencyInfo(currency);
---@debug@
+	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType)
+	local t = C_CurrencyInfo.GetCurrencyInfo(currency)
+	currencyName=t.name 
+	resources=t.quantity 
+	currencyTexture=t.iconFileID 
+--[===[@debug@
 	print("Currency init",currencyName, resources, currencyTexture)
---@end-debug@
+--@end-debug@]===]
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()
 end
@@ -737,7 +738,7 @@ end
 --
 function addon:GetResources(refresh)
 	if refresh then
-		resources = select(2,GetCurrencyInfo(currency))
+		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
 	end
 	return resources,currencyName,currencyTexture
 end
@@ -747,9 +748,9 @@ end
 function addon:RefreshFollowers()
 	followerCache=G.GetFollowers(followerType)
 	rebuildFollowerIndex()
---@debug@
+--[===[@debug@
 	print("Followeres refreshed:",#followerCache)
---@end-debug@
+--@end-debug@]===]
 end
 function addon:GetFollowerData(...)
 	return module:GetFollowerData(...)
@@ -879,9 +880,9 @@ function addon:GetFullPermutations(dowipe)
 			end
 		end
 		table.sort(all) -- We need champions first and a predictable order
---@debug@
+--[===[@debug@
 		for x=1,1 do
---@end-debug@
+--@end-debug@]===]
 		for i=1,#all do
 			local class,id,value=strsplit('|',all[i])
 			if class=="T" then -- champions ended, troops only parties are invalid
@@ -905,9 +906,9 @@ function addon:GetFullPermutations(dowipe)
 				end
 			end
 		end
---@debug@
+--[===[@debug@
 		end
---@end-debug@
+--@end-debug@]===]
 		table.sort(fullPermutations)
 		del(all)
 		del(seen)
@@ -952,9 +953,9 @@ function addon:RefreshFollowerStatus()
 	wipe(s)
 	local followers=module:GetFollowerData()
 	if type(followers)~="table" then
-	--@debug@
+	--[===[@debug@
 		print("GetFollowerData returned",followers)
-	--@end-debug@
+	--@end-debug@]===]
 		return
 	end
 	for i=1,#followers do

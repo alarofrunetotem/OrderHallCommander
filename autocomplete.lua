@@ -1,7 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
---@debug@
+--[===[@debug@
 print('Loaded',__FILE__)
---@end-debug@
+--@end-debug@]===]
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -40,17 +40,17 @@ local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
 local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
 local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
-local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
-local garrisonType=LE_GARRISON_TYPE_7_0
+local followerType=Enum.GarrisonFollowerType.FollowerType_7_0
+local garrisonType=Enum.GarrisonType.Type_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
-local MAX_LEVEL=110
+local MAX_LEVEL=50
 
 local ShowTT=OrderHallCommanderMixin.ShowTT
 local HideTT=OrderHallCommanderMixin.HideTT
 
 local dprint=print
 local ddump
---@debug@
+--[===[@debug@
 LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 LoadAddOn("LibDebug")
@@ -58,14 +58,12 @@ LoadAddOn("LibDebug")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
---@end-debug@
---[===[@non-debug@
+--@end-debug@]===]
+--@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
---@end-non-debug@]===]
-local LE_FOLLOWER_TYPE_GARRISON_7_0=LE_FOLLOWER_TYPE_GARRISON_7_0
-local LE_GARRISON_TYPE_7_0=LE_GARRISON_TYPE_7_0
+--@end-non-debug@
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -96,7 +94,7 @@ end
 -- End Template - DO NOT MODIFY ANYTHING BEFORE THIS LINE
 --*BEGIN
 local CompleteButton=OHFMissions.CompleteDialog.BorderFrame.ViewButton
-local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
+local followerType=Enum.GarrisonFollowerType.FollowerType_7_0
 local pairs=pairs
 local format=format
 local strsplit=strsplit
@@ -115,9 +113,9 @@ end
 
 function module:GenerateMissionCompleteList(title,anchor)
 	local w=AceGUI:Create("OHCMissionsList")
---@debug@
+--[===[@debug@
 	title=format("%s %s %s",title,w.frame:GetName(),GetTime()*1000)
---@end-debug@
+--@end-debug@]===]
 	w:SetTitle(title)
 	w:SetCallback("OnClose",function(widget) return module:MissionsCleanup() end)
 	--report:SetPoint("TOPLEFT",GMFMissions.CompleteDialog.BorderFrame)
@@ -132,11 +130,11 @@ function module:GenerateMissionCompleteList(title,anchor)
 	w.frame:SetFrameStrata("HIGH")
 	return w
 end
---@debug@
+--[===[@debug@
 function addon:ShowRewards()
 	return module:GenerateMissionCompleteList("Test",UIParent)
 end
---@end-debug@
+--@end-debug@]===]
 local cappedCurrencies={
 	GARRISON_CURRENCY,
 	GARRISON_SHIP_OIL_CURRENCY
@@ -202,11 +200,11 @@ end
 function module:AutoClose()
 	if report then
 	 local rc,message=pcall(report.Close,report)
-	 --@debug@
+	 --[===[@debug@
 	 if not rc then
 	   pp("Failed closing report due to",message)
 	 end
-	 --@end-debug@
+	 --@end-debug@]===]
 	 report=nil
   end
 	pcall(OHF.CloseMissionComplete,OHF)
@@ -235,11 +233,11 @@ function module:MissionComplete(this,button,skiprescheck)
 		end
 		local message=C("WARNING",'red')
 		local wasted={}
-		--@debug@
+		--[===[@debug@
 		if _G.ONEONE then
 		  missions={missions[1]}
 		end
-		--@end-debug@
+		--@end-debug@]===]
 		for i=1,#missions do
 			for _,v in pairs(missions[i].followers) do
 				rewards.followerQLevel[v]=addon:GetFollowerData(v,'qLevel',0)
@@ -264,7 +262,7 @@ function module:MissionComplete(this,button,skiprescheck)
 		end
 		local stop
 		for id,qt in pairs(wasted) do
-			local name,current,_,_,_,cap=GetCurrencyInfo(id)
+			local name,current,_,_,_,cap=Addon:GetCurrencyInfo(id)
 			current=current+qt
 			if current+qt > cap then
 				message=message.."\n"..format(L["Capped %1$s. Spend at least %2$d of them"],name,current+qt-cap)
@@ -392,7 +390,7 @@ function module:MissionAutoComplete(event,...)
 				step=0
 				currentMission.state=0
 				currentMission.goldMultiplier=currentMission.goldMultiplier or 1
-				currentMission.xp=select(2,G.GetMissionInfo(currentMission.missionID))
+				currentMission.xp=C_Garrison.GetMissionDeploymentInfo(currentMission.missionID)['xp']
 				report:AddMissionButton(currentMission,currentMission.followers,currentMission.successChance,"report")
 			end
 			if (step==0) then
@@ -471,9 +469,9 @@ function module:MissionsPrintResults(success)
 	stopTimer()
 	local reported
 	local followers
-	--@debug@
+	--[===[@debug@
 	_G["OHCtestrewards"]=rewards
-	--@end-debug@
+	--@end-debug@]===]
 	for k,v in pairs(rewards.currencies) do
 		reported=true
 		if k == 0 then
@@ -481,7 +479,7 @@ function module:MissionsPrintResults(success)
 			report:AddIconText(v.icon,GetMoneyString(v.qt))
 		else
 			-- Other currency reward
-			report:AddIconText(v.icon,GetCurrencyLink(k,v.qt))
+			report:AddIconText(v.icon,C_CurrencyInfo.GetCurrencyLink(k,v.qt))
 		end
 	end
 	local items=new()
@@ -534,10 +532,10 @@ function module:MissionsPrintResults(success)
 	end
 	if mebefore.level < 110 then
 		fillMyStatus(meafter)
-		--@debug@
+		--[===[@debug@
 		--printMyStatus(mebefore)
 		--printMyStatus(meafter)
-		--@end-debug@
+		--@end-debug@]===]
 		local xpgain=0
 		if meafter.level>mebefore.level then
 			xpgain=mebefore.xpMax-mebefore.xp + meafter.xp
