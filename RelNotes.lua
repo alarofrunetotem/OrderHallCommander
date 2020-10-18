@@ -14,6 +14,12 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(1,8,1, [[
+Fix: Message: Interface\AddOns\OrderHallCommander\followerpage.lua:328: attempt to compare nil with number
+]])
+self:RelNotes(1,8,0, [[
+Toc: 9.0.1
+]])
 self:RelNotes(1,7,6, [[
 Toc: 8.3.0
 ]])

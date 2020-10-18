@@ -48,6 +48,9 @@ local LE_GARRISON_TYPE_6_0=Enum.GarrisonType.Type_6_0
 local LE_GARRISON_TYPE_6_2=Enum.GarrisonType.Type_6_2
 local LE_GARRISON_TYPE_7_0=Enum.GarrisonType.Type_7_0
 local LE_GARRISON_TYPE_8_0=Enum.GarrisonType.Type_8_0
+local LE_ITEM_QUALITY_RARE=Enum.ItemQuality.Rare
+local LE_ITEM_QUALITY_ARTIFACT=Enum.ItemQuality.Artifact
+local LE_ITEM_QUALITY_HEIRLOOM=Enum.ItemQuality.Heirloom
 local followerType=LE_FOLLOWER_TYPE_GARRISON_7_0
 local garrisonType=LE_GARRISON_TYPE_7_0
 local FAKE_FOLLOWERID="0x0000000000000000"
@@ -166,8 +169,8 @@ do
 			i=0
 			previous=nil
 		else
-			if i > 13 then 
-				i=0 
+			if i > 13 then
+				i=0
 				left=left + 50
 				previous=nil
 			end
@@ -188,10 +191,10 @@ do
 			previous=nil
 			return
 		else
-			if i > 12 then 
-				i=0 
+			if i > 12 then
+				i=0
 				left=left - 50
-				previous=nil 
+				previous=nil
 			end
 			previous,rendered=self:RenderButton(id,left,previous)
 			if rendered then i=i+1 end
@@ -229,7 +232,7 @@ function addon:RefreshEquipments()
           tinsert(eqCount[eq.icon],followerInfo.followerID)
         end
       end
-    end   
+    end
   end
 end
 function module:RefreshUpgrades(model,followerID,displayID,showWeapon)
