@@ -14,7 +14,7 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,8,3, [[
+self:RelNotes(1,8,4, [[
 Fix: Message: OrderHallCommander\libs\LibInit\LibInit-60.lua:46: unexpected symbol near ']'
 ]])
 self:RelNotes(1,8,2, [[
