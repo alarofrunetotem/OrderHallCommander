@@ -487,7 +487,7 @@ function module:MissionsPrintResults(success)
 			report:AddIconText(v.icon,GetMoneyString(v.qt))
 		else
 			-- Other currency reward
-			report:AddIconText(v.icon,GetCurrencyLink(k,v.qt))
+			report:AddIconText(v.icon,C_CurrencyInfo.GetCurrencyLink(k,v.qt))
 		end
 	end
 	local items=new()
