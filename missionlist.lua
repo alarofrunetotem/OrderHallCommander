@@ -910,8 +910,8 @@ function module:AdjustMissionButton(frame)
 		stats:SetPoint("LEFT",48,14)
 		stats.Expire:Hide()
 	else
-		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining)
-		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime))
+		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining or G_UNKNOWN)
+		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime or 0))
 		stats:SetPoint("LEFT",48,0)
 		stats.Expire:Show()
 	end
