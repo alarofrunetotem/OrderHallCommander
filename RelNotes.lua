@@ -14,7 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,8,6, [[
+self:RelNotes(1,8,7, [[
+Fix: There was a typo im the fix, now lua error in mission list is gone. Sure. No doubt. Gnomish engineering quality grade
+]])self:RelNotes(1,8,6, [[
 Fix: lua error in mission list
 ]])
 self:RelNotes(1,8,5, [[
