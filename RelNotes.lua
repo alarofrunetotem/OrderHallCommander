@@ -14,7 +14,7 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
-self:RelNotes(1,8,7, [[
+self:RelNotes(1,9,1, [[
 Fix: Message: Interface\AddOns\OrderHallCommander\cache.lua:901: attempt to compare number with nil
 ]])
 self:RelNotes(1,9,0, [[
