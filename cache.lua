@@ -538,7 +538,6 @@ local TroopsHeader
 function module:GetTroopsFrame()
 	if not TroopsHeader then
 		local frame=CreateFrame("Frame",nil,OrderHallMissionFrame,"TooltipBorderedFrameTemplate")
-		frame.Background:Hide()
 		frame.Top=frame:CreateTexture(nil,"BACKGROUND",nil,-1)
 		frame.Top:SetPoint("TOPLEFT")
 		frame.Top:SetPoint("BOTTOMRIGHT")
