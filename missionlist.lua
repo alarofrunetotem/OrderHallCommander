@@ -38,8 +38,7 @@ local OHFFollowers=OrderHallMissionFrameFollowers -- Contains scroll list
 local OHFMissionPage=OrderHallMissionFrame.MissionTab.MissionPage -- Contains mission description and party setup
 local OHFMapTab=OrderHallMissionFrame.MapTab -- Contains quest map
 local OHFCompleteDialog=OrderHallMissionFrameMissions.CompleteDialog
-local OHFMissionScroll=OrderHallMissionFrameMissionsListScrollFrame
-local OHFMissionScrollChild=OrderHallMissionFrameMissionsListScrollFrameScrollChild
+local OHFMissionScroll=OrderHallMissionFrameMissions.ScrollBox
 local LE_FOLLOWER_TYPE_GARRISON_6_0=Enum.GarrisonFollowerType.FollowerType_6_0
 local LE_FOLLOWER_TYPE_SHIPYARD_6_2=Enum.GarrisonFollowerType.FollowerType_6_2
 local LE_FOLLOWER_TYPE_GARRISON_7_0=Enum.GarrisonFollowerType.FollowerType_7_0
@@ -72,6 +71,11 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+
+local function GetRGB(r, g, b, whatever)
+	return r, g, b
+end
+
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -135,7 +139,6 @@ local Current_Sorter
 local Second_Sorter
 local sortKeys={}
 local MAX=999999999
-local OHFButtons=OHFMissions.listScroll.buttons
 local clean
 local displayClean
 local function GetPerc(mission,realvalue)
@@ -267,9 +270,8 @@ function module:Events()
 	addon:RegisterEvent("SHIPMENT_CRAFTER_CLOSED","SetDirtyFlags")
 end
 function module:LoadButtons(...)
-	local buttonlist=OHFMissions.listScroll.buttons
-	for i=1,#buttonlist do
-		local b=buttonlist[i]
+	local scrollBox = OHFMissions.ScrollBox
+	scrollBox:ForEachFrame(function(b, elementData)
 		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
 		self:SecureHookScript(b,"OnLeave","SafeAddMembers")
 		self:RawHookScript(b,"OnClick","RawMissionClick")
@@ -281,7 +283,7 @@ function module:LoadButtons(...)
 		b.Summary:SetFont(f,h*scale,s)
 		self:SecureHookScript(b.Rewards[1],"OnMouseUp","PrintLink")
 		self:SecureHookScript(b.Rewards[1],"OnEnter","RewardWarning")
-	end
+	end)
 end
 function addon:SetDirtyFlags(event,missionType,missionID,...)
 	if event=="GARRISON_MISSION_LIST_UPDATE"
@@ -584,10 +586,11 @@ end
 function addon:RedrawMissions()
   addon:RunRefreshers()
   addon:SortTroop()
-  for i=1,#OHFButtons do
-    local frame=OHFButtons[i]
+
+  local scrollBox = OHFMissions.ScrollBox
+  scrollBox:ForEachFrame(function(frame, elementData)
     module:OnSingleUpdate(frame)
-  end
+  end)
   return module:CheckShadow()
 end
 local function ToggleSet(this,value)
@@ -620,7 +623,7 @@ function module:NoMartiniNoParty(text)
 	if not warner then
 		warner=CreateFrame("Frame","OHCWarner",OHFMissions,BackdropTemplateMixin and "BackdropTemplate")
 		warner.label=warner:CreateFontString(nil,"OVERLAY","GameFontNormalHuge3Outline")
-		warner.label:SetTextColor(C:Orange())
+		warner.label:SetTextColor(GetRGB(C:Orange()))
 		warner:SetAllPoints()
 		warner.label:SetHeight(100)
 		warner.label:SetPoint("CENTER")
@@ -662,7 +665,7 @@ function module:Menu(flag)
 --  menu:SetPoint("TOPLEFT",OHFMissionTab,"TOPRIGHT",0,30)
 --  menu:SetPoint("BOTTOMLEFT",OHFMissionTab,"BOTTOMRIGHT",0,0)
   menu.Title:SetText('OHC ' .. addon.version)
-  menu.Title:SetTextColor(C:Yellow())
+  menu.Title:SetTextColor(GetRGB(C:Yellow()))
   menu.Close:SetScript("OnClick",CloseMenu)
   menu.Tutorial:RegisterForClicks("LeftButtonUp","RightButtonUp")
   addon:RawHookScript(menu.Tutorial,"OnClick",function(this,button)  if button=="LeftButton" then addon:ShowTutorial() else addon:GetTutorialsModule():Home() end end)
@@ -860,7 +863,7 @@ function module:AdjustPosition(frame)
 	if mission.isRare then
 		frame.Title:SetTextColor(frame.RareText:GetTextColor())
 	else
-		frame.Title:SetTextColor(C:White())
+		frame.Title:SetTextColor(GetRGB(C:White()))
 	end
 	frame.RareText:Hide()
 	-- Compacting mission time and level
@@ -901,17 +904,17 @@ function module:AdjustMissionButton(frame)
 	local aLevel,aIlevel=addon:GetAverageLevels()
 	if mission.isMaxLevel then
 		frame.Level:SetText(mission.iLevel)
-		frame.Level:SetTextColor(addon:GetDifficultyColors(math.floor((aIlevel-750)/(mission.iLevel-750)*100)))
+		frame.Level:SetTextColor(GetRGB(addon:GetDifficultyColors(math.floor((aIlevel-750)/(mission.iLevel-750)*100))))
 	else
 		frame.Level:SetText(mission.level)
-		frame.Level:SetTextColor(addon:GetDifficultyColors(math.floor(aLevel/mission.level*100)))
+		frame.Level:SetTextColor(GetRGB(addon:GetDifficultyColors(math.floor(aLevel/mission.level*100))))
 	end
 	if mission.inProgress then
 		stats:SetPoint("LEFT",48,14)
 		stats.Expire:Hide()
 	else
 		stats.Expire:SetFormattedText("%s\n%s",GARRISON_MISSION_AVAILABILITY,mission.offerTimeRemaining or _G.UNKNOWN)
-		stats.Expire:SetTextColor(addon:GetAgeColor(mission.offerEndTime or 0))
+		stats.Expire:SetTextColor(GetRGB(addon:GetAgeColor(mission.offerEndTime or 0)))
 		stats:SetPoint("LEFT",48,0)
 		stats.Expire:Show()
 	end
@@ -934,11 +937,11 @@ function module:Dim(frame)
 		frame.Title:SetTextColor(0,0,0)
 		frame.Overlay:Show()
 		frame.Overlay:SetFrameLevel(10)
-		frame.Level:SetTextColor(C.Grey())
-		frame.Summary:SetTextColor(C.Grey())
+		frame.Level:SetTextColor(GetRGB(C.Grey()))
+		frame.Summary:SetTextColor(GetRGB(C.Grey()))
 		local stats=missionstats[frame]
 		if stats then
-			stats.Chance:SetTextColor(C.Grey())
+			stats.Chance:SetTextColor(GetRGB(C.Grey()))
 		end
 		local members=missionmembers[frame]
 		if members then
@@ -1001,7 +1004,7 @@ function module:AddMembers(frame)
 		threats:Hide()
 		local perc=select(4,G.GetPartyMissionInfo(missionID))
 		stats.Chance:SetFormattedText(PERCENTAGE_STRING,perc)
-		stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
+		stats.Chance:SetTextColor(GetRGB(addon:GetDifficultyColors(perc,true)))
 		return
 	end
 	local lastkey=missionKEYS[missionID]
@@ -1033,14 +1036,14 @@ function module:AddMembers(frame)
 	end
 	local perc=party.perc or 0
 	stats.Chance:SetFormattedText(ps,perc)
-	stats.Chance:SetTextColor(addon:GetDifficultyColors(perc,true))
+	stats.Chance:SetTextColor(GetRGB(addon:GetDifficultyColors(perc,true)))
 	missionKEYS[missionID]=key
 	local emptymarker=UNUSED
 	for i=1,mission.numFollowers do
 		if party:Follower(i) then
 		  missionNonFilled=false
       if select(2,members.Champions[i]:SetFollower(party:Follower(i),true)) then
-				stats.Chance:SetTextColor(C.Grey())
+				stats.Chance:SetTextColor(GetRGB(C.Grey()))
 			end
 		else
 			if i==1 then emptymarker = nil end
@@ -1149,9 +1152,9 @@ function module:AddThreats(frame,threats,party,missionID)
 	threats.Cost:SetFormattedText(addon.resourceFormat,cost)
 	local color=goodColor(cost>=r)
 	if cost>r then
-		threats.Cost:SetTextColor(C:Red())
+		threats.Cost:SetTextColor(GetRGB(C:Red()))
 	else
-		threats.Cost:SetTextColor(C:Green())
+		threats.Cost:SetTextColor(GetRGB(C:Green()))
 	end
 	threats.Cost:ClearAllPoints()
 	threats.Cost:SetPoint("LEFT",frame.Summary,"RIGHT",5,0)

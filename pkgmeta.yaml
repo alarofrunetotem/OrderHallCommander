@@ -1,4 +1,4 @@
-package-as: OrderHallCommander
+package-as: OrderHallCommanderRedux
 enable-nolib-creation: no
 
 externals:

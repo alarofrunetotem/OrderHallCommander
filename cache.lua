@@ -72,6 +72,11 @@ dprint=function() end
 ddump=function() end
 local print=function() end
 --@end-non-debug@]===]
+
+local function GetRGB(r, g, b, whatever)
+	return r, g, b
+end
+
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -538,7 +543,9 @@ local TroopsHeader
 function module:GetTroopsFrame()
 	if not TroopsHeader then
 		local frame=CreateFrame("Frame",nil,OrderHallMissionFrame,"TooltipBorderedFrameTemplate")
-		frame.Background:Hide()
+		if frame.Background then
+			frame.Background:Hide()
+		end
 		frame.Top=frame:CreateTexture(nil,"BACKGROUND",nil,-1)
 		frame.Top:SetPoint("TOPLEFT")
 		frame.Top:SetPoint("BOTTOMRIGHT")
@@ -564,10 +571,10 @@ function module:ParseFollowers()
 end
 local function paintCat(frame)
   if addon:GetBoolean(frame.key) then
-    frame.Count:SetTextColor(C.red())
+    frame.Count:SetTextColor(GetRGB(C.red()))
     frame.Icon:SetDesaturated(true)
   else
-    frame.Count:SetTextColor(C.green())
+    frame.Count:SetTextColor(GetRGB(C.green()))
     frame.Icon:SetDesaturated(false)
   end
 end
