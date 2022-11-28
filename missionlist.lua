@@ -135,7 +135,7 @@ local Current_Sorter
 local Second_Sorter
 local sortKeys={}
 local MAX=999999999
-local OHFButtons=OHFMissions.listScroll.buttons
+local OHFButtons=OHFMissions.ScrollBox
 local clean
 local displayClean
 local function GetPerc(mission,realvalue)
@@ -267,9 +267,9 @@ function module:Events()
 	addon:RegisterEvent("SHIPMENT_CRAFTER_CLOSED","SetDirtyFlags")
 end
 function module:LoadButtons(...)
-	local buttonlist=OHFMissions.listScroll.buttons
-	for i=1,#buttonlist do
-		local b=buttonlist[i]
+  dprint("OPS")
+	for _,b in OHFButtons:EnumerateFrames() do
+    dprint(b)
 		self:SecureHookScript(b,"OnEnter","AdjustMissionTooltip")
 		self:SecureHookScript(b,"OnLeave","SafeAddMembers")
 		self:RawHookScript(b,"OnClick","RawMissionClick")
@@ -584,8 +584,7 @@ end
 function addon:RedrawMissions()
   addon:RunRefreshers()
   addon:SortTroop()
-  for i=1,#OHFButtons do
-    local frame=OHFButtons[i]
+  for _,frame in OHFButtons:EnumerateFrames() do
     module:OnSingleUpdate(frame)
   end
   return module:CheckShadow()
@@ -702,7 +701,7 @@ function addon:UpdateStop(n)
 	stopper:RawHookScript(OrderHallMissionFrameMissions,"OnUpdate",GarrisonMissionListMixin.OnUpdate)
 end
 function module:OptionsButton()
-  local level=OHFMissionScroll:GetFrameLevel()+5
+  local level=OHFButtons:GetFrameLevel()+5
   local h=-150
   local option1=addon:GetFactory():Button(OHFMissionScroll,
   L["Quick start first mission"],

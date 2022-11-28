@@ -103,7 +103,7 @@ end
 --*BEGIN
 local BFAMissionFrame=BFAMissionFrame
 local tutorialVersion=1
-local OHFButtons=OHFMissions.listScroll.buttons
+local OHFButtons=OHFMissions.ScrollBox
 local HelpPlate_TooltipHide=HelpPlate_TooltipHide
 local HelpPlateTooltip=HelpPlateTooltip
 local platestrata = HelpPlateTooltip:GetFrameStrata()
