@@ -14,7 +14,7 @@
 			</OnEnter>
 		</Scripts>
 	</Button>
-	<Button name="OHCMissionButton" inherits="OrderHallMissionListButtonTemplate" virtual="true">
+	<Button name="OHCMissionButton" inherits="GarrisonMissionListButtonTemplate" virtual="true">
 		<Size x="832" y="75"/>
 		<KeyValues>
 			<KeyValue key="IsCustom" value="true" type="boolean"/>
