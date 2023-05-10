@@ -82,7 +82,6 @@ if not ViragDevTool_AddData then ViragDevTool_AddData=function() end end
 local KEY_BUTTON1 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
 local KEY_BUTTON2 = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
 local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
-local CTRL_KEY_TEXT,SHIFT_KEY_TEXT=CTRL_KEY_TEXT,SHIFT_KEY_TEXT
 local CTRL_SHIFT_KEY_TEXT=CTRL_KEY_TEXT .. '-' ..SHIFT_KEY_TEXT
 local format,pcall=format,pcall
 local function safeformat(mask,...)
@@ -112,6 +111,21 @@ local X=L
 local currentTutorialIndex
 local fcolor="Yellow"
 local ncolor="Green"
+
+local function GetButton(i)
+    i=i or 1
+    _G.print(" tutorials Scorro",OHFButtons)
+    for i,u in pairs(OHFButtons) do
+      if i == "EnumerateFrames" then
+        _G.print(i,"esiste")
+        
+      end
+    end
+
+    for k,frame in OHFButtons:EnumerateFrames() do
+      if k>=i then return frame end
+    end
+end
 local missingMessage=L["A requested window is not open\nTutorial will resume as soon as possible"]
 local tutorials
 tutorials={
@@ -193,7 +207,7 @@ tutorials={
   {
     back=1,
     text=L["You can blacklist missions right clicking mission button.\nSince 1.5.1 you can start a mission witout passing from mission page shift-clicking the mission button.\nBe sure you liked the party because no confirmation is asked"],
-    parent=function() return OHFButtons[1] end,
+    parent=function() return GetButton(1) end,
     anchor="TOP",
     onmissing=missingMessage,
   },
@@ -201,7 +215,7 @@ tutorials={
     back=2,
     text='Followers can be "locked" to a specific mission.\nWhen you lock a follower, he will not used for any other mission\nLocking follower around is a way to optimize your setup, you can keep locking and unlocking followers to different missions to achieve the best overall combination',
     anchor="TOP",
-    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[1] end end,
+    parent=function() local f=addon:GetMembersFrame(GetButton(1)) if f then return f.Champions[1] end end,
     level=-1,
     onmissing=missingMessage,
   },
@@ -209,10 +223,11 @@ tutorials={
     back=3,
     text=L['Slots (non the follower in it but just the slot) can be banned.\nWhen you ban a slot, that slot will not be filled for that mission.\nExploiting the fact that troops are always in the leftmost slot(s) you can achieve a nice degree of custom tailoring, reducing the overall number of followers used for a mission'],
     anchor="TOP",
-    parent=function() local f=addon:GetMembersFrame(OHFButtons[1]) if f then return f.Champions[3] or f.Champions[2] or f.Champions[1] end end,
+    parent=function() local f=addon:GetMembersFrame(GetButton(1)) if f then return f.Champions[3] or f.Champions[2] or f.Champions[1] end end,
     level=-1,
     onmissing=missingMessage,
   },
+  --[[
   {
     text="When you have locked some followers to missions, you can start the mission without going to the mission page.\nShift-Clicking this button will scan missions from top to bottom (so, sort order IS important) and start the first one with at least one locked follower",
     parent=function() return module:GetMenuItem("BUTTON1") end,
@@ -234,12 +249,11 @@ tutorials={
     level=-1,
     onmissing=missingMessage,
   },
-  --[[
   {
     back=1,
     action=function()
-      if OHFButtons[1] then
-        addon:GetMissionlistModule():RawMissionClick(OHFButtons[1],"LeftButton")
+      if GetButton(1) then
+        addon:GetMissionlistModule():RawMissionClick(GetButton(1),"LeftButton")
       end
     end,
     anchor="TOP",
