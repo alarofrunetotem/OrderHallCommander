@@ -582,12 +582,14 @@ end
 function addon:RedrawMissions()
   addon:RunRefreshers()
   addon:SortTroop()
+  --[=====[
   _G.print("missionlist Scorro",OHFButtons)
   for i,u in pairs(OHFButtons) do
     if i == "EnumerateFrames" then
     _G.print(i,"esiste")
     end
   end
+  --]=====]
   for _,frame in OHFButtons:EnumerateFrames() do
     module:OnSingleUpdate(frame)
   end
