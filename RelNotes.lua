@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(2,2,0, [[
+toc: 10.2.6    
+]])
 self:RelNotes(1,12,2, [[
 Fix: Removed chat spam
 ]])
