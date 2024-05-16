@@ -2,4 +2,5 @@
 *.saved
 /proofofconcept.lua
 .*
+!.github/
 /_build/

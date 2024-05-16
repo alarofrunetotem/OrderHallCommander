@@ -23,6 +23,7 @@ jobs:
     env:
       CF_API_KEY: ${{ secrets.CF_API_KEY }}
       WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}  # "GITHUB_TOKEN" is a secret always provided to the workflow
                                                  # for your own token, the name cannot start with "GITHUB_"
 
@@ -31,15 +32,10 @@ jobs:
 
       # we first have to clone the AddOn project, this is a required step
       - name: Clone project
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
-          # you can specify how much of the commit history you want to fetch,
-          # which is useful for controlling the length of the automated changelog
-          fetch-depth: 1
+          fetch-depth: 0  # gets entire git history, needed for automatic changelogs
 
-      # another example where we supply additional arguments, this example is specifically to release
-      # for the Classic version of the game
-      - name: Upload to WOWUI
-        uses: BigWigsMods/packager@master
-        with:
-          args: -L
+      # once cloned, we just run the GitHub Action for the packager project
+      - name: Package and release
+        uses: BigWigsMods/packager@v2
