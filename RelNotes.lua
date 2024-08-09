@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(2,4,0,[[
+Toc: Update for 11.0.2, 11.0.0
+]])
 self:RelNotes(2,3,2,[[
 Toc: Update for 10.2.7
 Fix: Lua Error about SetJustifyV
