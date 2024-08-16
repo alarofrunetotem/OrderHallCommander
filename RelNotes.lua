@@ -14,6 +14,9 @@ self:Wiki([[
 == Silent mode ==
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
+self:RelNotes(2,4,1,[[
+Library update
+]])
 self:RelNotes(2,4,0,[[
 Toc: Update for 11.0.2, 11.0.0
 ]])
