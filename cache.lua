@@ -701,7 +701,9 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS()
 end
 function module:Refresh(event,...)
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
-		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
+		if currency then
+			resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
+		end
 		return
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
@@ -714,11 +716,14 @@ function module:Refresh(event,...)
 	end
 end
 function module:OnInitialized()
-	  LoadAddOn("Blizzard_OrderHallUI")
+	--  LoadAddOn("Blizzard_OrderHallUI")
+	C_AddOns.LoadAddOn("Blizzard_OrderHallUI")
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
-	currencyName, resources, currencyTexture = addon:GetCurrencyInfo(currency)
+	if currency then
+		currencyName, resources, currencyTexture = addon:GetCurrencyInfo(currency)
 --@debug@
-	print("Currency init",currencyName, resources, currencyTexture)
+		print("Currency init",currencyName, resources, currencyTexture)
+	end
 --@end-debug@
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()
@@ -742,7 +747,7 @@ end
 ---- Public Interface
 --
 function addon:GetResources(refresh)
-	if refresh then
+	if refresh and currency then
 		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
 	end
 	return resources,currencyName,currencyTexture
