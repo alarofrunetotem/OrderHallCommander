@@ -716,8 +716,7 @@ function module:Refresh(event,...)
 	end
 end
 function module:OnInitialized()
-	--  C_AddOns.LoadAddOn("Blizzard_OrderHallUI")
-	C_AddOns.C_AddOns.LoadAddOn("Blizzard_OrderHallUI")
+	C_AddOns.LoadAddOn("Blizzard_OrderHallUI")
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
 	if currency then
 		currencyName, resources, currencyTexture = addon:GetCurrencyInfo(currency)
