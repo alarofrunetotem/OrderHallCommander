@@ -1,0 +1,869 @@
+{
+    "NOTES": {
+        "k020401": {
+            "major": "2",
+            "minor": "4",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Library update"
+                }
+            ]
+        },
+        "k020400": {
+            "major": "2",
+            "minor": "4",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "Update for 11.0.2, 11.0.0"
+                }
+            ]
+        },
+        "k020302": {
+            "major": "2",
+            "minor": "3",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "Update for 10.2.7"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Lua Error about SetJustifyV"
+                }
+            ]
+        },
+        "k020200": {
+            "major": "2",
+            "minor": "2",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "toc",
+                    "info": "10.2.6"
+                }
+            ]
+        },
+        "k011202": {
+            "major": "1",
+            "minor": "12",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Removed chat spam"
+                }
+            ]
+        },
+        "k010901": {
+            "major": "1",
+            "minor": "9",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Message"
+                }
+            ]
+        },
+        "k010900": {
+            "major": "1",
+            "minor": "9",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "bump"
+                }
+            ]
+        },
+        "k010807": {
+            "major": "1",
+            "minor": "8",
+            "patch": "7",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "There was a typo im the fix, now lua error in mission list is gone. Sure. No doubt. Gnomish engineering quality grade"
+                }
+            ]
+        },
+        "k010806": {
+            "major": "1",
+            "minor": "8",
+            "patch": "6",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "lua error in mission list"
+                }
+            ]
+        },
+        "k010805": {
+            "major": "1",
+            "minor": "8",
+            "patch": "5",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "9.0.2"
+                }
+            ]
+        },
+        "k010804": {
+            "major": "1",
+            "minor": "8",
+            "patch": "4",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Message"
+                }
+            ]
+        },
+        "k010802": {
+            "major": "1",
+            "minor": "8",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Message"
+                }
+            ]
+        },
+        "k010801": {
+            "major": "1",
+            "minor": "8",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Message"
+                }
+            ]
+        },
+        "k010800": {
+            "major": "1",
+            "minor": "8",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "9.0.1"
+                }
+            ]
+        },
+        "k010706": {
+            "major": "1",
+            "minor": "7",
+            "patch": "6",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "8.3.0"
+                }
+            ]
+        },
+        "k010705": {
+            "major": "1",
+            "minor": "7",
+            "patch": "5",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "8.2.5"
+                }
+            ]
+        },
+        "k010704": {
+            "major": "1",
+            "minor": "7",
+            "patch": "4",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "8.2"
+                }
+            ]
+        },
+        "k010703": {
+            "major": "1",
+            "minor": "7",
+            "patch": "3",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Null error for tooltips on Followers #1"
+                }
+            ]
+        },
+        "k010702": {
+            "major": "1",
+            "minor": "7",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "OrderHallCommander\\tutorials.lua"
+                }
+            ]
+        },
+        "k010701": {
+            "major": "1",
+            "minor": "7",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Removed \"OrderHallCommander"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "ChampionCommander banner should now appear a maximum of 3 times"
+                }
+            ]
+        },
+        "k010700": {
+            "major": "1",
+            "minor": "7",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "When viewing a mission you can now see all available parties clicking \"Analyze\""
+                },
+                {
+                    "tag": "Feature",
+                    "info": "To manage BFA Missions, please install MissionCommander"
+                }
+            ]
+        },
+        "k010600": {
+            "major": "1",
+            "minor": "6",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "fully working under Battle for Azeroth"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "error in autocomplete.lua line 484"
+                }
+            ]
+        },
+        "k010514": {
+            "major": "1",
+            "minor": "5",
+            "patch": "14",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "added Earthen Mark for Shamans"
+                }
+            ]
+        },
+        "k010513": {
+            "major": "1",
+            "minor": "5",
+            "patch": "13",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "lua error when both sorts were on \"Original method\" Thanks to Septh for noting it"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "added Squires'Oath for paladins"
+                }
+            ]
+        },
+        "k010511": {
+            "major": "1",
+            "minor": "5",
+            "patch": "11",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Second sort was not working if not changed at least once in the current session"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Via Options now you can disable right click for blacklisting (Sponsorized by Katmandu)"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Removes Alpha warning (was due to a curse packager bug)"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#153 now closing mission panel with ESC also closes all OHC windows"
+                }
+            ]
+        },
+        "k010510": {
+            "major": "1",
+            "minor": "5",
+            "patch": "10",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Added a second level sort criteria"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "LeftSide Icon are now updates as soon as mission table appears"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Added itemid 140931 (Bandit wanted poster) to quick buttons"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "For reputation rewards, your current reputation with the related faction is shown"
+                }
+            ]
+        },
+        "k010509": {
+            "major": "1",
+            "minor": "5",
+            "patch": "9",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "added more items to side bar"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "removed from followerpage and moved to sidebar some items which doesnt need to be cast on a follower"
+                }
+            ]
+        },
+        "k010508": {
+            "major": "1",
+            "minor": "5",
+            "patch": "8",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "1x OrderHallCommander\\missionlist.lua"
+                }
+            ]
+        },
+        "k010507": {
+            "major": "1",
+            "minor": "5",
+            "patch": "7",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "#136 (and others) Lua error"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#137 Removed chat spam"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Class specific troop generating items added. Let me know if your class has issue"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Total xp are now shown as \"xp x followers\", so you can better compare missions (feature request #97)"
+                }
+            ]
+        },
+        "k010506": {
+            "major": "1",
+            "minor": "5",
+            "patch": "6",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "#135 Using champion equipment causes the game to hang"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#117 Sometimes \"in progress\" mission were shown without followers"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Removed chat spam"
+                }
+            ]
+        },
+        "k010505": {
+            "major": "1",
+            "minor": "5",
+            "patch": "5",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Base chance can be now set up to 120% to allow for a bit of overcapping"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "New Elite Overcap switch to force elites mission to always stay over 100%, if possibile"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can restore shift-click to send a single mission from mission list"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Reset button was not working"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "You can again change switches while viewing the mission page"
+                }
+            ]
+        },
+        "k010500": {
+            "major": "1",
+            "minor": "5",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Left Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Right clicking a follower slot forbids using it, so you can force OHC to use less follower for a specific mission. Usable only on the leftmost slot"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Autostart. Mission can be launched whith just one click via the \"Quick start mission button\". The first mission in the list is started."
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Blacklisted missions or missions which are aunder the \"Absolute Minimum Chance\" value are not autolaunched"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can now set a minimum success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can now set a minimum bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "For troops, durability is shown in the mission button icon"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Reorganized troops' related switches"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can now choose if OHC prefers low or high durability troops"
+                },
+                {
+                    "tag": "Feature",
+                    "info": ""
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#68 Initial lag when opening panels should be gone or at least greatly reduced. YMV"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#65 Errors from ACE when rapidly changing sliders"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#66 Not using less than 3 units total"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#80 Krokul troops should be used more rarely"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#78 Ignore busy follower will be checked by defaults for new installs"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#86 Added mising equipments"
+                },
+                {
+                    "tag": "Feature",
+                    "info": ""
+                },
+                {
+                    "tag": "Note",
+                    "info": "fixes to errors only appeared during beta testing are not listed"
+                }
+            ]
+        },
+        "k010504": {
+            "major": "1",
+            "minor": "5",
+            "patch": "4",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "#120 Starting mission from list now requires ctrl-shift"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "#124 Moved action buttons to a safer spot"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#127 Side menu didnt stay closed"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#121 Window is now draggable even by the troop status bar"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#123 Sorting should now be more responsive to config changes"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#119 Bad display when more than 5 types of troops (really!) Tested up to 10 troops"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Side menu no longer get reopened at each start"
+                }
+            ]
+        },
+        "k010503": {
+            "major": "1",
+            "minor": "5",
+            "patch": "3",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "you can now disable a troop type clicking its icon in the OHC troop bar"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Maximize xp was ignoring cap"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#119 Bad display when more than 5 types of troops"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#109 Future mission were missing in tooltip"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#118 Troops with random abilities should now be considered"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#99 Caused by same issue of 118, should be fixed"
+                }
+            ]
+        },
+        "k010502": {
+            "major": "1",
+            "minor": "5",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "#108 Ignored\/Blacklisted missions aren't sorted at the bottom since 1.5.1"
+                }
+            ]
+        },
+        "k010501": {
+            "major": "1",
+            "minor": "5",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Added an (hopefully) nice tutorial"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Threat icons in missions panel are now consistent with the ones in mission page"
+                }
+            ]
+        },
+        "k010400": {
+            "major": "1",
+            "minor": "4",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "You can now deactivate the Not enough champions warning"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Item level in upgrade items is now more evident"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Equipped items are now quality colored"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Elite mission were not identified the right way"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#59 When changing switches while mission page was shown, selection was not updated"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#59 Mission report is now also closed when you use esc to close mission panel"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#60 Future parties now dont include compab ally if \"Use combat ally\" is not checked"
+                }
+            ]
+        },
+        "k010300": {
+            "major": "1",
+            "minor": "3",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "updates time duration with the actual time duration with the selected party and colors it (green if better, red if worse)"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "if mission is maxed, no longer fills it (mission can be sent with less than 3 followers)"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "tries to use cheaper troops when available"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Elite mission chance is now computed the right way"
+                }
+            ]
+        },
+        "k010202": {
+            "major": "1",
+            "minor": "2",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "#44 Error when changing options on send mission page"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#47 Troops shipment not appearing on panel loading"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Not enough champions warning was appearing way too often"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "\"Better party available\" tooltip improvement, now also lists party composition"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Removes an incompatibility with AuroraUI"
+                }
+            ]
+        },
+        "k010201": {
+            "major": "1",
+            "minor": "2",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "#43 Added missing consumable items"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#41 Consumables are now always shown"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#39 Removed usage of Blizzard UIDropDown in order to avoid random taint"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "#40 Missions blacklisting available"
+                }
+            ]
+        },
+        "k010103": {
+            "major": "1",
+            "minor": "1",
+            "patch": "3",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "#35 Now manages new champions ilevel upgrade token"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "#30 added option to sort unfilled missions as last"
+                }
+            ]
+        },
+        "k010102": {
+            "major": "1",
+            "minor": "1",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Toc bump"
+                }
+            ]
+        },
+        "k010101": {
+            "major": "1",
+            "minor": "1",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Save troops honored (https"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "restored future missions in tooltip"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "improved kill troop information, now the skull is green if klll troops is in effect but used troops only have 1 durability left"
+                }
+            ]
+        },
+        "k010100": {
+            "major": "1",
+            "minor": "1",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "All cache error should be gone"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "new Don't use troops switch"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Separate state rcap for Champions and Troops"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "you can decide if show busy or even inactive followers"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "shift click on reward prints wowhead link in chat"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "added icon to show active bonus and malus in mission buttons"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "added an informative message when the options you checked lead to not being able to fill missions"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Healing Stream Totem is now considered as upgrade"
+                }
+            ]
+        },
+        "k000204": {
+            "major": "0",
+            "minor": "2",
+            "patch": "4",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "lua errors in matchmaker.lua"
+                }
+            ]
+        },
+        "k000200": {
+            "major": "0",
+            "minor": "2",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "sometimes cache was not refresh after completing missions,leaving al missions unpopulated"
+                }
+            ]
+        },
+        "k000101": {
+            "major": "0",
+            "minor": "1",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Checks we actually cached a follower before removing it from cache"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "one follower missions where not supported"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Countered spells are now always marked"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "new options for party selection"
+                }
+            ]
+        },
+        "k000100": {
+            "major": "0",
+            "minor": "1",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "First release"
+                }
+            ]
+        }
+    },
+    "PARAGRAPHS": [
+        "Description"
+    ],
+    "TITLE": {
+        "addon": "me",
+        "title": "RELNOTES"
+    },
+    "WIKI": [
+        "= OrderHallCommander helps you when choosing the right follower for the right mission =",
+        "== General enhancements ==",
+        "* Mission panel is movable (position not saved, it's jus to see things, panel is so huge...)",
+        "* Success chance extimation shown in mission list (optionally considering only available followers)",
+        "* Proposed party buttons and mission autofill",
+        "* \"What if\" switches to change party composition based on criteria",
+        "== Silent mode ==",
+        "typing \/ohc silent in chat will eliminate every chat message from OrderHallCommander"
+    ]
+}
