@@ -54,9 +54,9 @@ local MAX_LEVEL=110
 local dprint=print
 local ddump
 --@debug@
-LoadAddOn("Blizzard_DebugTools")
+C_AddOns.LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
-LoadAddOn("LibDebug")
+C_AddOns.LoadAddOn("LibDebug")
 -- Addon Build, we need to create globals the easy way
 local function encapsulate()
 if LibDebug then LibDebug() dprint=print end

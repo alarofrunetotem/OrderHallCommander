@@ -42,9 +42,9 @@ local HideTT=OrderHallCommanderMixin.HideTT
 local dprint=print
 local ddump
 --@debug@
-LoadAddOn("Blizzard_DebugTools")
+C_AddOns.LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
-LoadAddOn("LibDebug")
+C_AddOns.LoadAddOn("LibDebug")
 --*if-non-addon*
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
