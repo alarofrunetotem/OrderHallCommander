@@ -1,5 +1,27 @@
 {
     "NOTES": {
+        "k020501": {
+            "major": "2",
+            "minor": "5",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "11.0.7"
+                }
+            ]
+        },
+        "k020500": {
+            "major": "2",
+            "minor": "5",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Removed deprecated functions usage"
+                }
+            ]
+        },
         "k020401": {
             "major": "2",
             "minor": "4",
@@ -425,89 +447,6 @@
                 }
             ]
         },
-        "k010500": {
-            "major": "1",
-            "minor": "5",
-            "patch": "0",
-            "description": [
-                {
-                    "tag": "Feature",
-                    "info": "Left Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Right clicking a follower slot forbids using it, so you can force OHC to use less follower for a specific mission. Usable only on the leftmost slot"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Autostart. Mission can be launched whith just one click via the \"Quick start mission button\". The first mission in the list is started."
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Blacklisted missions or missions which are aunder the \"Absolute Minimum Chance\" value are not autolaunched"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "You can now set a minimum success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "You can now set a minimum bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "For troops, durability is shown in the mission button icon"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Reorganized troops' related switches"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "You can now choose if OHC prefers low or high durability troops"
-                },
-                {
-                    "tag": "Feature",
-                    "info": ""
-                },
-                {
-                    "tag": "Fix",
-                    "info": "#68 Initial lag when opening panels should be gone or at least greatly reduced. YMV"
-                },
-                {
-                    "tag": "Fix",
-                    "info": "#65 Errors from ACE when rapidly changing sliders"
-                },
-                {
-                    "tag": "Fix",
-                    "info": "#66 Not using less than 3 units total"
-                },
-                {
-                    "tag": "Fix",
-                    "info": "#80 Krokul troops should be used more rarely"
-                },
-                {
-                    "tag": "Fix",
-                    "info": "#78 Ignore busy follower will be checked by defaults for new installs"
-                },
-                {
-                    "tag": "Fix",
-                    "info": "#86 Added mising equipments"
-                },
-                {
-                    "tag": "Feature",
-                    "info": ""
-                },
-                {
-                    "tag": "Note",
-                    "info": "fixes to errors only appeared during beta testing are not listed"
-                }
-            ]
-        },
         "k010504": {
             "major": "1",
             "minor": "5",
@@ -597,6 +536,89 @@
                 {
                     "tag": "Fix",
                     "info": "Threat icons in missions panel are now consistent with the ones in mission page"
+                }
+            ]
+        },
+        "k010500": {
+            "major": "1",
+            "minor": "5",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Left Clicking a follower will lock him to the mission, so you can see how a mission composition will affect all the other ones"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Right clicking a follower slot forbids using it, so you can force OHC to use less follower for a specific mission. Usable only on the leftmost slot"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Autostart. Mission can be launched whith just one click via the \"Quick start mission button\". The first mission in the list is started."
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Blacklisted missions or missions which are aunder the \"Absolute Minimum Chance\" value are not autolaunched"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can now set a minimum success chance. If bonus chance can not be achieved, than OHC will not fill mission whicn not reach at least this percentage"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can now set a minimum bonus chance. If it's not achieved, than OHC wil not waste forces and will try set the success chance closest to 100 as possible"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "For troops, durability is shown in the mission button icon"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Reorganized troops' related switches"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Never kill troops switch forces OHC to only use troop with more than 1 durability left AND to counter deadly"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You can now choose if OHC prefers low or high durability troops"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Feature"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#68 Initial lag when opening panels should be gone or at least greatly reduced. YMV"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#65 Errors from ACE when rapidly changing sliders"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#66 Not using less than 3 units total"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#80 Krokul troops should be used more rarely"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#78 Ignore busy follower will be checked by defaults for new installs"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "#86 Added mising equipments"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Feature"
+                },
+                {
+                    "tag": "Note",
+                    "info": "fixes to errors only appeared during beta testing are not listed"
                 }
             ]
         },
@@ -850,7 +872,8 @@
         }
     },
     "PARAGRAPHS": [
-        "Description"
+        "Description",
+        "Release Notes"
     ],
     "TITLE": {
         "addon": "me",
