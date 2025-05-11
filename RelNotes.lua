@@ -16,6 +16,9 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:HF_Paragraph('Release Notes')
+self:RelNotes(2,5,2,[[
+Toc: 11.1.5
+]])
 self:RelNotes(2,5,1,[[
 Toc: 11.0.7
 ]])
