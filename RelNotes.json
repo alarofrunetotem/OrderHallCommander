@@ -1,5 +1,28 @@
 {
     "NOTES": {
+        "k020600": {
+            "major": "2",
+            "minor": "6",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "11.2.0"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Removed a glitch when clicking on minimap button"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Added category"
+                },
+                {
+                    "tag": "Internale",
+                    "info": "removed unused parameters"
+                }
+            ]
+        },
         "k020502": {
             "major": "2",
             "minor": "5",
