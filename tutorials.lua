@@ -138,7 +138,7 @@ tutorials={
   },
   {
     text=function()
-        local c,n=C(X["Counter kill Troops"], fcolor),C(X["Never kill Troops"],fcolor),C(addon:GetNumber("MAXCHAMP"),ncolor)
+        local c=C(X["Counter kill Troops"], fcolor)
         return format(L["With %1$s you ask to always counter the Hazard kill troop.\nThis means that OHC will try to counter it OR use a troop with just one durability left.\nThe target for this switch is to avoid wasting durability point, NOT to avoid troops' death."],
         c)
     end,
@@ -406,6 +406,7 @@ end
 function module:Hide(this)
   HelpPlateTooltip.HookedByOHC=nil
   HelpPlateTooltip:SetFrameStrata(platestrata)
+  if (not HelpPlate_TooltipHide) then return end
   HelpPlate_TooltipHide()
   HelpPlateTooltip:SetParent(UIParent)
   Clicker:SetParent(nil)
