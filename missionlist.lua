@@ -1,4 +1,5 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
+--local faction,_,level=GetFactionInfoByID(factionID)
+ __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
 --@debug@
 print('Loaded',__FILE__)
 --@end-debug@
@@ -318,7 +319,9 @@ function module:RewardWarning(this)
 		end
 		local factionID=addon.allReputationGain[this.itemID]
 		if factionID then
-		  local faction,_,level=GetFactionInfoByID(factionID)
+		  local factionData = C_Reputation.GetFactionDataByID(factionID)
+		  local faction = factionData and factionData.name or ""
+		  local level = factionData and factionData.currentStanding or nil
 		  if level then
 		    level=_G['FACTION_STANDING_LABEL' .. level]
 		    tip:AddLine(FACTION_STANDING_CHANGED:format(C(level,"GREEN"),C(faction,"GREEN")),C.Orange())

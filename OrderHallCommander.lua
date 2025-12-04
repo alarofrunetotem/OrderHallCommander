@@ -462,9 +462,19 @@ function MixinFollowerIcon:ShowTooltip()
 		return
 --@end-non-debug@]===]
 	end
-	local link = C_Garrison.GetFollowerLink(self.followerID);
-	if link then
-    local garrisonFollowerID=select(2,strsplit(":", link))
+	-- fix by fuba
+	local garrisonFollowerID = self.followerID
+
+    local link = C_Garrison.GetFollowerLink(self.followerID)
+    if link then
+      local _, dbID, id3 = strsplit(":", link)
+
+      if id3 and id3 ~= "" then
+          garrisonFollowerID = id3
+      elseif dbID and dbID ~= "" then
+          garrisonFollowerID = dbID
+      end
+	  
 	  local data=GarrisonFollowerTooltipTemplate_BuildDefaultDataForID(garrisonFollowerID)
 	  data.levelxp=G.GetFollowerLevelXP(self.followerID)
 		data.xp=G.GetFollowerXP(self.followerID)
