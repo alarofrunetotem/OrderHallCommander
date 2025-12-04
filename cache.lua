@@ -630,8 +630,10 @@ function module:DrawTroopStatus(main)
       frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
       frame:SetScript("OnClick",function(frame) local value=not addon:GetBoolean(frame.key) addon:SetVar(frame.key,value) paintCat(frame) addon:Apply(frame.key,value) end)
       frame.OnEnter=frame:GetScript("OnEnter")
-      frame:SetScript("OnEnter",function(frame)
-        frame:OnEnter()
+      frame:SetScript("OnEnter",function(f)
+        if f.OnEnter then
+          f:OnEnter()
+        end
         if addon:GetBoolean(frame.key) then
           GameTooltip:AddLine(KEY_BUTTON1 .. " " .. C(ENABLE,"green"))
         else
