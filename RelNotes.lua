@@ -16,6 +16,9 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:HF_Paragraph('Release Notes')
+self:RelNotes(2,7,0,[[
+Toc: 11.2.7
+]])
 self:RelNotes(2,6,0,[[
 Toc: 11.2.0
 Fix: Removed a glitch when clicking on minimap button
