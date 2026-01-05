@@ -121,9 +121,6 @@ end
 
 function module:GenerateMissionCompleteList(title,anchor)
 	local w=AceGUI:Create("OHCMissionsList")
---@debug@
-	title=format("%s %s %s",title,w.frame:GetName(),GetTime()*1000)
---@end-debug@
 	w:SetTitle(title)
 	w:SetCallback("OnClose",function(widget) return module:MissionsCleanup() end)
 	--report:SetPoint("TOPLEFT",GMFMissions.CompleteDialog.BorderFrame)
@@ -135,6 +132,7 @@ function module:GenerateMissionCompleteList(title,anchor)
   w:SetPoint("RIGHT",anchor,2,0)
 	w:SetWidth(700)
 	w:SetParent(anchor)
+---@diagnostic disable-next-line: invisible
 	w.frame:SetFrameStrata("HIGH")
 	return w
 end
