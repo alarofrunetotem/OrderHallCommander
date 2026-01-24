@@ -50,6 +50,7 @@ embeds.xml
 forcelocale.lua
 #@end-do-not-package@
 localization.lua
+Legacy.xml
 OrderHallCommander.xml
 core.lua
 autocomplete.lua
