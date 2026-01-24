@@ -104,8 +104,8 @@ end
 local BFAMissionFrame=BFAMissionFrame
 local tutorialVersion=1
 local OHFButtons=OHFMissions.ScrollBox
-local HelpPlate_TooltipHide=HelpPlate_TooltipHide
-local HelpPlateTooltip=HelpPlateTooltip
+local HelpPlate_TooltipHide=_G.HelpPlate_TooltipHide
+local HelpPlateTooltip=_G.HelpPlateTooltip
 local platestrata = HelpPlateTooltip:GetFrameStrata()
 -- Uses X for key already present i standard file
 local X=L
@@ -488,7 +488,7 @@ function module:OnInitialized()
   if type(addon.db.global.warn03_seen)~="number" then addon.db.global.warn03_seen =0 end
   if addon.db.global.warn03_seen < 3 then
     addon.db.global.warn03_seen = addon.db.global.warn03_seen +1
-    local status,reason=select(4,GetAddOnInfo("ChampionCommander"))
+    local status,reason=select(4,C_AddOns.GetAddOnInfo("ChampionCommander"))
     if not status and reason ~="DEMAND_LOADED" then
       self:SecureHookScript(BFAMissionFrame,"OnShow","AdvertiseCC")
     end
