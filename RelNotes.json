@@ -1,5 +1,24 @@
 {
     "NOTES": {
+        "k020800": {
+            "major": "2",
+            "minor": "8",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Add OrderHallClassSpecCategory with tooltip functionality and XML layout"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Fix follower tooltip functionality by updating garrisonFollowerID extraction"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Added Legacy files for removed Bizzard objects"
+                }
+            ]
+        },
         "k020700": {
             "major": "2",
             "minor": "7",
