@@ -1,0 +1,33 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Legacy.lua"/>
+	<Frame name="OrderHallClassSpecCategoryTemplate" parentArray="TroopSummary" virtual="true" mixin="OrderHallClassSpecCategory">
+		<Size x="80" y="23"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon">
+					<Size x="46" y="23"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="5" y="1"/>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" justifyH="LEFT" parentKey="Count">
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeKey="$parent.Icon" x="5" y="1"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="TroopPortraitCover" atlas="orderhall-commandbar-iconmask" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="CENTER" relativePoint="CENTER" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Frame>
+</Ui>
