@@ -16,6 +16,11 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:HF_Paragraph('Release Notes')
+self:RelNotes(2,8,0,[[
+Fix: Add OrderHallClassSpecCategory with tooltip functionality and XML layout
+Fix: Fix follower tooltip functionality by updating garrisonFollowerID extraction
+Fix: Added Legacy files for removed Bizzard objects
+]])
 self:RelNotes(2,7,0,[[
 Toc: 11.2.7
 ]])
