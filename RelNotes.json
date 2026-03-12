@@ -1,5 +1,16 @@
 {
     "NOTES": {
+        "k021000": {
+            "major": "2",
+            "minor": "10",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "lua error in tutorials.lua"
+                }
+            ]
+        },
         "k020900": {
             "major": "2",
             "minor": "9",
