@@ -1,5 +1,16 @@
 {
     "NOTES": {
+        "k021001": {
+            "major": "2",
+            "minor": "10",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "tutorial was not hiding on OHC closing"
+                }
+            ]
+        },
         "k021000": {
             "major": "2",
             "minor": "10",

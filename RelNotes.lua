@@ -16,6 +16,9 @@ self:Wiki([[
 typing /ohc silent in chat will eliminate every chat message from OrderHallCommander
 ]])
 self:HF_Paragraph('Release Notes')
+self:RelNotes(2,10,1,[[
+Fix: tutorial was not hiding on OHC closing
+]])
 self:RelNotes(2,10,0,[[
 Fix: lua error in tutorials.lua
 ]])
