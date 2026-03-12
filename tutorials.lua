@@ -104,8 +104,7 @@ end
 local BFAMissionFrame=BFAMissionFrame
 local tutorialVersion=1
 local OHFButtons=OHFMissions.ScrollBox
-local HelpPlate_TooltipHide=_G.HelpPlate_TooltipHide
-local HelpPlateTooltip=_G.HelpPlateTooltip
+local HelpPlateTooltip=_G.OHCHelpPlateTooltip
 local platestrata = HelpPlateTooltip:GetFrameStrata()
 -- Uses X for key already present i standard file
 local X=L
@@ -143,7 +142,7 @@ tutorials={
         c)
     end,
     parent=function() return module:GetMenuItem("SAVETROOPS") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=function()
@@ -152,7 +151,7 @@ tutorials={
         c,n,x)
     end,
     parent=function() return module:GetMenuItem("NEVERKILLTROOPS") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=function()
@@ -161,7 +160,7 @@ tutorials={
         c)
     end,
     parent=function() return module:GetMenuItem("PREFERHIGH") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=function()
@@ -170,7 +169,7 @@ tutorials={
         c,g,n)
     end,
     parent=function() return module:GetMenuItem("MAXCHAMP") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=function()
@@ -179,7 +178,7 @@ tutorials={
         g,b,ng,nb)
     end,
     parent=function() return module:GetMenuItem("BONUSCHANCE"), module:GetMenuItem("BASECHANCE") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=function()
@@ -188,7 +187,7 @@ tutorials={
         g,b)
     end,
     parent=function() return module:GetMenuItem("BONUSCHANCE"), module:GetMenuItem("BASECHANCE") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=function()
@@ -197,7 +196,7 @@ tutorials={
         g,b)
     end,
     parent=function() return module:GetMenuItem("BONUSCHANCE") , module:GetMenuItem("BASECHANCE") end,
-    anchor="LEFT"
+    anchor="RIGHT"
   },
   {
     text=L["Equipment and upgrades are listed here as clickable buttons.\nDue to an issue with Blizzard Taint system, drag and drop from bags raise an error.\nif you drag and drop an item from a bag, you receive an error.\nIn order to assign equipments which are not listed (I update the list often but sometimes Blizzard is faster), you can right click the item in the bag and the left click the follower.\nThis way you dont receive any error"],
@@ -315,28 +314,28 @@ local function plate(self,tutorial)
     local a1=callOrUse(tutorial.anchor)
     local o,o2=callOrUse(tutorial.parent)
     self:Hide()
-    local arrow="ArrowRIGHT"
-    local glow="ArrowGlowRIGHT"
+    local arrow="ArrowRight"
+    local glow="ArrowGlowRight"
     local x=20
     local y=0
     local a2="RIGHT"
     if not o then a1="CENTER" end
     if a1=="RIGHT" then
       a2="LEFT"
-      arrow="ArrowLEFT"
-      glow="ArrowGlowLEFT"
+      arrow="ArrowLeft"
+      glow="ArrowGlowLeft"
       x=-20
       y=0
     elseif a1 =="BOTTOM" then
       a2="TOP"
-      arrow="ArrowUP"
-      glow="ArrowGlowUP"
+      arrow="ArrowUp"
+      glow="ArrowGlowUp"
       x= 0
       y=20
     elseif a1 =="TOP" then
       a2="BOTTOM"
-      arrow="ArrowDOWN"
-      glow="ArrowGlowDOWN"
+      arrow="ArrowDown"
+      glow="ArrowGlowDown"
       x= 0
       y= -20
     elseif a1 == "CENTER" then
@@ -347,7 +346,6 @@ local function plate(self,tutorial)
       y=0
     end
     platestrata=HelpPlateTooltip:GetFrameStrata()
-    HelpPlateTooltip.HookedByOHC=true
     if arrow then HelpPlateTooltip[arrow]:Show() end
     if glow then HelpPlateTooltip[glow]:Show() end
     HelpPlateTooltip:SetPoint(a1, o or OHF, a2, x, y)
@@ -389,25 +387,21 @@ local function plate(self,tutorial)
     text=tutorial
   end
   HelpPlateTooltip.Text:SetText(C(me .. ' ' .. addon.version,'Green') .. "\n" .. text .. "\n\n" )
+  HelpPlateTooltip:SetHeight(HelpPlateTooltip.Text:GetHeight() + 40)
   HelpPlateTooltip:Show()
   return rc
   --HelpPlateTooltip:SetScript("OnMouseDown",function(this) this:SetScript("OnMouseDown",this.oldClick) HelpPlate_TooltipHide() end)
 end
 function module:Refresh()
-  if HelpPlateTooltip.HookedByOHC then
-    local tutorial=tutorials[currentTutorialIndex]
-    if tutorial then
-      local text = type(tutorial.text)=="function" and tutorial.text() or tutorial.text
-      plate(self,text)
-      return
-    end
+  local tutorial=tutorials[currentTutorialIndex]
+  if tutorial then
+    local text = type(tutorial.text)=="function" and tutorial.text() or tutorial.text
+    plate(self,text)
+    return
   end
 end
 function module:Hide(this)
-  HelpPlateTooltip.HookedByOHC=nil
   HelpPlateTooltip:SetFrameStrata(platestrata)
-  if (not HelpPlate_TooltipHide) then return end
-  HelpPlate_TooltipHide()
   HelpPlateTooltip:SetParent(UIParent)
   Clicker:SetParent(nil)
   Clicker:Hide()
@@ -433,7 +427,6 @@ function addon:NeedsTutorial()
   end
 end
 function module:Show(opening)
-  HelpPlateTooltip.HookedByOHC=nil
   if not currentTutorialIndex then currentTutorialIndex=addon.db.global.tutorialStep or 1 end
   local tutorial=tutorials[currentTutorialIndex]
   addon.db.global.tutorialStep=currentTutorialIndex
@@ -470,13 +463,15 @@ function module:Terminate()
 end
 function module:OnInitialized()
   if not Clicker then
-    Clicker=CreateFrame("Frame",nil,nil,"OHCNavigator")
-    Clicker:SetParent(HelpPlateTooltip)
+    Clicker=CreateFrame("Frame","OHCTutorial",HelpPlateTooltip,"OHCNavigator")
+    -- Clicker=CreateFrame("Frame",nil,nil,"OHCNavigator")
+    -- Clicker:SetParent(HelpPlateTooltip)
     Clicker:SetAllPoints()
     self:RawHookScript(Clicker.Forward,"OnClick","Forward")
     self:RawHookScript(Clicker.Backward,"OnClick","Backward")
     self:RawHookScript(Clicker.Close,"OnClick","Hide")
     self:RawHookScript(Clicker.Home,"OnClick","Home")
+
     Clicker.Home.tooltip=L["Restart the tutorial"]
     Clicker.Close.tooltip=L["Terminate the tutorial. You can resume it anytime clicking on the info icon in the side menu"]
   end
@@ -484,37 +479,7 @@ function module:OnInitialized()
     Enhancer = CreateFrame("Frame",nil,nil,"GlowBoxTemplate")
   end
   self:Hide()
-  local dt=C_DateAndTime.GetCurrentCalendarTime()
-  if type(addon.db.global.warn03_seen)~="number" then addon.db.global.warn03_seen =0 end
-  if addon.db.global.warn03_seen < 3 then
-    addon.db.global.warn03_seen = addon.db.global.warn03_seen +1
-    local status,reason=select(4,C_AddOns.GetAddOnInfo("ChampionCommander"))
-    if not status and reason ~="DEMAND_LOADED" then
-      self:SecureHookScript(BFAMissionFrame,"OnShow","AdvertiseCC")
-    end
-  end
 end
 function module:GetMenuItem(flag)
   return addon:GetMissionlistModule():GetMenuItem(flag)
 end
-function module:AdvertiseCC()
-  local a1 ="CENTER"
-  local a2="CENTER"
-  local arrow="ArrowLEFT"
-  local glow="ArrowGlowLEFT"
-  local x= 0
-  local y= 0
-  local o=BFAMissionFrame
-  --module:Hide()
-  --if arrow then HelpPlateTooltip[arrow]:Show() end
-  --if glow then HelpPlateTooltip[glow]:Show() end
-  HelpPlateTooltip:SetPoint(a1, o, a2, x, y)
-  HelpPlateTooltip:SetParent(o)
-  HelpPlateTooltip:SetFrameStrata("TOOLTIP")
-  HelpPlateTooltip.Text:SetText("OrderHallCommander has no support for Battle For Azerorth missions\nYou can install\n" .. C("ChampionCommander","Green") .. "\n for them")
-  HelpPlateTooltip.Text:SetJustifyH("CENTER")
-  HelpPlateTooltip:Show()
-  HelpPlateTooltip.LingerAndFade:Play()
-  self:Unhook(BFAMissionFrame,"OnShow")
-end
-
