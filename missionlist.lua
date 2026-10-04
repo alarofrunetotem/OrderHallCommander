@@ -318,7 +318,16 @@ function module:RewardWarning(this)
 		end
 		local factionID=addon.allReputationGain[this.itemID]
 		if factionID then
-		  local faction,_,level=GetFactionInfoByID(factionID)
+		  local faction, level, _
+		  if C_Reputation and C_Reputation.GetFactionDataByID then
+		    local factionData=C_Reputation.GetFactionDataByID(factionID)
+		    if factionData then
+		      faction=factionData.name
+		      level=factionData.reaction
+		    end
+		  elseif GetFactionInfoByID then
+		    faction,_,level=GetFactionInfoByID(factionID)
+		  end
 		  if level then
 		    level=_G['FACTION_STANDING_LABEL' .. level]
 		    tip:AddLine(FACTION_STANDING_CHANGED:format(C(level,"GREEN"),C(faction,"GREEN")),C.Orange())
