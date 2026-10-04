@@ -42,9 +42,9 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-<!--@debug@-->
+<!--@debug@
 			<OnEnter method="Dump"/>
-<!--@end-debug@-->
+@end-debug@-->
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
@@ -68,11 +68,11 @@
 		</Layers>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
-<!--@debug@-->
+<!--@debug@
 			<OnEnter>
 				self:Dump(self:GetParent())
 			</OnEnter>
-<!--@end-debug@-->
+@end-debug@-->
 			<OnLeave method="HideTT"/>
 		</Scripts>
 	</Frame>
@@ -103,7 +103,31 @@
 			<OnShow method="OnShow"/>
 		</Scripts>
 	</Frame>
-	<Frame name="OHCTroop" enableMouse="true" inherits="OrderHallClassSpecCategoryTemplate" virtual="true" />
+	<Frame name="OHCTroop" enableMouse="true" virtual="true">
+	  <Size x="80" y="23"/>
+	  <Layers>
+		<Layer level="ARTWORK">
+		  <Texture parentKey="Icon">
+			<Size x="46" y="23"/>
+			<Anchors>
+			  <Anchor point="BOTTOMLEFT" x="5" y="1"/>
+			</Anchors>
+		  </Texture>
+		  <FontString inherits="GameFontNormal" justifyH="LEFT" parentKey="Count">
+			<Anchors>
+			  <Anchor point="LEFT" relativePoint="RIGHT" relativeKey="$parent.Icon" x="5" y="1"/>
+			</Anchors>
+		  </FontString>
+		</Layer>
+		<Layer level="OVERLAY">
+		  <Texture parentKey="TroopPortraitCover" atlas="orderhall-commandbar-iconmask" useAtlasSize="true">
+			<Anchors>
+			  <Anchor point="CENTER" relativePoint="CENTER" relativeKey="$parent.Icon"/>
+			</Anchors>
+		  </Texture>
+		</Layer>
+	  </Layers>
+	</Frame>
 	<Frame name="OHCFollowerIcon" mixin="OrderHallCommanderMixin,OrderHallCommanderMixinFollowerIcon" enableMouse="true" inherits="GarrisonFollowerPortraitTemplate" virtual="true" >
 		<Size x="52" y="60"/>
 		<Scripts>
@@ -319,7 +343,7 @@
 			<OnLoad method="OnLoad"/>
 			<OnHide method="OnHide"/>
 		</Scripts> -->
-	</Frame>		
+	</Frame>
 	<Frame name="OHCNavigator" mixin="OrderHallCommanderMixinTooltip" virtual="true">
 		<Size x="200" y="30"/>
 		<Frames>
