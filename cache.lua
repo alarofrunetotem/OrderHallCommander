@@ -1,7 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
---@debug@
+--[==[@debug@
 print('Loaded',__FILE__)
---@end-debug@
+--@end-debug@]==]
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE module
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -58,7 +58,7 @@ local HideTT=OrderHallCommanderMixin.HideTT
 
 local dprint=print
 local ddump
---@debug@
+--[==[@debug@
 C_AddOns.LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 C_AddOns.LoadAddOn("LibDebug")
@@ -66,12 +66,12 @@ C_AddOns.LoadAddOn("LibDebug")
 if LibDebug then LibDebug() dprint=print end
 local safeG=addon.safeG
 
---@end-debug@
---[===[@non-debug@
+--@end-debug@]==]
+--@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
---@end-non-debug@]===]
+--@end-non-debug@
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -231,7 +231,7 @@ function module:BuildMission(missionID,followerID)
 		end
 	end
 end
---@debug@
+--[==[@debug@
 function module:GetFollower(key)
 	if (key:sub(1,2)=='0x') then
 		key="0x" .. ("0000000000000000" ..key:sub(3)):sub(-16)
@@ -243,7 +243,7 @@ function module:GetFollower(key)
 		end
 	end
 end
---@end-debug@
+--@end-debug@]==]
 local indexes={followers={},missions={}}
 local followerCache={}
 local followerCacheUpdate=GetTime()
@@ -630,8 +630,8 @@ function module:DrawTroopStatus(main)
       frame:SetScript("OnDragStop",function(frame) OHF:StopMovingOrSizing() end)
       frame:SetScript("OnClick",function(frame) local value=not addon:GetBoolean(frame.key) addon:SetVar(frame.key,value) paintCat(frame) addon:Apply(frame.key,value) end)
       frame.OnEnter=frame:GetScript("OnEnter")
-      frame:SetScript("OnEnter",function(frame)
-        frame:OnEnter()
+      frame:SetScript("OnEnter",function(f)
+        if f.OnEnter then f:OnEnter() end -- fix by fuba
         if addon:GetBoolean(frame.key) then
           GameTooltip:AddLine(KEY_BUTTON1 .. " " .. C(ENABLE,"green"))
         else
@@ -701,7 +701,9 @@ function module:GARRISON_LANDINGPAGE_SHIPMENTS()
 end
 function module:Refresh(event,...)
 	if (event == "CURRENCY_DISPLAY_UPDATE") then
-		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
+		if currency then -- fix by fuba
+			resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
+		end
 		return
 	elseif event=="GARRISON_FOLLOWER_REMOVED" or
 			event=="GARRISON_FOLLOWER_ADDED" then
@@ -714,12 +716,14 @@ function module:Refresh(event,...)
 	end
 end
 function module:OnInitialized()
-	  C_AddOns.LoadAddOn("Blizzard_OrderHallUI")
+	C_AddOns.LoadAddOn("Blizzard_OrderHallUI")
 	currency, _ = C_Garrison.GetCurrencyTypes(garrisonType);
-	currencyName, resources, currencyTexture = addon:GetCurrencyInfo(currency)
---@debug@
+	if currency then -- fix by fuba
+		currencyName, resources, currencyTexture = addon:GetCurrencyInfo(currency)
+--[==[@debug@
 	print("Currency init",currencyName, resources, currencyTexture)
---@end-debug@
+--@end-debug@]==]
+	end
 	addon.resourceFormat=COSTS_LABEL .." %d"
 	self:ParseFollowers()
 end
@@ -742,7 +746,7 @@ end
 ---- Public Interface
 --
 function addon:GetResources(refresh)
-	if refresh then
+	if refresh and currency then -- fix by fuba
 		resources = C_CurrencyInfo.GetCurrencyInfo(currency)['quantity']
 	end
 	return resources,currencyName,currencyTexture
@@ -753,9 +757,9 @@ end
 function addon:RefreshFollowers()
 	followerCache=G.GetFollowers(followerType)
 	rebuildFollowerIndex()
---@debug@
+--[==[@debug@
 	print("Followeres refreshed:",#followerCache)
---@end-debug@
+--@end-debug@]==]
 end
 function addon:GetFollowerData(...)
 	return module:GetFollowerData(...)
@@ -885,9 +889,9 @@ function addon:GetFullPermutations(dowipe)
 			end
 		end
 		table.sort(all) -- We need champions first and a predictable order
---@debug@
+--[==[@debug@
 		for x=1,1 do
---@end-debug@
+--@end-debug@]==]
 		for i=1,#all do
 			local class,id,value=strsplit('|',all[i])
 			if class=="T" then -- champions ended, troops only parties are invalid
@@ -911,9 +915,9 @@ function addon:GetFullPermutations(dowipe)
 				end
 			end
 		end
---@debug@
+--[==[@debug@
 		end
---@end-debug@
+--@end-debug@]==]
 		table.sort(fullPermutations)
 		del(all)
 		del(seen)
@@ -958,9 +962,9 @@ function addon:RefreshFollowerStatus()
 	wipe(s)
 	local followers=module:GetFollowerData()
 	if type(followers)~="table" then
-	--@debug@
+	--[==[@debug@
 		print("GetFollowerData returned",followers)
-	--@end-debug@
+	--@end-debug@]==]
 		return
 	end
 	for i=1,#followers do

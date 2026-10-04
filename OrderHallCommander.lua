@@ -1,7 +1,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file, must be 1
---@debug@
+--[==[@debug@
 print('Loaded',__FILE__)
---@end-debug@
+--@end-debug@]==]
 local function pp(...) print(GetTime(),"|cff009900",__FILE__:sub(-15),strjoin(",",tostringall(...)),"|r") end
 --*TYPE addon
 --*CONFIG noswitch=false,profile=true,enhancedProfile=true
@@ -53,7 +53,7 @@ local FAKE_FOLLOWERID="0x0000000000000000"
 local MAX_LEVEL=110
 local dprint=print
 local ddump
---@debug@
+--[==[@debug@
 C_AddOns.LoadAddOn("Blizzard_DebugTools")
 ddump=DevTools_Dump
 C_AddOns.LoadAddOn("LibDebug")
@@ -77,12 +77,12 @@ addon.safeG=setmetatable({},{
 	end
 })
 
---@end-debug@
---[===[@non-debug@
+--@end-debug@]==]
+--@non-debug@
 dprint=function() end
 ddump=function() end
 local print=function() end
---@end-non-debug@]===]
+--@end-non-debug@
 local GARRISON_FOLLOWER_COMBAT_ALLY=GARRISON_FOLLOWER_COMBAT_ALLY
 local GARRISON_FOLLOWER_ON_MISSION=GARRISON_FOLLOWER_ON_MISSION
 local GARRISON_FOLLOWER_INACTIVE=GARRISON_FOLLOWER_INACTIVE
@@ -114,9 +114,9 @@ end
 --*BEGIN
 
 -- It's here because localization gets not sync'd
---@debug@
+--[==[@debug@
 _G.GAME_LOCALE="itIT"
---@end-debug@
+--@end-debug@]==]
 
 -- Dependency check
 
@@ -455,16 +455,26 @@ function MixinFollowerIcon:ShowTooltip()
 	local missionID=mission.missionID
 	gft = mission.inProgress and GarrisonFollowerTooltip or OHCFollowerTip
 	if not self.followerID then
---@debug@
+--[==[@debug@
 		return self:Dump()
---@end-debug@
---[===[@non-debug@
+--@end-debug@]==]
+--@non-debug@
 		return
---@end-non-debug@]===]
+--@end-non-debug@
 	end
-	local link = C_Garrison.GetFollowerLink(self.followerID);
-	if link then
-      local garrisonFollowerID=select(3,strsplit(":", link))
+
+	  -- fix by fuba
+	local garrisonFollowerID = self.followerID
+    local link = C_Garrison.GetFollowerLink(self.followerID)
+    if link then
+      local _, dbID, id3 = strsplit(":", link)
+
+      if id3 and id3 ~= "" then
+          garrisonFollowerID = id3
+      elseif dbID and dbID ~= "" then
+          garrisonFollowerID = dbID
+      end
+
 	  local data=GarrisonFollowerTooltipTemplate_BuildDefaultDataForID(garrisonFollowerID)
 	  data.levelxp=G.GetFollowerLevelXP(self.followerID)
 		data.xp=G.GetFollowerXP(self.followerID)
@@ -490,10 +500,10 @@ function MixinFollowerIcon:ShowTooltip()
 		self.AddLine(gft,SHIFT_KEY_TEXT .. "  " .. KEY_BUTTON1 .. ' : ' .. L['Lock all'])
 		self.AddLine(gft,SHIFT_KEY_TEXT .. "  " .. KEY_BUTTON2 .. ' : ' .. L['Unlock all'])
 		self.AddLine(gft,C(L["Locked follower are only used in this mission"],"CYAN"))
---@debug@
+--[==[@debug@
 		self.AddLine(gft,tostring(self.followerID))
 		self.AddLine(gft,tostring(addon:GetFollowerData(self.followerID,'classSpec')))
---@end-debug@
+--@end-debug@]==]
 		if not gft.Status then
 			gft.Status=gft:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 			gft.Status:SetPoint("BOTTOM",0,5)
